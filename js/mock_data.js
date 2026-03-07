@@ -215,9 +215,9 @@ const BATCHES = [
 ];
 
 const QA_HISTORY = [
-  { lot: 'HP-231015', product: 'Hapacol 650mg', date: '01/10/2023', inspector: 'DS. Nguyễn Thị Lan', result: 'ĐẠT', status: 'RELEASED' },
-  { lot: 'VT-231201', product: 'Vitamin C 1000mg', date: '05/10/2023', inspector: 'Lê Thị Bích Ngọc', result: 'ĐẠT', status: 'RELEASED' },
-  { lot: 'PX-230901', product: 'Paracetamol 500mg', date: '08/09/2023', inspector: 'DS. Nguyễn Thị Lan', result: 'KHÔNG ĐẠT', status: 'REJECT' },
+  { Batchcode: 'HP-231015', ProductName: 'Hapacol 650mg', QC_Date: '01/10/2023', UserID: 'DS. Nguyễn Thị Lan', Result: 'ĐẠT', Status: 'RELEASED' },
+  { Batchcode: 'VT-231201', ProductName: 'Vitamin C 1000mg', QC_Date: '05/10/2023', UserID: 'Lê Thị Bích Ngọc', Result: 'ĐẠT', Status: 'RELEASED' },
+  { Batchcode: 'PX-230901', ProductName: 'Paracetamol 500mg', QC_Date: '08/09/2023', UserID: 'DS. Nguyễn Thị Lan', Result: 'KHÔNG ĐẠT', Status: 'REJECT' },
 ];
 
 // ============================================================
@@ -227,7 +227,7 @@ const QA_HISTORY = [
 const PURCHASE_ORDERS = [
   {
     PO_ID: 'PO-2023-0891', SupplierID: 'Pfizer Vietnam Ltd.', supplierCode: 'PF', supplierColor: 'blue',
-    expectedDate: '25/10/2023', items: 2, received: 7, total: 12, status: 'PARTIAL', urgency: 'NORMAL',
+    expectedDate: '25/10/2023', items: 2, received: 7, total: 12, Status: 'PARTIAL', urgency: 'NORMAL',
     itemsDetails: [
       { ProductID: 'SKU-PFIZ-01', OrderedQty: 10 },
       { ProductID: 'SKU-INSU-05', OrderedQty: 2 }
@@ -235,33 +235,33 @@ const PURCHASE_ORDERS = [
   },
   {
     PO_ID: 'PO-2023-0892', SupplierID: 'Dược Hậu Giang (DHG)', supplierCode: 'DH', supplierColor: 'green',
-    expectedDate: '26/10/2023', items: 1, received: 0, total: 5, status: 'PENDING', urgency: 'NORMAL',
+    expectedDate: '26/10/2023', items: 1, received: 0, total: 5, Status: 'PENDING', urgency: 'NORMAL',
     itemsDetails: [
       { ProductID: 'SKU-HAPA-02', OrderedQty: 5 }
     ]
   },
   {
     PO_ID: 'PO-2023-0885', SupplierID: 'AstraZeneca VN', supplierCode: 'AZ', supplierColor: 'purple',
-    expectedDate: '22/10/2023', items: 1, received: 8, total: 8, status: 'COMPLETED', urgency: 'NORMAL',
+    expectedDate: '22/10/2023', items: 1, received: 8, total: 8, Status: 'COMPLETED', urgency: 'NORMAL',
     itemsDetails: [
       { ProductID: 'SKU-AZIT-03', OrderedQty: 8 }
     ]
   },
   {
     PO_ID: 'PO-2023-0880', SupplierID: 'Sanofi-Aventis', supplierCode: 'SN', supplierColor: 'red',
-    expectedDate: '20/10/2023', items: 1, received: 0, total: 2, status: 'CANCELLED', urgency: 'NORMAL',
+    expectedDate: '20/10/2023', items: 1, received: 0, total: 2, Status: 'CANCELLED', urgency: 'NORMAL',
     itemsDetails: [
       { ProductID: 'SKU-VITA-04', OrderedQty: 2 }
     ]
   },
   {
     PO_ID: 'PO-2023-0901', SupplierID: 'Merck Sharp & Dohme', supplierCode: 'MS', supplierColor: 'teal',
-    expectedDate: '01/11/2023', items: 2, received: 0, total: 50, status: 'PENDING', urgency: 'URGENT',
+    expectedDate: '01/11/2023', items: 2, received: 0, total: 50, Status: 'PENDING', urgency: 'URGENT',
     itemsDetails: [{ ProductID: 'SKU-INSU-05', OrderedQty: 50 }]
   },
   {
     PO_ID: 'PO-2023-0905', SupplierID: 'GSK Vietnam', supplierCode: 'GS', supplierColor: 'orange',
-    expectedDate: '05/11/2023', items: 1, received: 0, total: 200, status: 'PENDING', urgency: 'NORMAL',
+    expectedDate: '05/11/2023', items: 1, received: 0, total: 200, Status: 'PENDING', urgency: 'NORMAL',
     itemsDetails: [{ ProductID: 'SKU-AZIT-03', OrderedQty: 200 }]
   },
 ];
@@ -271,14 +271,14 @@ const PURCHASE_ORDERS = [
 // ============================================================
 
 const COMPLAINTS = [
-  { id: 'CPL-001', poId: 'PO-2023-0882', supplier: 'Pfizer Vietnam Ltd.', type: 'Thiếu hàng (Quantity Shortage)', item: 'Hapacol 650mg', qty: 12, desc: 'Giao thiếu 12 hộp so với hóa đơn', request: 'Đổi hàng mới', date: '15/09/2023', status: 'Đã xử lý', color: 'green' },
-  { id: 'CPL-002', poId: 'PO-2023-0876', supplier: 'Dược Hậu Giang (DHG)', type: 'Lỗi chất lượng / CoA không đạt', item: 'Azithromycin 250mg', qty: 50, desc: 'CoA không khớp với lô hàng nhận', request: 'Hoàn tiền', date: '02/10/2023', status: 'Đang xử lý', color: 'amber' },
+  { id: 'CPL-001', PO_ID: 'PO-2023-0882', supplier: 'Pfizer Vietnam Ltd.', type: 'Thiếu hàng (Quantity Shortage)', item: 'Hapacol 650mg', qty: 12, desc: 'Giao thiếu 12 hộp so với hóa đơn', request: 'Đổi hàng mới', date: '15/09/2023', Status: 'Đã xử lý', color: 'green' },
+  { id: 'CPL-002', PO_ID: 'PO-2023-0876', supplier: 'Dược Hậu Giang (DHG)', type: 'Lỗi chất lượng / CoA không đạt', item: 'Azithromycin 250mg', qty: 50, desc: 'CoA không khớp với lô hàng nhận', request: 'Hoàn tiền', date: '02/10/2023', Status: 'Đang xử lý', color: 'amber' },
 ];
 
 const SALES_ORDERS = [
   {
     SO_ID: 'SO-20231024-001', CustomerID: 'Hệ thống Nhà thuốc Pharmacity', region: 'TP.HCM',
-    OrderDate: '24/10/2023', deadline: '25/10/2023 08:00', priority: 'URGENT', status: 'PICKING', progress: '0/2 SKU', progressPct: 0,
+    OrderDate: '24/10/2023', deadline: '25/10/2023 08:00', priority: 'URGENT', Status: 'PICKING', progress: '0/2 SKU', progressPct: 0,
     itemsDetails: [
       { ProductID: 'SKU-PFIZ-01', OrderedQty: 100, UnitPrice: 320000 },
       { ProductID: 'SKU-HAPA-02', OrderedQty: 200, UnitPrice: 45000 }
@@ -286,7 +286,7 @@ const SALES_ORDERS = [
   },
   {
     SO_ID: 'SO-20231025-002', CustomerID: 'Bệnh viện Đa khoa Tâm Anh', region: 'Hà Nội',
-    OrderDate: '25/10/2023', deadline: '26/10/2023 10:00', priority: 'URGENT', status: 'PICKING', progress: '0/3 SKU', progressPct: 0,
+    OrderDate: '25/10/2023', deadline: '26/10/2023 10:00', priority: 'URGENT', Status: 'PICKING', progress: '0/3 SKU', progressPct: 0,
     itemsDetails: [
       { ProductID: 'SKU-PFIZ-01', OrderedQty: 50, UnitPrice: 320000 },
       { ProductID: 'SKU-INSU-05', OrderedQty: 30, UnitPrice: 750000 },
@@ -295,7 +295,7 @@ const SALES_ORDERS = [
   },
   {
     SO_ID: 'SO-20231025-003', CustomerID: 'Chuỗi Nhà thuốc An Khang', region: 'Cần Thơ',
-    OrderDate: '25/10/2023', deadline: '27/10/2023 14:00', priority: 'NORMAL', status: 'PICKING', progress: '0/2 SKU', progressPct: 0,
+    OrderDate: '25/10/2023', deadline: '27/10/2023 14:00', priority: 'NORMAL', Status: 'PICKING', progress: '0/2 SKU', progressPct: 0,
     itemsDetails: [
       { ProductID: 'SKU-HAPA-02', OrderedQty: 500, UnitPrice: 45000 },
       { ProductID: 'SKU-VITA-04', OrderedQty: 300, UnitPrice: 120000 }
@@ -303,7 +303,7 @@ const SALES_ORDERS = [
   },
   {
     SO_ID: 'SO-20231024-005', CustomerID: 'Nhà thuốc Long Châu #12', region: 'Bình Dương',
-    OrderDate: '24/10/2023', deadline: '25/10/2023 15:00', priority: 'NORMAL', status: 'IN_PROGRESS', progress: '1/2 SKU', progressPct: 50,
+    OrderDate: '24/10/2023', deadline: '25/10/2023 15:00', priority: 'NORMAL', Status: 'IN_PROGRESS', progress: '1/2 SKU', progressPct: 50,
     itemsDetails: [
       { ProductID: 'SKU-AZIT-03', OrderedQty: 50, UnitPrice: 85000 },
       { ProductID: 'SKU-VITA-04', OrderedQty: 100, UnitPrice: 120000 }
@@ -311,26 +311,26 @@ const SALES_ORDERS = [
   },
   {
     SO_ID: 'SO-20231023-098', CustomerID: 'Bệnh viện Chợ Rẫy', region: 'TP.HCM',
-    OrderDate: '23/10/2023', deadline: '24/10/2023 10:00', priority: 'URGENT', status: 'PACKING', progress: 'Lấy hàng hoàn tất', progressPct: 90,
+    OrderDate: '23/10/2023', deadline: '24/10/2023 10:00', priority: 'URGENT', Status: 'PACKING', progress: 'Lấy hàng hoàn tất', progressPct: 90,
     itemsDetails: [
       { ProductID: 'SKU-INSU-05', OrderedQty: 20, UnitPrice: 750000 }
     ]
   },
   {
     SO_ID: 'SO-20231023-085', CustomerID: 'Nhà thuốc An Khang Hà Nội', region: 'Hà Nội',
-    OrderDate: '23/10/2023', deadline: '26/10/2023 10:00', priority: 'NORMAL', status: 'COMPLETED', progress: 'Hoàn thành', progressPct: 100,
+    OrderDate: '23/10/2023', deadline: '26/10/2023 10:00', priority: 'NORMAL', Status: 'COMPLETED', progress: 'Hoàn thành', progressPct: 100,
     itemsDetails: [
       { ProductID: 'SKU-VITA-04', OrderedQty: 50, UnitPrice: 120000 }
     ]
   },
   {
     SO_ID: 'SO-20231026-001', CustomerID: 'Phòng khám Đa khoa Thu Cúc', region: 'Hà Nội',
-    OrderDate: '26/10/2023', deadline: '27/10/2023 09:00', priority: 'NORMAL', status: 'PICKING', progress: '0/1 SKU', progressPct: 0,
+    OrderDate: '26/10/2023', deadline: '27/10/2023 09:00', priority: 'NORMAL', Status: 'PICKING', progress: '0/1 SKU', progressPct: 0,
     itemsDetails: [{ ProductID: 'SKU-HAPA-02', OrderedQty: 100, UnitPrice: 45000 }]
   },
   {
     SO_ID: 'SO-20231026-002', CustomerID: 'Hệ thống Pharmacity Miền Bắc', region: 'Bắc Ninh',
-    OrderDate: '26/10/2023', deadline: '28/10/2023 15:00', priority: 'NORMAL', status: 'PICKING', progress: '0/2 SKU', progressPct: 0,
+    OrderDate: '26/10/2023', deadline: '28/10/2023 15:00', priority: 'NORMAL', Status: 'PICKING', progress: '0/2 SKU', progressPct: 0,
     itemsDetails: [
       { ProductID: 'SKU-PFIZ-01', OrderedQty: 500, UnitPrice: 320000 },
       { ProductID: 'SKU-AZIT-03', OrderedQty: 300, UnitPrice: 85000 }
@@ -344,13 +344,13 @@ const SALES_ORDERS = [
 
 const DELIVERIES = [
   {
-    id: 'DEL-001', soId: 'SO-20231023-085', customer: 'Nhà thuốc An Khang Hà Nội',
-    driver: 'Võ Công Danh', address: '12 Lê Lợi, Hà Đông, Hà Nội', status: 'DELIVERING',
+    id: 'DEL-001', SO_ID: 'SO-20231023-085', customer: 'Nhà thuốc An Khang Hà Nội',
+    driver: 'Võ Công Danh', address: '12 Lê Lợi, Hà Đông, Hà Nội', Status: 'DELIVERING',
     estimatedTime: '16:00 hôm nay'
   },
   {
-    id: 'DEL-002', soId: 'SO-20231023-098', customer: 'Bệnh viện Chợ Rẫy',
-    driver: 'Võ Công Danh', address: '201B Nguyễn Chí Thanh, Q5, TP.HCM', status: 'PENDING',
+    id: 'DEL-002', SO_ID: 'SO-20231023-098', customer: 'Bệnh viện Chợ Rẫy',
+    driver: 'Võ Công Danh', address: '201B Nguyễn Chí Thanh, Q5, TP.HCM', Status: 'PENDING',
     estimatedTime: '09:00 ngày mai'
   },
 ];
@@ -363,7 +363,7 @@ const DASHBOARD_STATS = {
   totalInventoryValue: '12,482,900,000 VNĐ',
   quarantineBatches: 2,
   nearExpiryBatches: 2,
-  pendingPO: PURCHASE_ORDERS.filter(p => p.status === 'PENDING').length,
+  pendingPO: PURCHASE_ORDERS.filter(p => p.Status === 'PENDING').length,
   todayInbound: 24,
   todayOutbound: 61,
   temperatureAlerts: [
@@ -408,27 +408,27 @@ function initState() {
     notifications: [],
     approvals: [
       {
-        id: 'APV-001', type: 'Xuất kho đặc biệt', status: 'PENDING', dept: 'Kho + Kinh doanh', urgent: true,
+        id: 'APV-001', type: 'Xuất kho đặc biệt', Status: 'PENDING', dept: 'Kho + Kinh doanh', urgent: true,
         desc: 'SO-2023-1488 — Xuất 1,200 liều Vaccine Pfizer cho BV Chợ Rẫy. Trị giá: 384,000,000 VNĐ.'
       },
       {
-        id: 'APV-002', type: 'Thu hồi lô hàng', status: 'PENDING', dept: 'QA/QC', urgent: true,
+        id: 'APV-002', type: 'Thu hồi lô hàng', Status: 'PENDING', dept: 'QA/QC', urgent: true,
         desc: 'Thu hồi lô AZ-230901 theo Quyết định 45/QĐ-BYT. 200 hộp, đang biệt trữ Q-01.'
       },
       {
-        id: 'APV-003', type: 'Điều chỉnh tồn kho', status: 'PENDING', dept: 'Kho + Kế toán', urgent: false,
+        id: 'APV-003', type: 'Điều chỉnh tồn kho', Status: 'PENDING', dept: 'Kho + Kế toán', urgent: false,
         desc: 'Điều chỉnh chênh lệch kiểm kê T10/2023: +3 hộp Hapacol (nhầm lẫn nhập liệu).'
       },
     ],
-    stockChecks: [
+    inventoryChecks: [
       {
-        id: 'SC-202310-01',
-        date: '2023-10-15',
-        warehouse: 'HN',
-        status: 'COMPLETED',
+        CheckID: 'SC-202310-01',
+        CheckDate: '2023-10-15',
+        UserID: 'U001',
+        Status: 'COMPLETED',
         items: [
-          { productId: 'SKU-PFIZ-01', lot: 'PF-230401', bookQty: 500, actualQty: 500 },
-          { productId: 'SKU-HAPA-02', lot: 'HP-231015', bookQty: 1200, actualQty: 1210 }
+          { BatchID: 1, Batchcode: 'PF-230401', SystemQty: 500, ActualQty: 500 },
+          { BatchID: 2, Batchcode: 'HP-231015', SystemQty: 1200, ActualQty: 1210 }
         ]
       }
     ],
@@ -455,9 +455,10 @@ let _state = initState();
 
 const MockData = {
   // Static reference data (read-only)
-  ROLES, USERS, WAREHOUSES, PRODUCTS, DASHBOARD_STATS,
+  ROLES, USERS, WAREHOUSES, DASHBOARD_STATS,
 
   // ── Reactive getters ─────────────────────────────────────
+  get PRODUCTS() { return _state.products || PRODUCTS; },
   get BATCHES() { return _state.batches; },
   get QA_HISTORY() { return _state.qaHistory || []; },
   get PURCHASE_ORDERS() { return _state.purchaseOrders; },
@@ -467,7 +468,8 @@ const MockData = {
   get APPROVALS() { return _state.approvals; },
   get AUDIT_LOGS() { return _state.auditLogs || []; },
   get NOTIFICATIONS() { return _state.notifications; },
-  get STOCK_CHECKS() { return _state.stockChecks || []; },
+  get INVENTORY_CHECKS() { return _state.inventoryChecks || []; },
+  get SUPPLIERS() { return _state.suppliers || []; },
 
   // ── Auth helpers ─────────────────────────────────────────
   authenticateUser(username, password) {
@@ -606,14 +608,14 @@ const MockData = {
   async updateSOStatus(soId, newStatus) {
     const so = _state.salesOrders.find(x => x.SO_ID === soId);
     if (!so) return false;
-    so.status = newStatus;
+    so.Status = newStatus;
     saveState(_state);
     this._emit('so:updated', { soId, newStatus });
 
     // NocoDB Sync
     if (window.NocoBridge && window.NocoBridge.API_TOKEN !== 'YOUR_API_TOKEN_HERE') {
       try {
-        await window.NocoBridge.updateRow('Sales_Orders', so.id || soId, { status: newStatus });
+        await window.NocoBridge.updateRow('Sales_Orders', so.id || soId, { Status: newStatus });
       } catch (e) { console.error('NocoDB sync failed:', e); }
     }
     return true;
@@ -639,8 +641,8 @@ const MockData = {
 
   cancelSO(soId) {
     const so = _state.salesOrders.find(x => x.SO_ID === soId);
-    if (!so || so.status !== 'PICKING') return false;
-    so.status = 'CANCELLED';
+    if (!so || so.Status !== 'PICKING') return false;
+    so.Status = 'CANCELLED';
     saveState(_state);
     this.addAuditLog('Hủy SO', `Đã hủy đơn hàng ${soId}`, 'warn');
     this.addNotification(`Đã hủy đơn hàng ${soId}`, 'warning');
@@ -655,7 +657,7 @@ const MockData = {
       priority: priority || 'NORMAL',
       deadline: deadline || '—',
       OrderDate: new Date().toLocaleDateString('vi-VN'),
-      status: 'PICKING',
+      Status: 'PICKING',
       itemsDetails: itemsDetails || [],
       progress: `0/${(itemsDetails || []).length} SKU`,
       progressPct: 0
@@ -680,7 +682,7 @@ const MockData = {
   updatePOStatus(poId, newStatus) {
     const po = _state.purchaseOrders.find(x => x.PO_ID === poId);
     if (!po) return false;
-    po.status = newStatus;
+    po.Status = newStatus;
     saveState(_state);
     return true;
   },
@@ -700,8 +702,8 @@ const MockData = {
 
   cancelPO(poId) {
     const po = _state.purchaseOrders.find(x => x.PO_ID === poId);
-    if (!po || po.status !== 'PENDING') return false;
-    po.status = 'CANCELLED';
+    if (!po || po.Status !== 'PENDING') return false;
+    po.Status = 'CANCELLED';
     saveState(_state);
     this.addAuditLog('Hủy PO', `Đã hủy đơn mua hàng ${poId}`, 'warn');
     this.addNotification(`Đã hủy đơn mua hàng ${poId}`, 'warning');
@@ -713,8 +715,8 @@ const MockData = {
     const po = _state.purchaseOrders.find(x => x.PO_ID === poId);
     if (!po) return false;
     po.received = Math.min(po.total, (po.received || 0) + parseInt(receivedQty));
-    if (po.received >= po.total) po.status = 'COMPLETED';
-    else po.status = 'PARTIAL';
+    if (po.received >= po.total) po.Status = 'COMPLETED';
+    else po.Status = 'PARTIAL';
     saveState(_state);
     this._emit('po:updated', { poId });
 
@@ -723,7 +725,7 @@ const MockData = {
       try {
         await window.NocoBridge.updateRow('Purchase_Orders', po.id || poId, { 
           received: po.received, 
-          status: po.status 
+          Status: po.Status 
         });
       } catch (e) { console.error('NocoDB sync failed:', e); }
     }
@@ -744,7 +746,7 @@ const MockData = {
       totalValue: totalValue || 0,
       note: note || '',
       received: 0,
-      status: 'PENDING',
+      Status: 'PENDING',
       urgency: 'NORMAL'
     };
     _state.purchaseOrders.unshift(po);
@@ -774,7 +776,7 @@ const MockData = {
     const complaint = {
       id, PO_ID, SupplierID, type, ProductID: item, Quantity: parseInt(qty) || 0, Description: desc, ResolutionRequest: request,
       date: new Date().toLocaleDateString('vi-VN'),
-      status: 'Mới gửi',
+      Status: 'Mới gửi',
       color: 'blue'
     };
 
@@ -789,7 +791,7 @@ const MockData = {
   updateApproval(apvId, decision, comment) {
     const a = _state.approvals.find(x => x.id === apvId);
     if (!a) return false;
-    a.status = decision; // 'APPROVED' | 'REJECTED'
+    a.Status = decision; // 'APPROVED' | 'REJECTED'
     a.comment = comment || '';
     a.decidedAt = new Date().toLocaleString('vi-VN');
     saveState(_state);
@@ -804,7 +806,7 @@ const MockData = {
   async confirmDelivery(deliveryId, { recipientName, photos, notes } = {}) {
     const d = _state.deliveries.find(x => x.id === deliveryId);
     if (d) {
-      d.status = 'DELIVERED';
+      d.Status = 'DELIVERED';
       d.deliveredAt = new Date().toLocaleString('vi-VN');
       d.recipientName = recipientName;
       d.notes = notes;
@@ -820,7 +822,7 @@ const MockData = {
     if (window.NocoBridge && window.NocoBridge.API_TOKEN !== 'YOUR_API_TOKEN_HERE') {
       try {
         await window.NocoBridge.updateRow('Deliveries', d.id || deliveryId, { 
-          status: 'DELIVERED', 
+          Status: 'DELIVERED', 
           deliveredAt: d.deliveredAt, 
           recipientName: recipientName,
           notes: notes
@@ -862,7 +864,7 @@ const MockData = {
     const newCheck = {
       CheckID,
       CheckDate: new Date().toISOString().split('T')[0],
-      status: 'PENDING',
+      Status: 'PENDING',
       ...checkData
     };
     _state.stockChecks.unshift(newCheck);
@@ -875,7 +877,7 @@ const MockData = {
   updateStockCheckStatus(CheckID, status) {
     const check = _state.stockChecks.find(c => c.CheckID === CheckID);
     if (!check) return false;
-    check.status = status;
+    check.Status = status;
 
     if (status === 'COMPLETED') {
       let changed = false;
@@ -947,28 +949,87 @@ const MockData = {
     try {
       console.log('Syncing with NocoDB...');
       
-      // Fetch core tables in parallel
-      const [products, batches, pos, sos, users] = await Promise.all([
-        window.NocoBridge.fetchTable('Products'),
-        window.NocoBridge.fetchTable('Batches'),
-        window.NocoBridge.fetchTable('Purchase_Orders'),
-        window.NocoBridge.fetchTable('Sales_Orders'),
-        window.NocoBridge.fetchTable('Users')
+      // Fetch core tables in parallel, handling failures per table
+      const results = await Promise.allSettled([
+        window.NocoBridge.fetchTable('Products').catch(() => null),
+        window.NocoBridge.fetchTable('Batches').catch(() => null),
+        window.NocoBridge.fetchTable('Inventory').catch(() => null),
+        window.NocoBridge.fetchTable('Suppliers').catch(() => null),
+        window.NocoBridge.fetchTable('Purchase_Orders').catch(() => null),
+        window.NocoBridge.fetchTable('Sales_Orders').catch(() => null),
+        window.NocoBridge.fetchTable('Users').catch(() => null)
       ]);
 
-      // Update state
-      if (products) _state.products = products;
-      if (batches) _state.batches = batches;
-      if (pos) _state.purchaseOrders = pos;
-      if (sos) _state.salesOrders = sos;
-      if (users) _state.users = users;
+      const [productsRes, batchesRes, inventoryRes, suppliersRes, posRes, sosRes, usersRes] = results;
+
+      // Extract values, fallback to null
+      const products = productsRes.status === 'fulfilled' ? productsRes.value : null;
+      const batches = batchesRes.status === 'fulfilled' ? batchesRes.value : null;
+      const inventory = inventoryRes.status === 'fulfilled' ? inventoryRes.value : null;
+      const suppliers = suppliersRes.status === 'fulfilled' ? suppliersRes.value : null;
+      const pos = posRes.status === 'fulfilled' ? posRes.value : null;
+      const sos = sosRes.status === 'fulfilled' ? sosRes.value : null;
+      const users = usersRes.status === 'fulfilled' ? usersRes.value : null;
+
+      console.log('Syncing with NocoDB...', {
+          products: !!productsRes.value,
+          batches: !!batchesRes.value,
+          inventory: !!inventoryRes.value
+      });
+
+      // Update state if we got data (even empty array is better than stale mock if sync reached)
+      if (Array.isArray(products)) {
+        console.log(`Synced ${products.length} products`);
+        _state.products = products.map(p => window.NocoMappers.toUIProduct(p));
+      }
+
+      if (Array.isArray(batches)) {
+        console.log(`Synced ${batches.length} batches`);
+        
+        // Chuyển đổi sang UI format (flatten các link field)
+        const uiBatches = batches.map(b => window.NocoMappers.toUIBatch(b));
+        
+        // Nếu có bảng Inventory, chúng ta thực hiện "JOIN" dữ liệu
+        if (Array.isArray(inventory)) {
+            _state.batches = uiBatches.map(b => {
+                // Đảm bảo so sánh chính xác bằng cách flatten BatchID từ bảng Inventory
+                const inv = inventory.find(i => window.NocoMappers._flatten(i.BatchID) === b.BatchID) || {};
+                
+                // Trích xuất số lượng (thử cả hoa và thường)
+                const q = typeof inv.Quantity !== 'undefined' ? inv.Quantity : 
+                          (typeof inv.quantity !== 'undefined' ? inv.quantity : 0);
+                
+                return {
+                    ...b,
+                    Quantity: q,
+                    qty: q,
+                    LocationID: window.NocoMappers._flatten(inv.LocationID) || 'Chưa gán',
+                    ReservedQty: inv.ReservedQty || 0
+                };
+            });
+        } else {
+            _state.batches = uiBatches;
+        }
+      }
+
+      if (Array.isArray(suppliers)) _state.suppliers = suppliers;
+      if (Array.isArray(pos)) _state.purchaseOrders = pos;
+      if (Array.isArray(sos)) _state.salesOrders = sos;
+      if (Array.isArray(users)) _state.users = users;
 
       saveState(_state);
       this._emit('pharma:statechange', { source: 'nocodbSync' });
-      console.log('NocoDB Sync Complete.');
+      console.log('NocoDB Sync Complete (Batches merged with Inventory).');
+      
+      const totalItems = (Array.isArray(batches) ? batches.length : 0);
+      if (totalItems > 0) {
+          alert(`Đã đồng bộ thành công ${totalItems} lô hàng từ NocoDB!`);
+      } else {
+          console.warn('Sync hoàn tất nhưng không tìm thấy dữ liệu nào trên NocoDB.');
+      }
     } catch (error) {
       console.error('Failed to sync with NocoDB:', error);
-      // Fallback is already handled by initial _state values
+      alert('Không thể đồng bộ dữ liệu với NocoDB. Vui lòng kiểm tra Console (F12) để xem chi tiết lỗi.');
     }
   }
 };

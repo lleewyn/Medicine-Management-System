@@ -146,12 +146,16 @@
         <h2>Kết Nối NocoDB</h2>
         <div class="input-group">
             <label>API Token (xc-token)</label>
-            <input type="password" id="apiToken" value="edSp4E7-HLaKeSve7fjuJc0cbhop2K_Mw_I2z9wN"
-                placeholder="Dán API Token của bạn...">
+            <input type="password" id="apiToken" value=""
+                placeholder="Dán API Token của bạn (Có thể tạo trong phần Account > Tokens)">
         </div>
         <div class="input-group">
-            <label>Table ID (v2)</label>
-            <input type="text" id="tableName" value="mnatar8bby47pxi" placeholder="Dán Table ID từ link API v2">
+            <label>Base URL</label>
+            <input type="text" id="baseUrl" value="https://nocodb.data4life.top" placeholder="VD: https://nocodb.data4life.top">
+        </div>
+        <div class="input-group">
+            <label>Table ID</label>
+            <input type="text" id="tableName" value="ms16b7993d23oc" placeholder="Dán Table ID từ link (VD: ms16b7993d23oc cho Category)">
         </div>
         <button onclick="testConnection()">🚀 Kiểm Tra Ngay</button>
         <div id="status"></div>
@@ -160,11 +164,12 @@
     <script>
         async function testConnection() {
             const token = document.getElementById('apiToken').value;
+            const baseUrl = document.getElementById('baseUrl').value;
             const tableName = document.getElementById('tableName').value;
             const statusDiv = document.getElementById('status');
 
-            if (!token || !tableName) {
-                alert('Vui lòng nhập đủ Token và Table ID!');
+            if (!token || !tableName || !baseUrl) {
+                alert('Vui lòng nhập đủ Token, Base URL và Table ID!');
                 return;
             }
 
@@ -173,8 +178,9 @@
             statusDiv.innerHTML = '⏳ Đang truy vấn dữ liệu từ NocoDB...';
 
             try {
-                // Sử dụng API v2 theo link bạn cung cấp
-                const response = await fetch(`https://app.nocodb.com/api/v2/tables/${tableName}/records?offset=0&limit=25`, {
+                // Sử dụng API v2 theo link hệ thống NocoDB đang dùng
+                const url = `${baseUrl.replace(/\/$/, '')}/api/v2/tables/${tableName}/records?offset=0&limit=25`;
+                const response = await fetch(url, {
                     headers: { 'xc-token': token }
                 });
 

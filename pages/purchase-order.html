@@ -307,14 +307,14 @@
 
             // Stats
             document.getElementById('pc-total').textContent = pos.length;
-            document.getElementById('pc-pending').textContent = pos.filter(p => p.status === 'PENDING').length;
-            document.getElementById('pc-partial').textContent = pos.filter(p => p.status === 'PARTIAL').length;
-            document.getElementById('pc-done').textContent = pos.filter(p => p.status === 'COMPLETED').length;
+            document.getElementById('pc-pending').textContent = pos.filter(p => p.Status === 'PENDING').length;
+            document.getElementById('pc-partial').textContent = pos.filter(p => p.Status === 'PARTIAL').length;
+            document.getElementById('pc-done').textContent = pos.filter(p => p.Status === 'COMPLETED').length;
 
             // Render List
             document.getElementById('po-table-body').innerHTML = pos.map(po => {
                 const diff = Math.min((po.received - po.total), 0);
-                const st = stMap[po.status] || { l: po.status, c: '' };
+                const st = stMap[po.Status] || { l: po.Status, c: '' };
                 return `
           <tr class="hover:bg-slate-50 border-t border-slate-100">
             <td class="px-5 py-4 font-bold text-primary text-sm">${po.PO_ID}</td>
@@ -327,12 +327,12 @@
             <td class="px-5 py-4 text-sm text-slate-500">${po.deliveryDate || po.expectedDate}</td>
             <td class="px-5 py-4 text-center font-medium text-sm">${po.total}</td>
             <td class="px-5 py-4 text-center font-medium text-sm ${po.received < po.total ? 'text-amber-600' : 'text-green-600'}">${po.received || 0}</td>
-            <td class="px-5 py-4 text-center text-sm font-bold ${diff < 0 ? 'text-red-600' : diff > 0 ? 'text-green-600' : 'text-slate-400'}">${diff >= 0 && po.status !== 'PENDING' ? '+' : ''}${po.status === 'PENDING' ? '' : diff}</td>
+            <td class="px-5 py-4 text-center text-sm font-bold ${diff < 0 ? 'text-red-600' : diff > 0 ? 'text-green-600' : 'text-slate-400'}">${diff >= 0 && po.Status !== 'PENDING' ? '+' : ''}${po.Status === 'PENDING' ? '' : diff}</td>
             <td class="px-5 py-4"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${st.c}">${st.l}</span></td>
             <td class="px-5 py-4 text-right flex justify-end gap-3 items-center">
-              ${diff < 0 && po.status === 'COMPLETED' ? `<button onclick="switchPOTab('complaint')" class="text-xs font-bold text-amber-600 hover:underline">Khiếu nại</button>` : ''}
-              ${po.status === 'PENDING' ? `<button onclick="editPO('${po.PO_ID}')" class="text-blue-500 font-bold text-xs hover:underline">Sửa</button>` : ''}
-              ${po.status === 'PENDING' ? `<button onclick="cancelPO('${po.PO_ID}')" class="text-red-500 font-bold text-xs hover:underline">Hủy</button>` : ''}
+              ${diff < 0 && po.Status === 'COMPLETED' ? `<button onclick="switchPOTab('complaint')" class="text-xs font-bold text-amber-600 hover:underline">Khiếu nại</button>` : ''}
+              ${po.Status === 'PENDING' ? `<button onclick="editPO('${po.PO_ID}')" class="text-blue-500 font-bold text-xs hover:underline">Sửa</button>` : ''}
+              ${po.Status === 'PENDING' ? `<button onclick="cancelPO('${po.PO_ID}')" class="text-red-500 font-bold text-xs hover:underline">Hủy</button>` : ''}
               <button class="text-xs font-bold text-primary hover:underline">Chi tiết</button>
             </td>
           </tr>`;

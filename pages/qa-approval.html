@@ -369,16 +369,16 @@
 
       historyTable.innerHTML = historyData.map(h => `
         <tr class="hover:bg-slate-50">
-          <td class="px-5 py-3 font-mono font-bold text-primary">${h.lot}</td>
-          <td class="px-5 py-3">${h.product}</td>
-          <td class="px-5 py-3 text-slate-500">${h.date}</td>
-          <td class="px-5 py-3 font-medium">${h.inspector}</td>
+          <td class="px-5 py-3 font-mono font-bold text-primary">${h.Batchcode}</td>
+          <td class="px-5 py-3">${h.ProductName}</td>
+          <td class="px-5 py-3 text-slate-500">${h.QC_Date}</td>
+          <td class="px-5 py-3 font-medium">${h.UserID}</td>
           <td class="px-5 py-3">
-            <span class="font-bold text-sm ${h.result === 'ĐẠT' ? 'text-green-600' : 'text-red-500'}">${h.result}</span>
+            <span class="font-bold text-sm ${h.Result === 'ĐẠT' ? 'text-green-600' : 'text-red-500'}">${h.Result}</span>
           </td>
           <td class="px-5 py-3">
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${h.status === 'RELEASED' ? 'bg-green-100 text-green-700' : h.status === 'LOCKED' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}">
-              ${h.status === 'RELEASED' ? 'Đã xuất xưởng' : h.status === 'LOCKED' ? 'Đang biệt trữ' : 'Bị từ chối'}
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${h.Status === 'RELEASED' ? 'bg-green-100 text-green-700' : s.Status === 'LOCKED' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}">
+              ${h.Status === 'RELEASED' ? 'Đã xuất xưởng' : s.Status === 'LOCKED' ? 'Đang biệt trữ' : 'Bị từ chối'}
             </span>
           </td>
         </tr>`).join('');
@@ -535,8 +535,8 @@
     window.exportQAReport = function () {
       const headers = ['Lô hàng', 'Sản phẩm', 'Ngày kiểm', 'Kiểm nghiệm viên', 'Kết quả', 'Trạng thái'];
       const data = (window.MockData.QA_HISTORY || []).map(h => [
-        h.lot, h.product, h.date, h.inspector, h.result,
-        h.status === 'RELEASED' ? 'Đã xuất xưởng' : 'Đang biệt trữ'
+        h.Batchcode, h.ProductName, h.QC_Date, h.UserID, h.Result,
+        .Status === 'RELEASED' ? 'Đã xuất xưởng' : 'Đang biệt trữ'
       ]);
       window.MockData.exportToCSV([{ headers, data }], `BaoCao_QA_${new Date().toISOString().slice(0, 10)}.csv`);
     };

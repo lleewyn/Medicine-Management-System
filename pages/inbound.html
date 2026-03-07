@@ -384,9 +384,9 @@
 
                 // 1. Update Stats
                 document.getElementById('po-stats-total').textContent = currentPOs.length;
-                document.getElementById('po-stats-pending').textContent = currentPOs.filter(p => p.status === 'PENDING').length;
-                document.getElementById('po-stats-partial').textContent = currentPOs.filter(p => p.status === 'PARTIAL').length;
-                document.getElementById('po-stats-done').textContent = currentPOs.filter(p => p.status === 'COMPLETED').length;
+                document.getElementById('po-stats-pending').textContent = currentPOs.filter(p => p.Status === 'PENDING').length;
+                document.getElementById('po-stats-partial').textContent = currentPOs.filter(p => p.Status === 'PARTIAL').length;
+                document.getElementById('po-stats-done').textContent = currentPOs.filter(p => p.Status === 'COMPLETED').length;
 
                 // 2. Render PO Table
                 const statusMap = {
@@ -398,9 +398,9 @@
                 const colorMap = { blue: 'bg-blue-100 text-blue-700', green: 'bg-green-100 text-green-700', purple: 'bg-purple-100 text-purple-700', red: 'bg-red-100 text-red-700' };
 
                 document.getElementById('inbound-po-table').innerHTML = currentPOs.map(po => {
-                    const st = statusMap[po.status] || { label: po.status, cls: '' };
+                    const st = statusMap[po.Status] || { label: po.Status, cls: '' };
                     const pct = po.total > 0 ? Math.round((po.received / po.total) * 100) : 0;
-                    const canReceive = po.status !== 'COMPLETED' && po.status !== 'CANCELLED';
+                    const canReceive = .Status !== 'COMPLETED' && po.Status !== 'CANCELLED';
                     return `
                     <tr class="hover:bg-slate-50 transition-colors">
                         <td class="px-5 py-4"><span class="font-bold text-primary text-sm">${po.PO_ID}</span></td>
@@ -431,7 +431,7 @@
                 if (poSelect) {
                     const currentVal = poSelect.value;
                     poSelect.innerHTML = '<option value="">-- Chọn PO cần nhận hàng --</option>' +
-                        currentPOs.filter(p => p.status !== 'COMPLETED' && p.status !== 'CANCELLED').map(po => `
+                        currentPOs.filter(p => p.Status !== 'COMPLETED' && po.Status !== 'CANCELLED').map(po => `
                         <option value="${po.PO_ID}">${po.PO_ID} — ${po.SupplierID}</option>
                     `).join('');
                     if (currentVal) poSelect.value = currentVal;
@@ -517,7 +517,7 @@
             window.updateLocationSuggestions = function () {
                 const zoneVal = document.getElementById('input-zone').value;
                 const zoneCode = zoneVal.split(' ')[0];
-                const occupiedInZone = new Set(window.MockData.BATCHES.filter(b => b.location?.startsWith(zoneCode + '-')).map(b => b.location));
+                const occupiedInZone = new Set(window.MockData.BATCHES.filter(b => (b.LocationID || b.location)?.startsWith(zoneCode + '-')).map(b => (b.LocationID || b.location)));
 
                 const zoneConfig = {
                     A: { rows: ['01', '02', '03'], bins: ['01', '02', '03', '04', '05'] },

@@ -225,14 +225,14 @@
 
     function updateOutbound() {
       const SOs = window.MockData.SALES_ORDERS || [];
-      const filteredSOs = SOs.filter(s => s.status !== 'COMPLETED');
+      const filteredSOs = SOs.filter(s => s.Status !== 'COMPLETED');
 
       // Update stats
       if (document.getElementById('so-stats-total')) {
         document.getElementById('so-stats-total').textContent = SOs.length;
-        document.getElementById('so-stats-picking').textContent = SOs.filter(s => s.status === 'PICKING' || s.status === 'IN_PROGRESS').length;
-        document.getElementById('so-stats-packing').textContent = SOs.filter(s => s.status === 'PACKING').length;
-        document.getElementById('so-stats-done').textContent = SOs.filter(s => s.status === 'COMPLETED').length;
+        document.getElementById('so-stats-picking').textContent = SOs.filter(s => s.Status === 'PICKING' || so.Status === 'IN_PROGRESS').length;
+        document.getElementById('so-stats-packing').textContent = SOs.filter(s => s.Status === 'PACKING').length;
+        document.getElementById('so-stats-done').textContent = SOs.filter(s => s.Status === 'COMPLETED').length;
       }
 
       // Render SO List
@@ -252,15 +252,15 @@
               </span>
             </td>
             <td class="px-5 py-4 text-sm font-medium text-slate-600">
-              ${s.status === 'PICKING' ? 'Chờ soạn hàng' : s.status === 'IN_PROGRESS' ? 'Đang soạn hàng' : s.status === 'PACKING' ? '<span class="text-amber-600 font-bold">Chờ phê duyệt</span>' : s.status}
+              ${s.Status === 'PICKING' ? 'Chờ soạn hàng' : s.Status === 'IN_PROGRESS' ? 'Đang soạn hàng' : s.Status === 'PACKING' ? '<span class="text-amber-600 font-bold">Chờ phê duyệt</span>' : s.Status}
             </td>
             <td class="px-5 py-4 text-right">
-              ${s.status === 'PICKING' || s.status === 'IN_PROGRESS' ? `
+              ${s.Status === 'PICKING' || so.Status === 'IN_PROGRESS' ? `
                 <button onclick="startPicking('${s.SO_ID}')"
                   class="bg-primary/10 text-primary px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-primary/20 mr-2">
                   <span class="material-symbols-outlined text-xs align-middle">checklist</span> Soạn hàng
                 </button>` : ''}
-              ${canApprove && s.status === 'PACKING' ? `
+              ${canApprove && po.Status === 'PACKING' ? `
                 <button onclick="switchOutboundTab('approval')"
                   class="bg-amber-100 text-amber-700 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-amber-200">
                   <span class="material-symbols-outlined text-xs align-middle">gavel</span> Phê duyệt
@@ -270,7 +270,7 @@
       }
 
       // Update approval badge
-      const pendingApprovalCount = SOs.filter(s => s.status === 'PACKING').length;
+      const pendingApprovalCount = SOs.filter(s => s.Status === 'PACKING').length;
       const approvalBadge = document.getElementById('approval-badge');
       if (approvalBadge) {
         if (pendingApprovalCount > 0) {
@@ -288,7 +288,7 @@
         if (noPerm) noPerm.classList.add('hidden');
         if (content) content.classList.remove('hidden');
 
-        const pendingApproval = SOs.filter(s => s.status === 'PACKING');
+        const pendingApproval = SOs.filter(s => s.Status === 'PACKING');
         const approvalList = document.getElementById('approval-list');
         if (approvalList) {
           approvalList.innerHTML = pendingApproval.map(so => `
@@ -348,7 +348,7 @@
       const soSelect = document.getElementById('so-select-picking');
       if (soSelect) {
         const currentVal = soSelect.value;
-        const pickingSOs = SOs.filter(s => s.status === 'PICKING' || s.status === 'IN_PROGRESS');
+        const pickingSOs = SOs.filter(s => s.Status === 'PICKING' || so.Status === 'IN_PROGRESS');
         soSelect.innerHTML = '<option value="">-- Chọn SO để soạn hàng --</option>' +
           pickingSOs.map(s => `
             <option value="${s.SO_ID}">${s.SO_ID} — ${s.CustomerID}</option>
@@ -359,7 +359,7 @@
       // 6. Update active picking list if any
       if (activeSOId) {
         const so = SOs.find(s => s.SO_ID === activeSOId);
-        if (so && (so.status === 'PICKING' || so.status === 'IN_PROGRESS')) {
+        if (so && (.Status === 'PICKING' || so.Status === 'IN_PROGRESS')) {
           renderPickingItems(so);
         } else {
           activeSOId = '';

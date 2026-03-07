@@ -294,8 +294,8 @@
                 const currentStock = productBatches.reduce((sum, b) => sum + b.Quantity, 0);
 
                 // In/Out from COMPLETED orders
-                const inQty = pos.filter(po => po.status === 'COMPLETED').reduce((sum, po) => sum + (po.itemsDetails?.find(i => i.ProductID === p.ProductID)?.OrderedQty || 0), 0);
-                const outQty = sos.filter(so => so.status === 'COMPLETED').reduce((sum, so) => sum + (so.itemsDetails?.find(i => i.ProductID === p.ProductID)?.OrderedQty || 0), 0);
+                const inQty = pos.filter(po => po.Status === 'COMPLETED').reduce((sum, po) => sum + (po.itemsDetails?.find(i => i.ProductID === p.ProductID)?.OrderedQty || 0), 0);
+                const outQty = sos.filter(so => so.Status === 'COMPLETED').reduce((sum, so) => sum + (so.itemsDetails?.find(i => i.ProductID === p.ProductID)?.OrderedQty || 0), 0);
 
                 const openQty = currentStock - inQty + outQty;
                 const value = currentStock * p.ImportPrice;

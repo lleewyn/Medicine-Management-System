@@ -374,10 +374,10 @@
                 ${so.priority === 'URGENT' ? 'KHẨN CẤP' : 'BÌNH THƯỜNG'}
               </span>
             </td>
-            <td class="px-5 py-4 text-sm text-slate-600">${statusLabelMap[so.status] || so.status}</td>
+            <td class="px-5 py-4 text-sm text-slate-600">${statusLabelMap[so.Status] || so.Status}</td>
             <td class="px-5 py-4 text-right flex justify-end gap-3">
-              ${so.status === 'PICKING' ? `<button onclick="editSO('${so.SO_ID}')" class="text-blue-500 text-xs font-bold hover:underline">Sửa</button>` : ''}
-              ${so.status === 'PICKING' ? `<button onclick="cancelSO('${so.SO_ID}')" class="text-red-500 text-xs font-bold hover:underline">Hủy</button>` : ''}
+              ${so.Status === 'PICKING' ? `<button onclick="editSO('${so.SO_ID}')" class="text-blue-500 text-xs font-bold hover:underline">Sửa</button>` : ''}
+              ${so.Status === 'PICKING' ? `<button onclick="cancelSO('${so.SO_ID}')" class="text-red-500 text-xs font-bold hover:underline">Hủy</button>` : ''}
               <button onclick="showSODetail('${so.SO_ID}')" class="text-primary text-xs font-bold hover:underline">Chi tiết</button>
             </td>
           </tr>`).join('') || '<tr><td colspan="6" class="p-8 text-center text-slate-400">Chưa có đơn hàng nào.</td></tr>';
@@ -452,7 +452,7 @@
             document.getElementById('det-so-id').textContent = so.SO_ID;
             document.getElementById('det-customer').textContent = so.CustomerID;
             document.getElementById('det-deadline').textContent = so.deadline;
-            document.getElementById('det-status').innerHTML = statusLabelMap[so.status] || so.status;
+            document.getElementById('det-status').innerHTML = statusLabelMap[so.Status] || .Status;
 
             let total = 0;
             document.getElementById('det-items-body').innerHTML = (so.itemsDetails || []).map(item => {

@@ -213,11 +213,11 @@
       const addresses = ['123 Nguyễn Huệ, Q1', '456 Lê Văn Việt, Q9', '789 Phan Văn Trị, Bình Thạnh', '321 Đinh Tiên Hoàng, Q.Bình Thạnh', '555 Võ Văn Tần, Q3'];
 
       const trips = SOs
-        .filter(so => so.status === 'PACKING' || so.status === 'COMPLETED')
+        .filter(so => so.Status === 'PACKING' || so.Status === 'COMPLETED')
         .map((so, i) => ({
           ...so,
           address: addresses[i % addresses.length],
-          delivered: so.status === 'COMPLETED'
+          delivered: so.Status === 'COMPLETED'
         }));
 
       const pending = trips.filter(t => !t.delivered).length;
@@ -272,7 +272,7 @@
       const addresses = ['555 Võ Văn Tần, Q3', '321 Đinh Tiên Hoàng', '789 Phan Văn Trị', '456 Lê Văn Việt', '123 Nguyễn Huệ'];
 
       const history = SOs
-        .filter(so => so.status === 'COMPLETED')
+        .filter(so => so.Status === 'COMPLETED')
         .map((so, i) => ({
           date: so.OrderDate || '04/03/2026',
           so: so.SO_ID,
@@ -283,7 +283,7 @@
 
       document.getElementById('drv-history-table').innerHTML = history.map(h => `
         <tr class="hover:bg-slate-50">
-            <td class="px-5 py-3 text-slate-500">${h.date}</td>
+            <td class="px-5 py-3 text-slate-500">${h.QC_Date}</td>
             <td class="px-5 py-3 font-bold text-primary">${h.so}</td>
             <td class="px-5 py-3 text-slate-600">${h.addr}</td>
             <td class="px-5 py-3 text-slate-500">${h.time}</td>
