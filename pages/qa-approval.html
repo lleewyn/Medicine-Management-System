@@ -1,0 +1,553 @@
+<!-- pages/qa-approval.html -->
+<!-- Use cases: Kiểm tra chất lượng lô hàng → Ghi nhận kết quả QC + Phê duyệt trạng thái lô hàng -->
+
+<style>
+  .tab-active {
+    border-bottom: 2px solid #2563EB;
+    color: #2563EB;
+    font-weight: 700;
+  }
+
+  .tab-inactive {
+    border-bottom: 2px solid transparent;
+    color: #64748B;
+  }
+
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 50;
+  }
+
+  .modal-overlay.open {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .result-pass {
+    border-color: #10B981 !important;
+    background: #F0FDF4;
+  }
+
+  .result-fail {
+    border-color: #EF4444 !important;
+    background: #FFF1F2;
+  }
+</style>
+
+<div class="p-8 max-w-[1400px] mx-auto w-full">
+  <div class="mb-6 flex items-end justify-between">
+    <div>
+      <h2 class="text-2xl font-black text-slate-900 tracking-tight">Kiểm tra chất lượng lô hàng</h2>
+      <p class="text-slate-500 text-sm mt-1">Ghi nhận kết quả QC và phê duyệt trạng thái từng lô.</p>
+    </div>
+    <div id="qa-role-badge"></div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="flex border-b border-slate-200 mb-6 gap-6">
+    <button onclick="switchQATab('pending')" id="qa-tab-pending" class="pb-3 text-sm tab-active">
+      Chờ kiểm định <span class="ml-1 bg-amber-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full"
+        id="qa-pending-count">0</span>
+    </button>
+    <button onclick="switchQATab('recording')" id="qa-tab-recording" class="pb-3 text-sm tab-inactive">
+      Ghi nhận kết quả QC
+    </button>
+    <button onclick="switchQATab('history')" id="qa-tab-history" class="pb-3 text-sm tab-inactive">
+      Lịch sử phê duyệt
+    </button>
+  </div>
+
+  <!-- TAB 1: Pending -->
+  <div id="qa-tab-content-pending">
+    <div class="space-y-4" id="qa-pending-list"></div>
+  </div>
+
+  <!-- TAB 2: Record QC Result -->
+  <div id="qa-tab-content-recording" class="hidden">
+    <div class="max-w-3xl">
+      <!-- Batch Selector -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 mb-6">
+        <label class="block text-sm font-bold text-slate-700 mb-2">Chọn lô hàng cần kiểm định</label>
+        <select id="qa-batch-select"
+          class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20">
+          <option value="">-- Chọn lô hàng --</option>
+        </select>
+      </div>
+
+      <!-- QC Form -->
+      <div id="qc-form" class="hidden bg-white rounded-xl border border-slate-200 shadow-sm p-6 mb-6">
+        <h4 class="font-black text-slate-900 text-lg mb-1" id="qc-form-title">Phiếu kiểm nghiệm</h4>
+        <p class="text-slate-500 text-sm mb-6" id="qc-form-subtitle">Điền đầy đủ các chỉ tiêu theo tiêu chuẩn dược điển.
+        </p>
+
+        <!-- Test Parameters -->
+        <div class="space-y-4 mb-6">
+          <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Các chỉ tiêu kiểm nghiệm</p>
+
+          <!-- COA Check -->
+          <div class="p-4 border-2 border-slate-200 rounded-xl" id="param-coa">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <p class="font-bold text-sm">Kiểm tra phiếu COA (Certificate of Analysis)</p>
+                <p class="text-xs text-slate-400">Kiểm tra tính hợp lệ, định danh và chỉ số nhà SX</p>
+              </div>
+              <div class="flex gap-2">
+                <button onclick="setParam('coa', 'pass', this)"
+                  class="param-btn px-3 py-1 border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:bg-green-50 hover:border-green-400 hover:text-green-700">ĐẠT</button>
+                <button onclick="setParam('coa', 'fail', this)"
+                  class="param-btn px-3 py-1 border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:bg-red-50 hover:border-red-400 hover:text-red-600">KHÔNG
+                  ĐẠT</button>
+              </div>
+            </div>
+            <input type="text" placeholder="Số COA hoặc ghi chú kiểm duyệt..."
+              class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs outline-none focus:ring-1 focus:ring-primary/30">
+          </div>
+
+          <!-- Storage Condition Check -->
+          <div class="p-4 border-2 border-slate-200 rounded-xl" id="param-storage">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <p class="font-bold text-sm">Kiểm tra điều kiện bảo quản</p>
+                <p class="text-xs text-slate-400">Nhiệt độ, độ ẩm khi nhận hàng so với quy định</p>
+              </div>
+              <div class="flex gap-2">
+                <button onclick="setParam('storage', 'pass', this)"
+                  class="param-btn px-3 py-1 border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:bg-green-50 hover:border-green-400 hover:text-green-700">ĐẠT</button>
+                <button onclick="setParam('storage', 'fail', this)"
+                  class="param-btn px-3 py-1 border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:bg-red-50 hover:border-red-400 hover:text-red-600">KHÔNG
+                  ĐẠT</button>
+              </div>
+            </div>
+            <input type="text" placeholder="Nhiệt độ/Độ ẩm thực tế (VD: 24°C / 60%)..."
+              class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs outline-none focus:ring-1 focus:ring-primary/30">
+          </div>
+
+          <!-- Visual inspection -->
+          <div class="p-4 border-2 border-slate-200 rounded-xl" id="param-visual">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <p class="font-bold text-sm">Cảm quan (Visual Inspection)</p>
+                <p class="text-xs text-slate-400">Màu sắc, hình dạng, mùi — đánh giá bằng mắt</p>
+              </div>
+              <div class="flex gap-2">
+                <button onclick="setParam('visual', 'pass', this)"
+                  class="param-btn px-3 py-1 border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:bg-green-50 hover:border-green-400 hover:text-green-700">ĐẠT</button>
+                <button onclick="setParam('visual', 'fail', this)"
+                  class="param-btn px-3 py-1 border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:bg-red-50 hover:border-red-400 hover:text-red-600">KHÔNG
+                  ĐẠT</button>
+              </div>
+            </div>
+            <input type="text" placeholder="Ghi chú: Ví dụ — màu trắng đục, không mùi lạ, không vỡ vụn..."
+              class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs outline-none focus:ring-1 focus:ring-primary/30">
+          </div>
+
+          <!-- pH / Concentration -->
+          <div class="p-4 border-2 border-slate-200 rounded-xl" id="param-ph">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <p class="font-bold text-sm">Định lượng hoạt chất (Assay)</p>
+                <p class="text-xs text-slate-400">Tiêu chuẩn: 95.0% – 105.0%</p>
+              </div>
+              <div class="flex gap-2">
+                <button onclick="setParam('ph', 'pass', this)"
+                  class="param-btn px-3 py-1 border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:bg-green-50 hover:border-green-400 hover:text-green-700">ĐẠT</button>
+                <button onclick="setParam('ph', 'fail', this)"
+                  class="param-btn px-3 py-1 border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:bg-red-50 hover:border-red-400 hover:text-red-600">KHÔNG
+                  ĐẠT</button>
+              </div>
+            </div>
+            <div class="flex gap-3">
+              <input type="number" placeholder="Kết quả (%)" id="assay-result"
+                class="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-xs outline-none focus:ring-1 focus:ring-primary/30">
+              <input type="text" placeholder="Phương pháp: HPLC / UV-Vis..."
+                class="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-xs outline-none focus:ring-1 focus:ring-primary/30">
+            </div>
+          </div>
+
+          <!-- Microbiology -->
+          <div class="p-4 border-2 border-slate-200 rounded-xl" id="param-micro">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <p class="font-bold text-sm">Giới hạn vi sinh vật (Microbial Limits)</p>
+                <p class="text-xs text-slate-400">Tổng vi sinh vật hiếu khí, nấm mốc, nấm men</p>
+              </div>
+              <div class="flex gap-2">
+                <button onclick="setParam('micro', 'pass', this)"
+                  class="param-btn px-3 py-1 border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:bg-green-50 hover:border-green-400 hover:text-green-700">ĐẠT</button>
+                <button onclick="setParam('micro', 'fail', this)"
+                  class="param-btn px-3 py-1 border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:bg-red-50 hover:border-red-400 hover:text-red-600">KHÔNG
+                  ĐẠT</button>
+              </div>
+            </div>
+            <input type="text" placeholder="Kết quả: VD — TAMC < 10 CFU/g, TYMC < 10 CFU/g"
+              class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs outline-none focus:ring-1 focus:ring-primary/30">
+          </div>
+
+          <!-- Dissolution -->
+          <div class="p-4 border-2 border-slate-200 rounded-xl" id="param-diss">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <p class="font-bold text-sm">Độ hòa tan (Dissolution)</p>
+                <p class="text-xs text-slate-400">Tiêu chuẩn: ≥ 80% sau 45 phút (Q = 80%)</p>
+              </div>
+              <div class="flex gap-2">
+                <button onclick="setParam('diss', 'pass', this)"
+                  class="param-btn px-3 py-1 border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:bg-green-50 hover:border-green-400 hover:text-green-700">ĐẠT</button>
+                <button onclick="setParam('diss', 'fail', this)"
+                  class="param-btn px-3 py-1 border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:bg-red-50 hover:border-red-400 hover:text-red-600">KHÔNG
+                  ĐẠT</button>
+              </div>
+            </div>
+            <input type="number" placeholder="Kết quả (%): VD — 92.5"
+              class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs outline-none focus:ring-1 focus:ring-primary/30">
+          </div>
+        </div>
+
+        <!-- Overall conclusion -->
+        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 mb-6">
+          <p class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3">Kết luận chung của Phiếu kiểm nghiệm
+          </p>
+          <div class="flex gap-4">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="overall" value="pass" class="accent-green-500">
+              <span class="text-sm font-bold text-green-700">ĐẠT — Đề nghị xuất xưởng (Release)</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="overall" value="fail" class="accent-red-500">
+              <span class="text-sm font-bold text-red-600">KHÔNG ĐẠT — Đề nghị giữ biệt trữ / tiêu hủy</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="mb-6">
+          <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wider">Ghi chú của Kiểm nghiệm
+            viên</label>
+          <textarea rows="3" placeholder="Ghi chú thêm, điều kiện kiểm tra, số hiệu thiết bị..."
+            class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20 resize-none"></textarea>
+        </div>
+
+        <!-- Submit Buttons -->
+        <div class="flex gap-3" id="qc-submit-area"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: History -->
+  <div id="qa-tab-content-history" class="hidden">
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+        <h4 class="font-bold text-slate-800">Lịch sử phê duyệt lô hàng</h4>
+        <button onclick="exportQAReport()"
+          class="flex items-center gap-2 text-sm font-bold text-primary hover:underline">
+          <span class="material-symbols-outlined text-sm">file_download</span> Xuất báo cáo
+        </button>
+      </div>
+      <table class="w-full text-left text-sm">
+        <thead class="bg-slate-50">
+          <tr>
+            <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase">Lô hàng</th>
+            <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase">Sản phẩm</th>
+            <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase">Ngày kiểm</th>
+            <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase">Kiểm nghiệm viên</th>
+            <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase">Kết quả</th>
+            <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase">Trạng thái</th>
+          </tr>
+        </thead>
+        <tbody id="qa-history-table" class="divide-y divide-slate-100"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Result Modal -->
+<div class="modal-overlay" id="qc-result-modal">
+  <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 text-center">
+    <div id="qc-result-icon" class="size-16 rounded-full flex items-center justify-center mx-auto mb-4"></div>
+    <h3 class="text-xl font-black text-slate-900 mb-2" id="qc-result-title"></h3>
+    <p class="text-slate-500 text-sm mb-6" id="qc-result-body"></p>
+    <button onclick="document.getElementById('qc-result-modal').classList.remove('open')"
+      class="w-full bg-primary text-white py-2.5 rounded-xl font-bold text-sm hover:bg-primary/90">OK</button>
+  </div>
+</div>
+
+<script>
+  (function () {
+    const user = window.Auth.getCurrentUser();
+    const products = window.MockData.PRODUCTS;
+    const canRecord = window.MockData.hasPermission(user, 'write_qa_result') || window.MockData.hasPermission(user, 'write_all');
+    const canApprove = window.MockData.hasPermission(user, 'approve_qa') || window.MockData.hasPermission(user, 'write_all');
+
+    function renderPendingList() {
+      const batches = window.MockData.BATCHES.filter(b => b.BatchStatus === 'QUARANTINE');
+
+      // Update pending count in tab
+      const countEl = document.getElementById('qa-pending-count');
+      if (countEl) countEl.textContent = batches.length;
+
+      // Render cards
+      const listEl = document.getElementById('qa-pending-list');
+      if (listEl) {
+        listEl.innerHTML = batches.map(b => {
+          const p = products.find(x => x.ProductID === b.ProductID) || {};
+          return `
+            <div class="bg-white rounded-xl border-2 border-amber-200 shadow-sm p-6 mb-4" id="qa-card-${b.BatchID}">
+              <div class="flex items-start justify-between mb-4">
+                <div class="flex items-center gap-4">
+                  <div class="size-12 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-2xl">science</span>
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <h4 class="font-black text-slate-900">${p.ProductName || b.ProductID}</h4>
+                      <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700">BIỆT TRỮ</span>
+                    </div>
+                    <div class="flex gap-4 mt-1 text-xs text-slate-500">
+                      <span>Lô: <strong class="font-mono text-slate-700">${b.Batchcode}</strong></span>
+                      <span>Số lượng: <strong>${b.Quantity.toLocaleString()} ${p.BaseUnit || ''}</strong></span>
+                      <span>HSD: <strong>${b.ExpDate}</strong></span>
+                      <span>Vị trí: <strong>${b.LocationID}</strong></span>
+                    </div>
+                  </div>
+                </div>
+                <span class="px-2 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-500">${b.BatchID}</span>
+              </div>
+
+              <div class="flex gap-3 mt-4">
+                ${canRecord ? `
+                  <button onclick="startQCRecord('${b.BatchID}')"
+                    class="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-primary/90 transition-colors">
+                    <span class="material-symbols-outlined text-sm">edit_note</span> Ghi nhận kết quả QC
+                  </button>` : ''}
+                ${canApprove ? `
+                  <button onclick="quickApprove('${b.BatchID}', 'release')"
+                    class="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-green-700 transition-colors">
+                    <span class="material-symbols-outlined text-sm">check_circle</span> Phê duyệt — Xuất xưởng
+                  </button>
+                  <button onclick="quickApprove('${b.BatchID}', 'reject')"
+                    class="flex items-center gap-2 border border-red-200 text-red-600 px-4 py-2 rounded-xl text-sm font-bold hover:bg-red-50 transition-colors">
+                    <span class="material-symbols-outlined text-sm">cancel</span> Giữ biệt trữ / Tiêu hủy
+                  </button>` : `
+                  <div class="flex items-center gap-2 text-slate-400 text-sm">
+                    <span class="material-symbols-outlined text-sm">lock</span>
+                    Chờ ${canRecord ? 'duyệt của QA' : 'Chuyên viên QC ghi nhận kết quả'}
+                  </div>`}
+              </div>
+            </div>`;
+        }).join('') || `
+          <div class="bg-white rounded-xl border border-slate-200 p-12 text-center text-slate-400">
+            <span class="material-symbols-outlined text-5xl block mb-3 text-green-400">check_circle</span>
+            <p class="font-bold text-slate-600">Không có lô hàng nào đang biệt trữ</p>
+          </div>`;
+      }
+
+      // Re-populate batch selector in Tab 2
+      const batchSelect = document.getElementById('qa-batch-select');
+      if (batchSelect) {
+        const currentVal = batchSelect.value;
+        batchSelect.innerHTML = '<option value="">-- Chọn lô hàng --</option>' +
+          batches.map(b => {
+            const p = products.find(x => x.ProductID === b.ProductID) || {};
+            return `<option value="${b.BatchID}">${b.Batchcode} — ${p.ProductName || b.ProductID} (${b.Quantity} ${p.BaseUnit || ''})</option>`;
+          }).join('');
+        if (currentVal) batchSelect.value = currentVal;
+      }
+    }
+
+    function renderHistory() {
+      const historyData = window.MockData.QA_HISTORY || [];
+      const historyTable = document.getElementById('qa-history-table');
+      if (!historyTable) return;
+
+      if (historyData.length === 0) {
+        historyTable.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-slate-400">Chưa có lịch sử phê duyệt</td></tr>`;
+        return;
+      }
+
+      historyTable.innerHTML = historyData.map(h => `
+        <tr class="hover:bg-slate-50">
+          <td class="px-5 py-3 font-mono font-bold text-primary">${h.lot}</td>
+          <td class="px-5 py-3">${h.product}</td>
+          <td class="px-5 py-3 text-slate-500">${h.date}</td>
+          <td class="px-5 py-3 font-medium">${h.inspector}</td>
+          <td class="px-5 py-3">
+            <span class="font-bold text-sm ${h.result === 'ĐẠT' ? 'text-green-600' : 'text-red-500'}">${h.result}</span>
+          </td>
+          <td class="px-5 py-3">
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${h.status === 'RELEASED' ? 'bg-green-100 text-green-700' : h.status === 'LOCKED' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}">
+              ${h.status === 'RELEASED' ? 'Đã xuất xưởng' : h.status === 'LOCKED' ? 'Đang biệt trữ' : 'Bị từ chối'}
+            </span>
+          </td>
+        </tr>`).join('');
+    }
+
+    function updateQA() {
+      renderPendingList();
+      renderHistory();
+    }
+
+    // Initialize UI
+    updateQA();
+    window.addEventListener('pharma:statechange', updateQA);
+
+    // Event Listeners
+    document.getElementById('qa-batch-select')?.addEventListener('change', (e) => {
+      const batchId = e.target.value;
+      const batch = window.MockData.BATCHES.find(b => b.BatchID === batchId);
+      const form = document.getElementById('qc-form');
+      if (!batch || !form) {
+        if (form) form.classList.add('hidden');
+        return;
+      }
+
+      const prod = products.find(p => p.ProductID === batch.ProductID) || {};
+      document.getElementById('qc-form-title').textContent = `Phiếu kiểm nghiệm — ${batch.Batchcode}`;
+      document.getElementById('qc-form-subtitle').textContent = `${prod.ProductName || ''} | Số lượng: ${batch.Quantity} ${prod.BaseUnit || ''} | HSD: ${batch.ExpDate}`;
+      form.classList.remove('hidden');
+
+      const submitArea = document.getElementById('qc-submit-area');
+      if (submitArea) {
+        let html = '';
+        if (canRecord) {
+          html += `
+            <button onclick="submitQCResult('record')" class="flex-1 bg-primary text-white py-3 rounded-xl font-bold text-sm hover:bg-primary/90 flex items-center justify-center gap-2">
+              <span class="material-symbols-outlined text-sm">save</span> Lưu Phiếu kiểm nghiệm
+            </button>`;
+        }
+        if (canApprove) {
+          html += `
+            <button onclick="submitQCResult('approve')" class="flex-1 bg-green-600 text-white py-3 rounded-xl font-bold text-sm hover:bg-green-700 flex items-center justify-center gap-2">
+              <span class="material-symbols-outlined text-sm">task_alt</span> Lưu & Phê duyệt ngay
+            </button>`;
+        }
+        submitArea.innerHTML = html;
+      }
+    });
+
+    // Helpers
+    const paramResults = {};
+    window.setParam = function (param, result, btn) {
+      paramResults[param] = result;
+      const card = document.getElementById(`param-${param}`);
+      if (card) card.className = `p-4 border-2 rounded-xl ${result === 'pass' ? 'result-pass' : 'result-fail'}`;
+      btn.closest('.flex').querySelectorAll('.param-btn').forEach(b => b.classList.remove('bg-green-100', 'text-green-700', 'bg-red-100', 'text-red-600', 'border-green-400', 'border-red-400'));
+      btn.classList.add(result === 'pass' ? 'bg-green-100' : 'bg-red-100', result === 'pass' ? 'text-green-700' : 'text-red-600');
+    };
+
+    window.startQCRecord = function (batchId) {
+      window.switchQATab('recording');
+      const select = document.getElementById('qa-batch-select');
+      if (select) {
+        select.value = batchId;
+        select.dispatchEvent(new Event('change'));
+      }
+    };
+
+    window.submitQCResult = function (mode) {
+      const modal = document.getElementById('qc-result-modal');
+      const icon = document.getElementById('qc-result-icon');
+      const title = document.getElementById('qc-result-title');
+      const body = document.getElementById('qc-result-body');
+
+      const overallPass = document.querySelector('input[name="overall"]:checked')?.value === 'pass';
+      const batchId = document.getElementById('qa-batch-select').value;
+      if (!batchId) return;
+
+      const batch = window.MockData.BATCHES.find(b => b.BatchID === batchId);
+      const prod = products.find(p => p.ProductID === batch.ProductID) || {};
+
+      if (mode === 'approve' && overallPass) {
+        window.MockData.updateBatchStatus(batchId, 'RELEASED');
+        window.MockData.addQAHistory({
+          lot: batch.Batchcode,
+          product: prod.ProductName || batch.ProductID,
+          date: new Date().toLocaleDateString('vi-VN'),
+          inspector: user.FullName || user.username,
+          result: 'ĐẠT',
+          status: 'RELEASED'
+        });
+        icon.className = 'size-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4';
+        icon.innerHTML = '<span class="material-symbols-outlined text-3xl text-green-600">verified</span>';
+        title.textContent = 'Lô hàng đã được phê duyệt!';
+        body.textContent = 'Lô đã được cập nhật trạng thái RELEASED và sẵn sàng xuất kho.';
+      } else {
+        window.MockData.addQAHistory({
+          lot: batch.Batchcode,
+          product: prod.ProductName || batch.ProductID,
+          date: new Date().toLocaleDateString('vi-VN'),
+          inspector: user.FullName || user.username,
+          result: overallPass ? 'ĐẠT' : 'KHÔNG ĐẠT',
+          status: 'LOCKED'
+        });
+        icon.className = 'size-16 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-4';
+        icon.innerHTML = '<span class="material-symbols-outlined text-3xl text-blue-600">save</span>';
+        title.textContent = 'Đã lưu phiếu kiểm nghiệm!';
+        body.textContent = 'Kết quả QC đã được ghi nhận. Lô hàng vẫn ở trạng thái Biệt trữ cho đến khi QA phê duyệt.';
+      }
+      modal.classList.add('open');
+    };
+
+    window.quickApprove = function (batchId, action) {
+      const modal = document.getElementById('qc-result-modal');
+      const icon = document.getElementById('qc-result-icon');
+      const title = document.getElementById('qc-result-title');
+      const body = document.getElementById('qc-result-body');
+
+      const batch = window.MockData.BATCHES.find(b => b.BatchID === batchId);
+      if (!batch) return;
+      const prod = products.find(p => p.ProductID === batch.ProductID) || {};
+
+      if (action === 'release') {
+        window.MockData.updateBatchStatus(batchId, 'RELEASED');
+        window.MockData.addQAHistory({
+          lot: batch.Batchcode,
+          product: prod.ProductName || batch.ProductID,
+          date: new Date().toLocaleDateString('vi-VN'),
+          inspector: user.FullName || user.username,
+          result: 'ĐẠT',
+          status: 'RELEASED'
+        });
+        icon.className = 'size-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4';
+        icon.innerHTML = '<span class="material-symbols-outlined text-3xl text-green-600">verified</span>';
+        title.textContent = 'Phê duyệt thành công!';
+        body.innerHTML = `Lô hàng <strong>${batchId}</strong> đã được <span class="text-green-600 font-bold">XUẤT XƯỞNG (RELEASED)</span>.`;
+      } else {
+        window.MockData.updateBatchStatus(batchId, 'LOCKED');
+        window.MockData.addQAHistory({
+          lot: batch.Batchcode,
+          product: prod.ProductName || batch.ProductID,
+          date: new Date().toLocaleDateString('vi-VN'),
+          inspector: user.FullName || user.username,
+          result: 'KHÔNG ĐẠT',
+          status: 'REJECT'
+        });
+        icon.className = 'size-16 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-4';
+        icon.innerHTML = '<span class="material-symbols-outlined text-3xl text-amber-600">lock</span>';
+        title.textContent = 'Lô hàng bị giữ lại';
+        body.innerHTML = `Lô <strong>${batchId}</strong> đã được chuyển sang trạng thái LOCKED.`;
+      }
+      modal.classList.add('open');
+    };
+
+    window.exportQAReport = function () {
+      const headers = ['Lô hàng', 'Sản phẩm', 'Ngày kiểm', 'Kiểm nghiệm viên', 'Kết quả', 'Trạng thái'];
+      const data = (window.MockData.QA_HISTORY || []).map(h => [
+        h.lot, h.product, h.date, h.inspector, h.result,
+        h.status === 'RELEASED' ? 'Đã xuất xưởng' : 'Đang biệt trữ'
+      ]);
+      window.MockData.exportToCSV([{ headers, data }], `BaoCao_QA_${new Date().toISOString().slice(0, 10)}.csv`);
+    };
+
+    window.switchQATab = function (tabId) {
+      ['pending', 'recording', 'history'].forEach(t => {
+        const tab = document.getElementById(`qa-tab-${t}`);
+        if (tab) tab.className = `pb-3 text-sm ${t === tabId ? 'tab-active' : 'tab-inactive'}`;
+        const content = document.getElementById(`qa-tab-content-${t}`);
+        if (content) content.classList.toggle('hidden', t !== tabId);
+      });
+    };
+  })();
+</script>

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html class="light" lang="vi">
+
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Đăng nhập — PharmaWMS</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { "primary": "#2563EB" },
+                    fontFamily: { "display": ["Inter", "sans-serif"] }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-100 font-display min-h-screen flex">
+
+    <!-- Left Panel — Branding -->
+    <div class="hidden lg:flex w-1/2 bg-primary flex-col items-center justify-center p-16 relative overflow-hidden">
+        <!-- Background decorative circles -->
+        <div class="absolute -top-20 -left-20 size-80 rounded-full bg-white/5"></div>
+        <div class="absolute -bottom-32 -right-16 size-96 rounded-full bg-white/5"></div>
+        <div class="absolute top-1/3 -right-10 size-48 rounded-full bg-white/5"></div>
+
+        <div class="relative z-10 text-center text-white">
+            <div class="size-20 rounded-2xl bg-white/20 flex items-center justify-center mx-auto mb-6 shadow-xl">
+                <span class="material-symbols-outlined text-4xl"
+                    style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">medical_services</span>
+            </div>
+            <h1 class="text-4xl font-black tracking-tight mb-2">PharmaWMS</h1>
+            <p class="text-primary-200 text-lg font-medium opacity-80">Hệ thống Quản lý Kho Dược GSP</p>
+
+            <div class="mt-12 grid grid-cols-2 gap-4 text-left">
+                <div class="bg-white/10 rounded-xl p-4">
+                    <span class="material-symbols-outlined text-2xl mb-2 block">verified_user</span>
+                    <p class="font-bold text-sm">Chuẩn GSP</p>
+                    <p class="text-xs opacity-70 mt-1">Quản lý theo tiêu chuẩn Thực hành tốt bảo quản thuốc</p>
+                </div>
+                <div class="bg-white/10 rounded-xl p-4">
+                    <span class="material-symbols-outlined text-2xl mb-2 block">device_thermostat</span>
+                    <p class="font-bold text-sm">Kiểm soát nhiệt độ</p>
+                    <p class="text-xs opacity-70 mt-1">Theo dõi kho lạnh và kho thường theo thời gian thực</p>
+                </div>
+                <div class="bg-white/10 rounded-xl p-4">
+                    <span class="material-symbols-outlined text-2xl mb-2 block">inventory_2</span>
+                    <p class="font-bold text-sm">Theo dõi lô hàng</p>
+                    <p class="text-xs opacity-70 mt-1">Quản lý số lô, hạn dùng và biệt trữ chính xác</p>
+                </div>
+                <div class="bg-white/10 rounded-xl p-4">
+                    <span class="material-symbols-outlined text-2xl mb-2 block">people</span>
+                    <p class="font-bold text-sm">Phân quyền vai trò</p>
+                    <p class="text-xs opacity-70 mt-1">Mỗi vai trò chỉ truy cập đúng chức năng của mình</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Panel — Login Form -->
+    <div class="flex-1 flex items-center justify-center p-8">
+        <div class="w-full max-w-md">
+            <!-- Mobile logo -->
+            <div class="lg:hidden flex items-center gap-3 mb-8">
+                <div class="size-10 rounded-lg bg-primary flex items-center justify-center text-white">
+                    <span class="material-symbols-outlined">medical_services</span>
+                </div>
+                <h1 class="text-xl font-black text-slate-900">Pharma<span class="text-primary">WMS</span></h1>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-xl p-8">
+                <h2 class="text-2xl font-black text-slate-900 mb-1">Đăng nhập</h2>
+                <p class="text-slate-500 text-sm mb-8">Nhập thông tin tài khoản của bạn để tiếp tục</p>
+
+                <!-- Error Message -->
+                <div id="login-error"
+                    class="hidden mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-sm text-red-600">
+                    <span class="material-symbols-outlined text-sm">error</span>
+                    <span id="login-error-msg">Tên đăng nhập hoặc mật khẩu không đúng</span>
+                </div>
+
+                <!-- Quick Role Selector (for demo) -->
+                <div class="mb-6 p-3 bg-primary/5 border border-primary/20 rounded-xl">
+                    <p class="text-xs font-bold text-primary mb-2">🎭 Demo nhanh — Chọn vai trò:</p>
+                    <div class="grid grid-cols-2 gap-2" id="demo-roles">
+                        <!-- Populated by script -->
+                    </div>
+                </div>
+
+                <!-- Login Form -->
+                <form id="login-form" onsubmit="handleLogin(event)">
+                    <div class="mb-4">
+                        <label class="block text-sm font-bold text-slate-700 mb-1.5">Tên đăng nhập</label>
+                        <input id="username" type="text" placeholder="Nhập tên đăng nhập..."
+                            class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                            autocomplete="username">
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-sm font-bold text-slate-700 mb-1.5">Mật khẩu</label>
+                        <div class="relative">
+                            <input id="password" type="password" placeholder="Nhập mật khẩu..."
+                                class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all pr-12"
+                                autocomplete="current-password">
+                            <button type="button" onclick="togglePassword()"
+                                class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                                <span class="material-symbols-outlined text-lg" id="eye-icon">visibility_off</span>
+                            </button>
+                        </div>
+                    </div>
+                    <button type="submit" id="login-btn"
+                        class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2">
+                        <span class="material-symbols-outlined text-lg">login</span>
+                        Đăng nhập
+                    </button>
+                </form>
+
+                <p class="text-center text-xs text-slate-400 mt-6">
+                    Mật khẩu demo tất cả tài khoản: <code class="font-bold text-slate-600">123456</code>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/noco_bridge.js"></script>
+    <script src="/js/mock_data.js"></script>
+    <script src="/js/auth.js"></script>
+    <script>
+        // Nếu đã đăng nhập rồi thì về trang chính
+        if (window.Auth.getCurrentUser()) {
+            window.location.href = '/index.html';
+        }
+
+        // Build demo role buttons
+        const demoRolesEl = document.getElementById('demo-roles');
+        const demoUsers = [
+            { username: 'admin', label: 'IT / Admin', icon: 'manage_accounts', color: '#7C3AED' },
+            { username: 'thukho', label: 'Thủ kho', icon: 'warehouse', color: '#1D4ED8' },
+            { username: 'nvkho', label: 'NV Kho', icon: 'person', color: '#EA580C' },
+            { username: 'qcvien', label: 'Chuyên viên QC', icon: 'science', color: '#0D9488' },
+            { username: 'qaduoc', label: 'Dược sĩ QA', icon: 'verified_user', color: '#0891B2' },
+            { username: 'sales', label: 'NV Kinh doanh', icon: 'storefront', color: '#D97706' },
+            { username: 'mua', label: 'NV Thu mua', icon: 'shopping_cart', color: '#B45309' },
+            { username: 'ketoan', label: 'Kế toán kho', icon: 'account_balance', color: '#CA8A04' },
+            { username: 'giamdoc', label: 'Ban Giám đốc', icon: 'supervisor_account', color: '#DC2626' },
+            { username: 'taixe', label: 'Tài xế', icon: 'local_shipping', color: '#64748B' },
+        ];
+        demoUsers.forEach(u => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'flex items-center gap-2 p-2 rounded-lg border border-slate-200 hover:border-primary/40 hover:bg-primary/5 transition-all text-left';
+            btn.innerHTML = `
+        <span class="material-symbols-outlined text-sm" style="color:${u.color}">${u.icon}</span>
+        <span class="text-xs font-semibold text-slate-700">${u.label}</span>
+      `;
+            btn.onclick = () => {
+                document.getElementById('username').value = u.username;
+                document.getElementById('password').value = '123456';
+            };
+            demoRolesEl.appendChild(btn);
+        });
+
+        function togglePassword() {
+            const input = document.getElementById('password');
+            const icon = document.getElementById('eye-icon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.textContent = 'visibility';
+            } else {
+                input.type = 'password';
+                icon.textContent = 'visibility_off';
+            }
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const errorEl = document.getElementById('login-error');
+            const btn = document.getElementById('login-btn');
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="material-symbols-outlined text-lg animate-spin">refresh</span> Đang kiểm tra...';
+
+            try {
+                // Thử đăng nhập qua NocoDB trước nếu có API_TOKEN
+                let user = null;
+                if (window.NocoBridge.API_TOKEN && window.NocoBridge.API_TOKEN !== 'YOUR_API_TOKEN_HERE') {
+                    const users = await window.NocoBridge.fetchTable('Users', {
+                        where: `(username,eq,${username})~and(password,eq,${password})`
+                    });
+                    if (users && users.length > 0) user = users[0];
+                }
+
+                // Dự phòng (Fallback) sang MockData nếu NocoDB chưa cấu hình hoặc không tìm thấy
+                if (!user) {
+                    user = window.MockData.authenticateUser(username, password);
+                }
+
+                if (user) {
+                    window.Auth.login(user);
+                    window.location.href = '/index.html#dashboard';
+                } else {
+                    errorEl.classList.remove('hidden');
+                    btn.disabled = false;
+                    btn.innerHTML = '<span class="material-symbols-outlined text-lg">login</span> Đăng nhập';
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                // Fallback sang MockData khi lỗi API
+                const user = window.MockData.authenticateUser(username, password);
+                if (user) {
+                    window.Auth.login(user);
+                    window.location.href = '/index.html#dashboard';
+                } else {
+                    errorEl.classList.remove('hidden');
+                    btn.disabled = false;
+                    btn.innerHTML = '<span class="material-symbols-outlined text-lg">login</span> Đăng nhập';
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html class="light" lang="vi">
+
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>PharmaWMS</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet">
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2563EB",
+                        "accent": "#0D9488",
+                        "background-light": "#F8FAFC",
+                        "background-dark": "#111621",
+                    },
+                    fontFamily: { "display": ["Inter", "sans-serif"] },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        /* Spinner animation */
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .animate-spin {
+            animation: spin 1s linear infinite;
+        }
+
+        /* Smooth page transitions */
+        #page-content {
+            transition: opacity 0.15s ease;
+        }
+
+        #page-content.loading {
+            opacity: 0.4;
+        }
+    </style>
+</head>
+
+<body class="bg-background-light text-slate-900 font-display">
+    <div class="flex h-screen overflow-hidden">
+
+        <!-- ======================== SIDEBAR ======================== -->
+        <aside class="w-64 bg-white border-r border-slate-200 flex flex-col shrink-0 z-20">
+            <!-- Logo -->
+            <a href="#dashboard"
+                class="p-6 flex items-center gap-3 hover:opacity-80 transition-opacity border-b border-slate-100">
+                <div
+                    class="size-10 rounded-lg bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/20">
+                    <span class="material-symbols-outlined text-2xl">medical_services</span>
+                </div>
+                <div>
+                    <h1 class="text-slate-900 text-lg font-black tracking-tight leading-none">Pharma<span
+                            class="text-primary">WMS</span></h1>
+                    <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-0.5">Kho Dược GSP</p>
+                </div>
+            </a>
+
+            <!-- Navigation Menu — được render динамически bởi app.js -->
+            <nav class="flex-1 px-3 py-3 overflow-y-auto" id="sidebar-menu">
+                <!-- Được build bởi App.buildMenu() -->
+                <div class="flex items-center justify-center h-24 text-slate-300">
+                    <span class="material-symbols-outlined animate-spin">refresh</span>
+                </div>
+            </nav>
+
+            <!-- User Info + Logout -->
+            <div class="p-4 border-t border-slate-100">
+                <!-- Role badge -->
+                <p class="text-[10px] font-bold uppercase tracking-widest mb-2 px-1" data-user="role"
+                    style="color:#2563EB">Đang tải...</p>
+                <div class="flex items-center justify-between p-2 bg-slate-50 rounded-xl">
+                    <div class="flex items-center gap-3 overflow-hidden">
+                        <img data-user="avatar" class="size-9 rounded-full object-cover border-2 border-white"
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuBA4Mrk-DALieB8r5Dj4NXGbLk_yH3dEyCJvJDJGI43la4YiWm34w_lsgPbr26qmrStFFGsugGIxzaCNuZcBIgETL9crBRhljwyvWBiSixlBTFZ84VzMO4nYhcldCdObUZUTK0er_fF1WhdxHijjDpfX0slDK4RfkewqF7NYxqG5Y5yQ052ArqfQ0d9q4JWSoGURldr0LNIdGwgASXC1-FKidU7zuDIBDqOUBa57zBQgpeBnOokuG5QUUziOVt8Y7yr8qYMuCSBZlJD"
+                            alt="Avatar">
+                        <div class="overflow-hidden">
+                            <p class="text-xs font-bold text-slate-900 truncate" data-user="name">...</p>
+                            <p class="text-[10px] text-slate-500 truncate" data-user="title">...</p>
+                        </div>
+                    </div>
+                    <button onclick="window.Auth.logout()"
+                        class="text-slate-400 hover:text-red-500 transition-colors p-1 rounded" title="Đăng xuất">
+                        <span class="material-symbols-outlined text-lg">logout</span>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ======================== MAIN AREA ======================== -->
+        <div class="flex-1 flex flex-col min-w-0">
+
+            <!-- Sticky Header -->
+            <header
+                class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8 sticky top-0 z-10 shrink-0">
+                <div class="flex items-center gap-4">
+                    <h2 class="text-lg font-bold text-slate-900" id="page-title">PharmaWMS</h2>
+                </div>
+                <div class="flex items-center gap-3">
+                    <!-- Notification Bell -->
+                    <button
+                        class="size-10 rounded-lg flex items-center justify-center text-slate-500 hover:bg-slate-50 relative">
+                        <span class="material-symbols-outlined">notifications</span>
+                        <span
+                            class="absolute top-2.5 right-2.5 size-2 bg-red-500 border-2 border-white rounded-full"></span>
+                    </button>
+                    <!-- User avatar in header -->
+                    <div class="flex items-center gap-2 cursor-pointer">
+                        <div class="text-right hidden md:block">
+                            <p class="text-sm font-bold text-slate-900" data-user="name">...</p>
+                            <p class="text-xs text-slate-500" data-user="title">...</p>
+                        </div>
+                        <img data-user="avatar" class="size-9 rounded-full object-cover border-2 border-primary/20"
+                            src="" alt="Avatar">
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content — Router load vào đây -->
+            <main class="flex-1 overflow-y-auto bg-background-light" id="page-content">
+                <!-- Nội dung trang được inject bởi Router -->
+            </main>
+        </div>
+
+    </div>
+
+    <!-- Scripts: Thứ tự quan trọng! noco_bridge → noco_mappers → mock_data → auth → router → app -->
+    <script src="/js/noco_bridge.js"></script>
+    <script src="/js/noco_mappers.js"></script>
+    <script src="/js/mock_data.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/router.js"></script>
+    <script src="/js/app.js"></script>
+</body>
+
+</html>

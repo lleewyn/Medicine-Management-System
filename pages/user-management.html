@@ -1,0 +1,350 @@
+<!-- pages/user-management.html — IT Admin: Phân quyền truy cập -->
+<style>
+  .tab-active {
+    border-bottom: 2px solid #2563EB;
+    color: #2563EB;
+    font-weight: 700;
+  }
+
+  .tab-inactive {
+    border-bottom: 2px solid transparent;
+    color: #64748B;
+  }
+
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .5);
+    z-index: 50;
+  }
+
+  .modal-overlay.open {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+</style>
+<div class="p-8 max-w-[1400px] mx-auto">
+  <div class="mb-6 flex items-end justify-between">
+    <div>
+      <h2 class="text-2xl font-black text-slate-900">Phân quyền Truy cập</h2>
+      <p class="text-slate-500 text-sm mt-1">Quản lý người dùng, gán vai trò và kiểm soát quyền hạn toàn hệ thống.</p>
+    </div>
+    <div class="flex gap-3">
+      <button onclick="document.getElementById('add-user-modal').classList.add('open')"
+        class="bg-primary text-white px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-primary/90 flex items-center gap-2">
+        <span class="material-symbols-outlined text-sm">person_add</span> Thêm người dùng
+      </button>
+      <span id="it-role-badge"></span>
+    </div>
+  </div>
+
+  <div class="flex border-b border-slate-200 mb-6 gap-6">
+    <button onclick="switchITTab('users')" id="it-tab-users" class="pb-3 text-sm tab-active">Danh sách Người
+      dùng</button>
+    <button onclick="switchITTab('roles')" id="it-tab-roles" class="pb-3 text-sm tab-inactive">Ma trận Phân
+      quyền</button>
+    <button onclick="switchITTab('logs')" id="it-tab-logs" class="pb-3 text-sm tab-inactive">Nhật ký Hệ thống</button>
+  </div>
+
+  <!-- TAB 1: User list -->
+  <div id="it-tab-content-users">
+    <div class="flex gap-3 mb-4">
+      <div class="relative flex-1">
+        <span
+          class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+        <input type="text" placeholder="Tìm theo tên, username, email..."
+          class="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20">
+      </div>
+      <select
+        class="px-4 py-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20">
+        <option value="">Tất cả vai trò</option>
+        <option>Thủ kho</option>
+        <option>Nhân viên kho</option>
+        <option>Chuyên viên QC</option>
+        <option>Dược sĩ QA</option>
+        <option>NV Kinh doanh</option>
+        <option>NV Thu mua</option>
+        <option>Kế toán kho</option>
+        <option>Ban giám đốc</option>
+        <option>Tài xế</option>
+      </select>
+    </div>
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <table class="w-full text-left text-sm">
+        <thead class="bg-slate-50">
+          <tr>
+            <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase">Người dùng</th>
+            <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase">Username</th>
+            <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase">Vai trò</th>
+            <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase">Đăng nhập lần cuối</th>
+            <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase text-center">Trạng thái</th>
+            <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase text-right">Thao tác</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100" id="user-table-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB 2: Role matrix -->
+  <div id="it-tab-content-roles" class="hidden">
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-auto">
+      <div class="p-5 border-b border-slate-100">
+        <h4 class="font-bold text-slate-800">Ma trận phân quyền — Tất cả vai trò</h4>
+        <p class="text-xs text-slate-500 mt-0.5">Dấu ✅ = Có quyền, ❌ = Không có quyền</p>
+      </div>
+      <table class="w-full text-xs text-center min-w-[900px]">
+        <thead class="bg-slate-50">
+          <tr id="role-matrix-header">
+            <th class="px-4 py-3 text-left text-slate-600 font-bold sticky left-0 bg-slate-50">Chức năng</th>
+          </tr>
+        </thead>
+        <tbody id="role-matrix-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB 3: System logs -->
+  <div id="it-tab-content-logs" class="hidden">
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+        <h4 class="font-bold text-slate-800">Nhật ký hoạt động hệ thống</h4>
+        <div class="flex gap-2">
+          <select class="border border-slate-200 rounded-lg text-xs px-3 py-1.5 outline-none">
+            <option>Tất cả hành động</option>
+            <option>Đăng nhập</option>
+            <option>Phê duyệt</option>
+            <option>Thay đổi quyền</option>
+          </select>
+          <button onclick="exportSystemLogs()"
+            class="border border-slate-200 text-slate-600 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-slate-50 flex items-center gap-1">
+            <span class="material-symbols-outlined text-xs">file_download</span> Xuất log
+          </button>
+        </div>
+      </div>
+      <div class="divide-y divide-slate-100" id="system-logs"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Add User Modal -->
+<div class="modal-overlay" id="add-user-modal">
+  <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4">
+    <h3 class="text-lg font-black text-slate-900 mb-5">Thêm người dùng mới</h3>
+    <div class="space-y-4">
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase">Họ tên</label>
+          <input type="text" placeholder="Nguyễn Văn An"
+            class="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase">Username</label>
+          <input type="text" placeholder="nvian"
+            class="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20">
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase">Email</label>
+        <input type="email" placeholder="an.nguyen@pharma.vn"
+          class="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20">
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase">Vai trò</label>
+        <select id="add-user-role"
+          class="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20">
+          <option value="WAREHOUSE_MANAGER">Thủ kho</option>
+          <option value="WAREHOUSE_STAFF">Nhân viên kho</option>
+          <option value="QC_SPECIALIST">Chuyên viên QC</option>
+          <option value="QA_PHARMACIST">Dược sĩ QA</option>
+          <option value="SALES_STAFF">NV Kinh doanh</option>
+          <option value="PROCUREMENT_STAFF">NV Thu mua</option>
+          <option value="ACCOUNTANT">Kế toán kho</option>
+          <option value="DIRECTOR">Ban giám đốc</option>
+          <option value="DRIVER">Tài xế</option>
+          <option value="SYSTEM_ADMIN">IT Admin</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase">Mật khẩu tạm thời</label>
+        <input type="password" placeholder="Ít nhất 8 ký tự"
+          class="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20">
+      </div>
+    </div>
+    <div class="flex gap-3 mt-6">
+      <button onclick="document.getElementById('add-user-modal').classList.remove('open')"
+        class="flex-1 border border-slate-200 text-slate-600 py-2.5 rounded-xl text-sm font-bold">Hủy</button>
+      <button onclick="createUser()"
+        class="flex-1 bg-primary text-white py-2.5 rounded-xl text-sm font-bold hover:bg-primary/90">Tạo tài
+        khoản</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Role Modal -->
+<div class="modal-overlay" id="edit-role-modal">
+  <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4">
+    <h3 class="text-lg font-black text-slate-900 mb-2">Thay đổi Vai trò</h3>
+    <p class="text-slate-500 text-sm mb-5">Người dùng: <strong id="edit-modal-name"></strong></p>
+    <div class="mb-4">
+      <label class="block text-xs font-bold text-slate-600 mb-2 uppercase">Vai trò mới</label>
+      <select id="edit-role-select"
+        class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20">
+        <option value="WAREHOUSE_MANAGER">Thủ kho</option>
+        <option value="WAREHOUSE_STAFF">Nhân viên kho</option>
+        <option value="QC_SPECIALIST">Chuyên viên QC</option>
+        <option value="QA_PHARMACIST">Dược sĩ QA</option>
+        <option value="SALES_STAFF">NV Kinh doanh</option>
+        <option value="PROCUREMENT_STAFF">NV Thu mua</option>
+        <option value="ACCOUNTANT">Kế toán kho</option>
+        <option value="DIRECTOR">Ban giám đốc</option>
+        <option value="DRIVER">Tài xế</option>
+        <option value="SYSTEM_ADMIN">IT Admin</option>
+      </select>
+    </div>
+    <div class="mb-4">
+      <label class="block text-xs font-bold text-slate-600 mb-2 uppercase">Lý do thay đổi</label>
+      <textarea rows="2" placeholder="Ghi lý do để lưu vào audit log..."
+        class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20 resize-none"></textarea>
+    </div>
+    <div class="flex gap-3">
+      <button onclick="document.getElementById('edit-role-modal').classList.remove('open')"
+        class="flex-1 border border-slate-200 text-slate-600 py-2.5 rounded-xl text-sm font-bold">Hủy</button>
+      <button onclick="saveRole()" class="flex-1 bg-primary text-white py-2.5 rounded-xl text-sm font-bold">Lưu thay
+        đổi</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    const currentUser = window.Auth.getCurrentUser();
+    const role = window.MockData.getUserRole(currentUser);
+
+    function updateUI() {
+      const users = window.MockData.getAllUsers();
+      const roles = window.MockData.ROLES;
+      const auditLogs = window.MockData.AUDIT_LOGS;
+
+      // 1. Role badge
+      const badge = document.getElementById('it-role-badge');
+      if (badge && role) {
+        badge.innerHTML = `
+          <div class="flex items-center gap-2 px-4 py-2 rounded-xl border-2" style="border-color:${role.color}20;color:${role.color};background:${role.color}10">
+            <span class="material-symbols-outlined text-base">${role.icon}</span><span class="text-sm font-bold uppercase tracking-wider">${role.label}</span>
+          </div>`;
+      }
+
+      // 2. User list
+      document.getElementById('user-table-body').innerHTML = users.map((u) => {
+        const r = roles[u.role] || { label: u.role, color: '#64748B', icon: 'person' };
+        return `
+          <tr class="hover:bg-slate-50 transition-colors">
+            <td class="px-5 py-3">
+              <div class="flex items-center gap-3">
+                <img src="${u.avatar}" class="size-9 rounded-full" alt="${u.username}">
+                <div><p class="font-bold text-slate-900">${u.FullName || u.username}</p><p class="text-xs text-slate-400">${u.UserID}@pharma.vn</p></div>
+              </div>
+            </td>
+            <td class="px-5 py-3 font-mono text-slate-600 text-xs">${u.username}</td>
+            <td class="px-5 py-3">
+              <span class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-bold" style="background:${r.color}15;color:${r.color}">
+                <span class="material-symbols-outlined text-xs">${r.icon}</span>${r.label}
+              </span>
+            </td>
+            <td class="px-5 py-3 text-xs text-slate-500">Hoạt động</td>
+            <td class="px-5 py-3 text-center"><span class="size-2 rounded-full bg-green-500 inline-block"></span></td>
+            <td class="px-5 py-3 text-right">
+              <button onclick="openEditRole('${u.UserID}')" class="text-xs font-bold text-primary hover:underline mr-3">Thay đổi</button>
+              <button onclick="deleteUser('${u.UserID}')" class="text-xs font-bold text-slate-500 hover:text-red-600">Xóa</button>
+            </td>
+          </tr>`;
+      }).join('');
+
+      // 3. Role Matrix
+      const featureMap = {
+        'Nhập kho': 'write_inbound',
+        'Xuất kho': 'write_outbound',
+        'Quản lý tồn': 'read_inventory',
+        'Kiểm nghiệm QC': 'write_qa_result',
+        'Phê duyệt QA': 'approve_qa',
+        'Lập SO': 'write_so',
+        'Lập PO': 'write_po',
+        'Kế toán': 'write_accounting',
+        'Giao hàng': 'confirm_delivery',
+        'Phê duyệt BGĐ': 'approve_director',
+        'Phân quyền': 'manage_users'
+      };
+
+      const roleKeys = Object.keys(roles);
+      const matrixHeader = document.getElementById('role-matrix-header');
+      matrixHeader.innerHTML = '<th class="px-4 py-3 text-left text-slate-600 font-bold sticky left-0 bg-slate-50">Chức năng</th>' +
+        roleKeys.map(rk => `<th class="px-3 py-3"><span class="text-[10px] font-bold" style="color:${roles[rk].color}">${roles[rk].label.split(' ')[0]}</span></th>`).join('');
+
+      document.getElementById('role-matrix-body').innerHTML = Object.entries(featureMap).map(([label, perm]) => `
+        <tr class="border-t border-slate-100 hover:bg-slate-50">
+          <td class="px-4 py-2.5 text-left font-medium text-slate-700 text-[11px] sticky left-0 bg-white">${label}</td>
+          ${roleKeys.map(rk => `<td class="px-3 py-2.5 text-center">${(roles[rk].permissions.includes(perm) || roles[rk].permissions.includes('read_all') || roles[rk].permissions.includes('write_all')) ? '✅' : '❌'}</td>`).join('')}
+        </tr>`).join('');
+
+      // 4. System Logs
+      const lvlCls = { info: 'bg-blue-50 text-blue-600', warn: 'bg-amber-50 text-amber-700', error: 'bg-red-50 text-red-600' };
+      document.getElementById('system-logs').innerHTML = auditLogs.map(l => `
+        <div class="px-5 py-3 flex items-center gap-4 hover:bg-slate-50">
+          <span class="font-mono text-[10px] text-slate-400 w-16">${l.time}</span>
+          <span class="px-2 py-0.5 rounded text-[9px] font-bold ${lvlCls[l.lvl] || lvlCls.info}">${(l.action || 'LOG').toUpperCase()}</span>
+          <span class="text-[11px] font-bold text-slate-700 w-20">${l.user}</span>
+          <span class="text-[11px] text-slate-500 flex-1">${l.detail}</span>
+        </div>`).join('') || '<p class="p-8 text-center text-slate-400 text-xs text-italic">Chưa có nhật ký hoạt động.</p>';
+    }
+
+    updateUI();
+    window.addEventListener('pharma:statechange', updateUI);
+
+    window.createUser = function () {
+      const name = document.querySelector('#add-user-modal input[placeholder="Nguyễn Văn An"]').value;
+      const user = document.querySelector('#add-user-modal input[placeholder="nvian"]').value;
+      const role = document.getElementById('add-user-role').value;
+      if (!name || !user) { alert('Vui lòng nhập đủ tên và username'); return; }
+
+      window.MockData.addUser({ FullName: name, username: user, role: role });
+      document.getElementById('add-user-modal').classList.remove('open');
+    };
+
+    let editTargetId = '';
+    window.openEditRole = function (userId) {
+      editTargetId = userId;
+      const u = window.MockData.getAllUsers().find(x => x.UserID === userId);
+      if (u) {
+        document.getElementById('edit-modal-name').textContent = u.FullName || u.username;
+        document.getElementById('edit-role-select').value = u.role;
+        document.getElementById('edit-role-modal').classList.add('open');
+      }
+    };
+
+    window.saveRole = function () {
+      const newRole = document.getElementById('edit-role-select').value;
+      window.MockData.updateUserRole(editTargetId, newRole);
+      document.getElementById('edit-role-modal').classList.remove('open');
+    };
+
+    window.deleteUser = function (userId) {
+      if (confirm('Bạn có chắc muốn xóa người dùng này?')) {
+        window.MockData.deleteUser(userId);
+      }
+    };
+
+    window.switchITTab = function (t) {
+      ['users', 'roles', 'logs'].forEach(x => {
+        document.getElementById(`it-tab-${x}`).className = `pb-3 text-sm ${x === t ? 'tab-active' : 'tab-inactive'}`;
+        document.getElementById(`it-tab-content-${x}`).classList.toggle('hidden', x !== t);
+      });
+    };
+
+    window.exportSystemLogs = function () {
+      window.MockData.exportToCSV(window.MockData.AUDIT_LOGS, `SystemLog_${new Date().toISOString().slice(0, 10)}.csv`);
+    };
+  })();
+</script>

@@ -1,0 +1,531 @@
+<!-- pages/outbound.html — Luồng Xuất kho đầy đủ -->
+<!-- Use cases: Soạn hàng theo đơn, Ghi nhận KQ kiểm tra trước xuất, Phê duyệt xuất kho (Thủ kho) -->
+
+<style>
+  .tab-active {
+    border-bottom: 2px solid #2563EB;
+    color: #2563EB;
+    font-weight: 700;
+  }
+
+  .tab-inactive {
+    border-bottom: 2px solid transparent;
+    color: #64748B;
+  }
+
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 50;
+  }
+
+  .modal-overlay.open {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .picking-done {
+    text-decoration: line-through;
+    opacity: 0.5;
+  }
+</style>
+
+<div class="p-8 max-w-[1400px] mx-auto w-full">
+
+  <!-- Title Bar -->
+  <div class="mb-6 flex items-end justify-between">
+    <div>
+      <h2 class="text-2xl font-black text-slate-900 tracking-tight">Quản lý Xuất kho</h2>
+      <p class="text-slate-500 text-sm mt-1">Điều phối soạn hàng, kiểm tra trước xuất và phê duyệt lô xuất kho.
+      </p>
+    </div>
+    <div id="outbound-header-actions" class="flex gap-2">
+      <button
+        onclick="if(confirm('Bạn có muốn xóa toàn bộ dữ liệu hiện tại và khôi phục về mặc định không?')) window.MockData.resetState()"
+        class="bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-slate-200 flex items-center gap-1 transition-colors">
+        <span class="material-symbols-outlined text-sm">restart_alt</span> Khôi phục dữ liệu gốc
+      </button>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="flex border-b border-slate-200 mb-6 gap-6">
+    <button onclick="switchOutboundTab('so-list')" id="out-tab-so-list" class="pb-3 text-sm tab-active">Danh sách
+      SO</button>
+    <button onclick="switchOutboundTab('picking')" id="out-tab-picking" class="pb-3 text-sm tab-inactive">Soạn hàng
+      (Picking)</button>
+    <button onclick="switchOutboundTab('approval')" id="out-tab-approval" class="pb-3 text-sm tab-inactive">
+      Phê duyệt xuất kho <span id="approval-badge"
+        class="ml-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">!</span>
+    </button>
+  </div>
+
+  <!-- TAB 1: SO List -->
+  <div id="out-tab-content-so-list">
+    <!-- Stats -->
+    <div class="grid grid-cols-4 gap-4 mb-6">
+      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+        <p class="text-slate-500 text-xs font-medium mb-1">Tổng đơn hàng</p>
+        <h3 class="text-2xl font-bold" id="so-stats-total">--</h3>
+      </div>
+      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+        <p class="text-slate-500 text-xs font-medium mb-1">Chờ soạn hàng</p>
+        <h3 class="text-2xl font-bold text-orange-500" id="so-stats-picking">--</h3>
+      </div>
+      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+        <p class="text-slate-500 text-xs font-medium mb-1">Đang đóng gói</p>
+        <h3 class="text-2xl font-bold text-blue-500" id="so-stats-packing">--</h3>
+      </div>
+      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+        <p class="text-slate-500 text-xs font-medium mb-1">Đã giao hôm nay</p>
+        <h3 class="text-2xl font-bold text-green-600" id="so-stats-done">--</h3>
+      </div>
+    </div>
+
+    <!-- Pending approval alert for Thủ kho -->
+    <div id="approval-alert"
+      class="hidden mb-4 p-4 bg-amber-50 border border-amber-300 rounded-xl flex items-center gap-3">
+      <span class="material-symbols-outlined text-amber-500">gavel</span>
+      <div class="flex-1">
+        <p class="font-bold text-amber-800 text-sm">Có đơn hàng đang chờ bạn phê duyệt xuất kho</p>
+        <p class="text-xs text-amber-600 mt-0.5">Với vai trò Thủ kho, bạn cần phê duyệt trước khi hàng được
+          xuất.</p>
+      </div>
+      <button onclick="switchOutboundTab('approval')"
+        class="bg-amber-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-amber-700">Vào duyệt
+        ngay</button>
+    </div>
+
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+        <h4 class="font-bold text-slate-800">Danh sách Đơn xuất hàng (SO)</h4>
+        <div id="so-create-btn"></div>
+      </div>
+      <table class="w-full text-left">
+        <thead class="bg-slate-50">
+          <tr>
+            <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase">Mã SO</th>
+            <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase">Khách hàng</th>
+            <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase">Hạn giao</th>
+            <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase">Ưu tiên</th>
+            <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase">Trạng thái</th>
+            <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase text-right">Thao tác</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100" id="so-table-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB 2: Picking -->
+  <div id="out-tab-content-picking" class="hidden">
+    <div class="max-w-3xl">
+
+      <!-- SO Selector -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 mb-6">
+        <label class="block text-sm font-bold text-slate-700 mb-2">Chọn đơn hàng cần soạn</label>
+        <select
+          class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20"
+          id="so-select-picking">
+          <option value="">-- Chọn SO --</option>
+        </select>
+      </div>
+
+      <!-- Picking List -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-6">
+        <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+          <h4 class="font-bold text-slate-900">Danh sách hàng cần lấy</h4>
+          <span class="text-xs text-slate-500 font-medium" id="picking-progress-label">0 / 0 đã lấy</span>
+        </div>
+        <div id="picking-list" class="divide-y divide-slate-100">
+          <p class="p-8 text-center text-slate-400 text-sm">Chọn một SO để xem danh sách hàng cần lấy</p>
+        </div>
+      </div>
+
+      <!-- Pre-shipment inspection -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 mb-6">
+        <h4 class="font-bold text-slate-900 mb-1">Ghi nhận kết quả kiểm tra trước xuất</h4>
+        <p class="text-slate-500 text-sm mb-4">Xác nhận hàng hóa đạt tiêu chuẩn trước khi đóng gói và xuất kho.
+        </p>
+        <div class="space-y-2" id="preshipment-checklist">
+          <!-- Rendered below -->
+        </div>
+      </div>
+
+      <!-- Submit Picking -->
+      <button onclick="submitPicking()"
+        class="bg-primary text-white px-6 py-3 rounded-xl font-bold hover:bg-primary/90 transition-colors flex items-center gap-2">
+        <span class="material-symbols-outlined">send</span>
+        Hoàn tất soạn hàng — Gửi chờ Thủ kho phê duyệt
+      </button>
+    </div>
+  </div>
+
+  <!-- TAB 3: Approval (Thủ kho only) -->
+  <div id="out-tab-content-approval" class="hidden">
+    <div id="approval-no-permission" class="hidden bg-white rounded-xl border border-slate-200 p-12 text-center">
+      <span class="material-symbols-outlined text-5xl text-slate-300 block mb-3">lock</span>
+      <p class="font-bold text-slate-600">Chỉ Thủ kho mới có quyền phê duyệt xuất kho</p>
+      <p class="text-sm text-slate-400 mt-1">Liên hệ Thủ kho để tiến hành phê duyệt</p>
+    </div>
+
+    <div id="approval-content">
+      <div class="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-xl flex items-center gap-3">
+        <span class="material-symbols-outlined text-blue-500">info</span>
+        <p class="text-sm text-blue-700 font-medium">Với tư cách Thủ kho, bạn có quyền phê duyệt hoặc từ chối
+          xuất kho các đơn hàng dưới đây.</p>
+      </div>
+
+      <div id="approval-list" class="space-y-4"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Confirm Modal for Picking submission -->
+<div class="modal-overlay" id="picking-submitted-modal">
+  <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 text-center">
+    <div class="size-16 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-4">
+      <span class="material-symbols-outlined text-3xl text-blue-600">hourglass_top</span>
+    </div>
+    <h3 class="text-xl font-black text-slate-900 mb-2">Đã gửi chờ phê duyệt!</h3>
+    <p class="text-slate-500 text-sm mb-6">Đơn hàng đã soạn xong và được chuyển cho <strong>Thủ kho</strong> phê
+      duyệt trước khi xuất.</p>
+    <button
+      onclick="document.getElementById('picking-submitted-modal').classList.remove('open'); switchOutboundTab('so-list')"
+      class="w-full bg-primary text-white py-2.5 rounded-xl font-bold text-sm hover:bg-primary/90">OK, về Danh
+      sách SO</button>
+  </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal-overlay" id="ok-modal">
+  <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 text-center">
+    <div class="size-14 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+      <span class="material-symbols-outlined text-3xl text-green-600">check_circle</span>
+    </div>
+    <h3 class="text-lg font-black text-slate-900 mb-2">Thao tác thành công!</h3>
+    <p class="text-slate-500 text-sm mb-4" id="ok-modal-msg"></p>
+    <button onclick="document.getElementById('ok-modal').classList.remove('open'); switchOutboundTab('so-list')"
+      class="w-full bg-primary text-white py-2.5 rounded-xl font-bold text-sm">Quay lại danh sách</button>
+  </div>
+</div>
+
+<script>
+  (function () {
+    const user = window.Auth.getCurrentUser();
+    const role = window.MockData.getUserRole(user);
+    const canApprove = window.MockData.hasPermission(user, 'approve_outbound');
+    const canCreate = window.MockData.hasPermission(user, 'write_orders') || window.MockData.hasPermission(user, 'write_all');
+
+    let activeSOId = '';
+
+    function updateOutbound() {
+      const SOs = window.MockData.SALES_ORDERS || [];
+      const filteredSOs = SOs.filter(s => s.status !== 'COMPLETED');
+
+      // Update stats
+      if (document.getElementById('so-stats-total')) {
+        document.getElementById('so-stats-total').textContent = SOs.length;
+        document.getElementById('so-stats-picking').textContent = SOs.filter(s => s.status === 'PICKING' || s.status === 'IN_PROGRESS').length;
+        document.getElementById('so-stats-packing').textContent = SOs.filter(s => s.status === 'PACKING').length;
+        document.getElementById('so-stats-done').textContent = SOs.filter(s => s.status === 'COMPLETED').length;
+      }
+
+      // Render SO List
+      const tableBody = document.getElementById('so-table-body');
+      if (tableBody) {
+        tableBody.innerHTML = filteredSOs.map(s => `
+          <tr class="hover:bg-slate-50 transition-colors">
+            <td class="px-5 py-4 font-bold text-primary text-sm">${s.SO_ID}</td>
+            <td class="px-5 py-4">
+              <p class="text-sm font-bold">${s.CustomerID}</p>
+              <p class="text-xs text-slate-400">${s.region || ''}</p>
+            </td>
+            <td class="px-5 py-4 text-sm ${s.priority === 'URGENT' ? 'text-red-600 font-bold' : 'text-slate-500'}">${s.deadline}</td>
+            <td class="px-5 py-4">
+              <span class="px-2 py-1 rounded-full text-[10px] font-bold ${s.priority === 'URGENT' ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-600'}">
+                ${s.priority === 'URGENT' ? 'KHẨN CẤP' : 'BÌNH THƯỜNG'}
+              </span>
+            </td>
+            <td class="px-5 py-4 text-sm font-medium text-slate-600">
+              ${s.status === 'PICKING' ? 'Chờ soạn hàng' : s.status === 'IN_PROGRESS' ? 'Đang soạn hàng' : s.status === 'PACKING' ? '<span class="text-amber-600 font-bold">Chờ phê duyệt</span>' : s.status}
+            </td>
+            <td class="px-5 py-4 text-right">
+              ${s.status === 'PICKING' || s.status === 'IN_PROGRESS' ? `
+                <button onclick="startPicking('${s.SO_ID}')"
+                  class="bg-primary/10 text-primary px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-primary/20 mr-2">
+                  <span class="material-symbols-outlined text-xs align-middle">checklist</span> Soạn hàng
+                </button>` : ''}
+              ${canApprove && s.status === 'PACKING' ? `
+                <button onclick="switchOutboundTab('approval')"
+                  class="bg-amber-100 text-amber-700 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-amber-200">
+                  <span class="material-symbols-outlined text-xs align-middle">gavel</span> Phê duyệt
+                </button>` : ''}
+            </td>
+          </tr>`).join('') || '<tr><td colspan="6" class="p-8 text-center text-slate-400">Không có đơn hàng chờ xuất.</td></tr>';
+      }
+
+      // Update approval badge
+      const pendingApprovalCount = SOs.filter(s => s.status === 'PACKING').length;
+      const approvalBadge = document.getElementById('approval-badge');
+      if (approvalBadge) {
+        if (pendingApprovalCount > 0) {
+          approvalBadge.textContent = pendingApprovalCount;
+          approvalBadge.classList.remove('hidden');
+        } else {
+          approvalBadge.classList.add('hidden');
+        }
+      }
+
+      // Update approval tab content
+      if (canApprove) {
+        const noPerm = document.getElementById('approval-no-permission');
+        const content = document.getElementById('approval-content');
+        if (noPerm) noPerm.classList.add('hidden');
+        if (content) content.classList.remove('hidden');
+
+        const pendingApproval = SOs.filter(s => s.status === 'PACKING');
+        const approvalList = document.getElementById('approval-list');
+        if (approvalList) {
+          approvalList.innerHTML = pendingApproval.map(so => `
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+            <div class="flex items-start justify-between mb-4">
+              <div>
+                <div class="flex items-center gap-2 mb-1">
+                  <h4 class="font-black text-slate-900">${so.SO_ID}</h4>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${so.priority === 'URGENT' ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-600'}">
+                    ${so.priority === 'URGENT' ? 'KHẨN CẤP' : 'BÌNH THƯỜNG'}
+                  </span>
+                </div>
+                <p class="text-sm font-medium text-slate-700">${so.CustomerID}</p>
+                <p class="text-xs text-slate-400">Hạn giao: ${so.deadline} • ${so.region || ''}</p>
+              </div>
+              <span class="px-3 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700">CHỜ PHÊ DUYỆT</span>
+            </div>
+            
+            <div class="bg-slate-50 rounded-lg p-4 mb-4">
+              <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Chi tiết mặt hàng</p>
+              <div class="space-y-2">
+                ${(so.itemsDetails || so.items || []).map(it => {
+            const p = window.MockData.PRODUCTS.find(x => x.ProductID === it.ProductID) || {};
+            return `
+                  <div class="flex justify-between text-xs">
+                    <span class="text-slate-600">${p.ProductName || it.ProductID}</span>
+                    <span class="font-bold">${it.OrderedQty || it.qty} ${p.BaseUnit || ''}</span>
+                  </div>`;
+          }).join('')}
+              </div>
+            </div>
+            
+            <div class="flex gap-3">
+              <button onclick="rejectOutbound('${so.SO_ID}', this)"
+                class="flex-1 border border-red-200 text-red-600 py-2.5 rounded-xl font-bold text-sm hover:bg-red-50 flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined text-sm">close</span> Từ chối
+              </button>
+              <button onclick="approveOutbound('${so.SO_ID}', this)"
+                class="flex-1 bg-green-600 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-green-700 flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined text-sm">check</span> Phê duyệt Xuất kho
+              </button>
+            </div>
+          </div>`).join('') || `
+          <div class="bg-white rounded-xl border border-slate-200 p-12 text-center text-slate-400">
+            <span class="material-symbols-outlined text-5xl block mb-3 text-green-400">task_alt</span>
+            <p class="font-bold text-slate-600">Không có đơn hàng nào chờ phê duyệt</p>
+          </div>`;
+        }
+      } else {
+        const noPerm = document.getElementById('approval-no-permission');
+        const content = document.getElementById('approval-content');
+        if (noPerm) noPerm.classList.remove('hidden');
+        if (content) content.classList.add('hidden');
+      }
+
+      // 5. Populate SO select for picking
+      const soSelect = document.getElementById('so-select-picking');
+      if (soSelect) {
+        const currentVal = soSelect.value;
+        const pickingSOs = SOs.filter(s => s.status === 'PICKING' || s.status === 'IN_PROGRESS');
+        soSelect.innerHTML = '<option value="">-- Chọn SO để soạn hàng --</option>' +
+          pickingSOs.map(s => `
+            <option value="${s.SO_ID}">${s.SO_ID} — ${s.CustomerID}</option>
+          `).join('');
+        if (currentVal) soSelect.value = currentVal;
+      }
+
+      // 6. Update active picking list if any
+      if (activeSOId) {
+        const so = SOs.find(s => s.SO_ID === activeSOId);
+        if (so && (so.status === 'PICKING' || so.status === 'IN_PROGRESS')) {
+          renderPickingItems(so);
+        } else {
+          activeSOId = '';
+          document.getElementById('picking-list').innerHTML = '<p class="p-8 text-center text-slate-400 text-sm">Chọn một SO để xem danh sách hàng cần lấy</p>';
+          document.getElementById('picking-progress-label').textContent = '0 / 0 đã lấy';
+        }
+      }
+    }
+
+    // Initial load & Listener for selection
+    updateOutbound();
+    window.addEventListener('pharma:statechange', updateOutbound);
+
+    document.getElementById('so-select-picking')?.addEventListener('change', (e) => {
+      if (e.target.value) startPicking(e.target.value);
+    });
+
+    // Show approval alert for Thủ kho
+    if (canApprove) document.getElementById('approval-alert').classList.remove('hidden');
+
+    // Create SO button
+    if (canCreate && document.getElementById('so-create-btn')) {
+      document.getElementById('so-create-btn').innerHTML = `
+        <button onclick="window.Router.navigate('sales-order')"
+          class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-primary/90">
+          <span class="material-symbols-outlined text-sm">add_shopping_cart</span> Tạo Đơn hàng mới
+        </button>`;
+    }
+
+    window.startPicking = function (soId) {
+      activeSOId = soId;
+      const so = window.MockData.SALES_ORDERS.find(s => s.SO_ID === soId);
+      if (!so) return;
+
+      switchOutboundTab('picking');
+      const soSelect = document.getElementById('so-select-picking');
+      if (soSelect) soSelect.value = soId;
+
+      renderPickingItems(so);
+    };
+
+    function renderPickingItems(so) {
+      const items = so.itemsDetails || so.items || [];
+      const container = document.getElementById('picking-list');
+      if (!container) return;
+
+      container.innerHTML = items.map((it, idx) => {
+        const prod = window.MockData.PRODUCTS.find(p => p.ProductID === it.ProductID) || {};
+        const suggestedBatches = window.MockData.BATCHES.filter(b => b.ProductID === it.ProductID && b.BatchStatus === 'RELEASED' && b.Quantity >= (it.OrderedQty || it.qty));
+
+        return `
+          <div class="p-4 flex items-center gap-4 cursor-pointer transition-colors hover:bg-slate-50" id="pick-row-${idx}" 
+            onclick="if(event.target.type !== 'checkbox') { let chk = document.getElementById('pick-chk-${idx}'); chk.checked = !chk.checked; togglePickItem(${idx}, chk.checked); }">
+            <input type="checkbox" class="size-5 rounded accent-primary pointer-events-auto" id="pick-chk-${idx}"
+              onchange="togglePickItem(${idx}, this.checked)" onclick="event.stopPropagation()">
+            <div class="size-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center pointer-events-none">
+              <span class="material-symbols-outlined text-base">inventory_2</span>
+            </div>
+            <div class="flex-1 pointer-events-none">
+              <p class="text-sm font-bold" id="pick-name-${idx}">${prod.ProductName || it.ProductID}</p>
+              <p class="text-xs text-slate-400">
+                ${suggestedBatches.length > 0 ? `Lô: <strong>${suggestedBatches[0].Batchcode}</strong> • Vị trí: <strong>${suggestedBatches[0].LocationID}</strong>` : '<span class="text-red-500">Không có lô hàng phù hợp</span>'}
+              </p>
+            </div>
+            <div class="text-right pointer-events-none">
+              <p class="font-bold text-slate-900">${it.OrderedQty || it.qty} ${prod.BaseUnit || ''}</p>
+              <p class="text-xs text-slate-400">SKU: ${it.ProductID}</p>
+            </div>
+          </div>`;
+      }).join('') || '<p class="p-8 text-center text-slate-400 text-sm">Đơn hàng không có mục nào.</p>';
+
+      const all = document.querySelectorAll('[id^="pick-chk-"]');
+      const done = [...all].filter(c => c.checked).length;
+      document.getElementById('picking-progress-label').textContent = `${done} / ${all.length} đã lấy`;
+
+      const inspectionChecks = [
+        'Số lượng thực tế khớp với đơn hàng (SO)',
+        'Hạn sử dụng còn tối thiểu 12 tháng',
+        'Nhãn mác và bao bì không hư hỏng',
+        'Nhiệt độ bảo quản đúng trong quá trình soạn hàng',
+        'Chứng từ xuất kho (Phiếu xuất, Invoice) đã chuẩn bị đủ',
+      ];
+      document.getElementById('preshipment-checklist').innerHTML = inspectionChecks.map((c, i) => `
+        <label class="flex items-center gap-3 p-3 border border-slate-200 rounded-xl hover:bg-slate-50 cursor-pointer">
+          <input type="checkbox" class="pre-chk size-4 rounded accent-green-500">
+          <span class="text-sm font-medium text-slate-700">${c}</span>
+        </label>`).join('');
+    };
+
+    window.togglePickItem = function (idx, checked) {
+      const row = document.getElementById(`pick-row-${idx}`);
+      const name = document.getElementById(`pick-name-${idx}`);
+      if (checked) {
+        row.classList.add('bg-green-50');
+        name.classList.add('line-through', 'text-slate-400');
+      } else {
+        row.classList.remove('bg-green-50');
+        name.classList.remove('line-through', 'text-slate-400');
+      }
+      const all = document.querySelectorAll('[id^="pick-chk-"]');
+      const done = [...all].filter(c => c.checked).length;
+      document.getElementById('picking-progress-label').textContent = `${done} / ${all.length} đã lấy`;
+    };
+
+    window.submitPicking = function () {
+      if (!activeSOId) return;
+      const allPickChecks = document.querySelectorAll('input[id^="pick-chk-"]');
+      const checksDone = [...allPickChecks].filter(c => c.checked).length;
+      const totalChecks = allPickChecks.length;
+
+      const allPreChecks = document.querySelectorAll('.pre-chk');
+      const preChecksDone = [...allPreChecks].filter(c => c.checked).length;
+      const totalPreChecks = allPreChecks.length;
+
+      if (checksDone < totalChecks || preChecksDone < totalPreChecks) {
+        if (!confirm('Bạn chưa hoàn tất tất cả các mục soạn hàng hoặc kiểm tra trước xuất. Bạn có muốn gửi đơn hàng này để chờ phê duyệt không?')) {
+          return;
+        }
+        window.MockData.updateSOStatus(activeSOId, 'IN_PROGRESS');
+      } else {
+        window.MockData.updateSOStatus(activeSOId, 'PACKING');
+      }
+
+      document.getElementById('picking-submitted-modal').classList.add('open');
+      updateOutbound();
+    };
+
+    window.approveOutbound = function (soId, btn) {
+      window.MockData.updateSOStatus(soId, 'COMPLETED');
+      updateOutbound();
+      const card = btn.closest('.bg-white');
+      if (card) {
+        card.innerHTML = `
+          <div class="flex items-center gap-4 p-2">
+            <span class="material-symbols-outlined text-3xl text-green-600">check_circle</span>
+            <div>
+              <p class="font-bold text-green-700">✅ Đã phê duyệt xuất kho — ${soId}</p>
+              <p class="text-sm text-slate-500 mt-0.5">Hàng có thể xuất ra xe ngay bây giờ. ${new Date().toLocaleString('vi-VN')}</p>
+            </div>
+          </div>`;
+      }
+    };
+
+    window.rejectOutbound = function (soId, btn) {
+      window.MockData.updateSOStatus(soId, 'PICKING');
+      updateOutbound();
+      const card = btn.closest('.bg-white');
+      if (card) {
+        card.innerHTML = `
+          <div class="flex items-center gap-4 p-2">
+            <span class="material-symbols-outlined text-3xl text-red-500">cancel</span>
+            <div>
+              <p class="font-bold text-red-600">❌ Đã từ chối — ${soId}</p>
+              <p class="text-sm text-slate-500 mt-0.5">Đơn hàng được hoàn lại kho để kiểm tra lại. ${new Date().toLocaleString('vi-VN')}</p>
+            </div>
+          </div>`;
+      }
+    };
+
+    window.switchOutboundTab = function (tabId) {
+      ['so-list', 'picking', 'approval'].forEach(t => {
+        const tabBtn = document.getElementById(`out-tab-${t}`);
+        const tabContent = document.getElementById(`out-tab-content-${t}`);
+        if (tabBtn) tabBtn.className = `pb-3 text-sm ${t === tabId ? 'tab-active' : 'tab-inactive'}`;
+        if (tabContent) tabContent.classList[t === tabId ? 'remove' : 'add']('hidden');
+      });
+    };
+  })();
+</script>

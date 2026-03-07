@@ -1,0 +1,615 @@
+<!-- pages/dashboard.html -->
+<!-- Director dashboard: Phê duyệt nghiệp vụ + Báo cáo quản trị + Xem tồn kho & chất lượng -->
+<style>
+    .tab-active {
+        border-bottom: 2px solid #2563EB;
+        color: #2563EB;
+        font-weight: 700;
+    }
+
+    .tab-inactive {
+        border-bottom: 2px solid transparent;
+        color: #64748B;
+    }
+
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, .5);
+        z-index: 50;
+    }
+
+    .modal-overlay.open {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .approval-card {
+        transition: all 0.2s;
+    }
+
+    .approval-card:hover {
+        transform: translateY(-2px);
+    }
+</style>
+
+<div class="p-8 max-w-[1400px] mx-auto">
+    <div class="mb-6 flex items-end justify-between">
+        <div>
+            <h2 class="text-2xl font-black text-slate-900">Bảng điều khiển — Ban giám đốc</h2>
+            <p class="text-slate-500 text-sm mt-1">Phê duyệt nghiệp vụ, báo cáo quản trị và theo dõi chất lượng toàn hệ
+                thống.</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <div
+                class="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-xl border border-primary/20">
+                <span class="material-symbols-outlined text-base">calendar_today</span>
+                <span class="text-sm font-bold" id="dir-date"></span>
+            </div>
+            <span id="dir-role-badge"></span>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex border-b border-slate-200 mb-6 gap-6">
+        <button onclick="switchDirTab('overview')" id="dir-tab-overview" class="pb-3 text-sm tab-active">
+            Tổng quan &amp; KPI
+        </button>
+        <button onclick="switchDirTab('approval')" id="dir-tab-approval" class="pb-3 text-sm tab-inactive">
+            Phê duyệt Nghiệp vụ
+            <span class="ml-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full"
+                id="approval-count-badge">3</span>
+        </button>
+        <button onclick="switchDirTab('report')" id="dir-tab-report" class="pb-3 text-sm tab-inactive">
+            Báo cáo Quản trị
+        </button>
+        <button onclick="switchDirTab('quality')" id="dir-tab-quality" class="pb-3 text-sm tab-inactive">
+            Tồn kho &amp; Chất lượng
+        </button>
+    </div>
+
+    <!-- TAB 1: Overview -->
+    <div id="dir-tab-content-overview">
+        <!-- KPI Row -->
+        <div class="grid grid-cols-4 gap-4 mb-6">
+            <div
+                class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden group hover:border-primary transition-all">
+                <div class="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-3">
+                    <span class="material-symbols-outlined text-xl">account_balance_wallet</span>
+                </div>
+                <p class="text-xs font-medium text-slate-500 mb-1">Tổng giá trị tồn kho</p>
+                <h3 class="text-xl font-black text-slate-900" id="db-total-value">4.7B VNĐ</h3>
+                <div class="mt-2 flex items-center gap-1.5 text-green-600">
+                    <span class="material-symbols-outlined text-sm">trending_up</span>
+                    <span class="text-[10px] font-bold">+12% so với tháng trước</span>
+                </div>
+            </div>
+
+            <!-- Stat Card 2 -->
+            <div
+                class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden group hover:border-amber-400 transition-all">
+                <div class="size-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center mb-3">
+                    <span class="material-symbols-outlined text-xl">report_problem</span>
+                </div>
+                <p class="text-xs font-medium text-slate-500 mb-1">Lô hàng biệt trữ / Cảnh báo</p>
+                <h3 class="text-xl font-black text-slate-900" id="db-quarantine">8</h3>
+                <div class="mt-2 flex items-center gap-1.5 text-amber-600">
+                    <span class="material-symbols-outlined text-sm">warning</span>
+                    <span class="text-[10px] font-bold">2 lô sắp hết hạn trong 30 ngày</span>
+                </div>
+            </div>
+
+            <!-- Stat Card 3 -->
+            <div
+                class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden group hover:border-blue-500 transition-all">
+                <div class="size-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center mb-3">
+                    <span class="material-symbols-outlined text-xl">shopping_cart</span>
+                </div>
+                <p class="text-xs font-medium text-slate-500 mb-1">Đơn hàng đang xử lý (PO/SO)</p>
+                <h3 class="text-xl font-black text-slate-900" id="db-pending-orders">127</h3>
+                <div class="mt-2 flex items-center gap-1.5 text-blue-600">
+                    <span class="material-symbols-outlined text-sm">pending_actions</span>
+                    <span class="text-[10px] font-bold">15 đơn cần phê duyệt ngay</span>
+                </div>
+            </div>
+
+            <!-- Stat Card 4 -->
+            <div
+                class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden group hover:border-red-500 transition-all">
+                <div class="size-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center mb-3">
+                    <span class="material-symbols-outlined text-xl">event_busy</span>
+                </div>
+                <p class="text-xs font-medium text-slate-500 mb-1">Lô hàng cận hạn ( < 6 tháng )</p>
+                        <h3 class="text-xl font-black text-slate-900" id="db-near-expiry">42</h3>
+                        <div class="mt-2 flex items-center gap-1.5 text-red-600">
+                            <span class="material-symbols-outlined text-sm">timer</span>
+                            <span class="text-[10px] font-bold">Cần lập kế hoạch thanh lý</span>
+                        </div>
+            </div>
+        </div>
+
+        <!-- Charts area -->
+        <div class="grid grid-cols-2 gap-6 mb-6">
+            <!-- Revenue trend -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 flex flex-col">
+                <h5 class="font-bold text-slate-800 mb-4">Doanh thu xuất kho 6 tháng</h5>
+                <div class="flex-1 flex items-end gap-2 min-h-[120px]" id="chart-bars"></div>
+                <div class="flex gap-2 mt-3 text-[10px] text-slate-500 font-medium" id="chart-labels"></div>
+            </div>
+            <!-- Category breakdown -->
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Giao dịch hôm nay</h4>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-green-50 rounded-xl p-4 border border-green-100">
+                        <p class="text-[10px] font-bold text-green-600 uppercase">Nhập kho (In)</p>
+                        <h4 class="text-2xl font-black text-green-700" id="db-today-in">24</h4>
+                    </div>
+                    <div class="bg-blue-50 rounded-xl p-4 border border-blue-100">
+                        <p class="text-[10px] font-bold text-blue-600 uppercase">Xuất kho (Out)</p>
+                        <h4 class="text-2xl font-black text-blue-700" id="db-today-out">61</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent activity -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+            <h5 class="font-bold text-slate-800 mb-4">Hoạt động gần đây cần lưu ý</h5>
+            <div class="space-y-3" id="recent-alerts"></div>
+        </div>
+    </div>
+
+    <!-- TAB 2: Approval -->
+    <div id="dir-tab-content-approval" class="hidden">
+        <div class="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-xl flex items-center gap-3">
+            <span class="material-symbols-outlined text-blue-500">info</span>
+            <p class="text-sm text-blue-700 font-medium">Các nghiệp vụ được phê duyệt bởi BGĐ sẽ được ghi log và gửi
+                thông báo đến bộ phận liên quan.</p>
+        </div>
+
+        <div class="space-y-4" id="approval-items">
+            <!-- Rendered by JS -->
+        </div>
+    </div>
+
+    <!-- TAB 3: Management Report -->
+    <div id="dir-tab-content-report" class="hidden">
+        <div class="grid grid-cols-2 gap-6 mb-6">
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Chờ phê duyệt</h4>
+                <div class="space-y-3" id="db-approval-list">
+                    <!-- Approval items ... -->
+                </div>
+                <button onclick="switchDirTab('approval')"
+                    class="w-full mt-4 py-2 text-xs font-bold text-primary border border-primary/20 rounded-xl hover:bg-primary/5 transition-colors">
+                    Xem tất cả yêu cầu
+                </button>
+            </div>
+            <!-- Revenue Report -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h5 class="font-bold text-slate-800">Báo cáo Nhập–Xuất tháng 10/2023</h5>
+                    <button class="text-xs font-bold text-primary hover:underline flex items-center gap-1"><span
+                            class="material-symbols-outlined text-xs">file_download</span> Xuất PDF</button>
+                </div>
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between p-3 bg-blue-50 rounded-xl">
+                        <div class="flex items-center gap-2"><span
+                                class="material-symbols-outlined text-blue-500 text-xl">arrow_downward</span><span
+                                class="text-sm font-bold text-slate-800">Tổng nhập kho</span></div>
+                        <div class="text-right">
+                            <p class="text-lg font-black text-blue-600">1.2B VNĐ</p>
+                            <p class="text-xs text-slate-400">+8.4% vs T9</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between p-3 bg-orange-50 rounded-xl">
+                        <div class="flex items-center gap-2"><span
+                                class="material-symbols-outlined text-orange-500 text-xl">arrow_upward</span><span
+                                class="text-sm font-bold text-slate-800">Tổng xuất kho</span></div>
+                        <div class="text-right">
+                            <p class="text-lg font-black text-orange-600">890M VNĐ</p>
+                            <p class="text-xs text-slate-400">+12.1% vs T9</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between p-3 bg-green-50 rounded-xl">
+                        <div class="flex items-center gap-2"><span
+                                class="material-symbols-outlined text-green-600 text-xl">savings</span><span
+                                class="text-sm font-bold text-slate-800">Giá trị tồn cuối kỳ</span></div>
+                        <div class="text-right">
+                            <p class="text-lg font-black text-green-600">4.7B VNĐ</p>
+                            <p class="text-xs text-slate-400">+5.2% vs T9</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Supplier performance -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                <h5 class="font-bold text-slate-800 mb-4">Hiệu suất Nhà cung cấp</h5>
+                <div class="space-y-3" id="supplier-perf"></div>
+            </div>
+        </div>
+
+        <!-- Full NXT summary table -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="p-5 border-b border-slate-100">
+                <h5 class="font-bold text-slate-800">Tóm tắt Sổ NXT — Tháng 10/2023</h5>
+            </div>
+            <table class="w-full text-sm text-left">
+                <thead class="bg-slate-50">
+                    <tr>
+                        <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase">Sản phẩm</th>
+                        <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase text-right">Tồn đầu</th>
+                        <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase text-right">Nhập</th>
+                        <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase text-right">Xuất</th>
+                        <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase text-right">Tồn cuối</th>
+                        <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase text-right">Giá trị</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100" id="dir-nxt-table"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- TAB 4: Stock & Quality -->
+    <div id="dir-tab-content-quality" class="hidden">
+        <div class="grid grid-cols-3 gap-6">
+            <!-- Stock by product -->
+            <div class="col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+                    <h5 class="font-bold text-slate-800">Tồn kho theo sản phẩm</h5>
+                    <div class="flex gap-2 text-xs">
+                        <span class="px-2 py-1 rounded bg-green-100 text-green-700 font-bold">● Đủ hàng</span>
+                        <span class="px-2 py-1 rounded bg-amber-100 text-amber-700 font-bold">● Sắp hết</span>
+                        <span class="px-2 py-1 rounded bg-red-100 text-red-700 font-bold">● Hết hàng</span>
+                    </div>
+                </div>
+                <div id="stock-quality-grid" class="divide-y divide-slate-100"></div>
+            </div>
+            <!-- QA quality summary -->
+            <div class="space-y-4">
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+                    <h5 class="font-bold text-slate-800 mb-3">Chất lượng lô hàng</h5>
+                    <div class="space-y-2" id="qa-summary-pie"></div>
+                </div>
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+                    <h5 class="font-bold text-slate-800 mb-3">Cảnh báo sắp hết hạn</h5>
+                    <div id="expiry-warnings" class="space-y-2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Approval Modal -->
+<div class="modal-overlay" id="approve-modal">
+    <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4">
+        <h3 class="text-lg font-black text-slate-900 mb-2" id="modal-title"></h3>
+        <p class="text-slate-500 text-sm mb-4" id="modal-body"></p>
+        <div class="mb-4">
+            <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase">Ý kiến Ban giám đốc</label>
+            <textarea rows="3" id="modal-comment" placeholder="Nhập ý kiến hoặc điều kiện kèm theo..."
+                class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20 resize-none"></textarea>
+        </div>
+        <div class="flex gap-3">
+            <button onclick="document.getElementById('approve-modal').classList.remove('open')"
+                class="flex-1 border border-slate-200 text-slate-600 py-2.5 rounded-xl font-bold text-sm hover:bg-slate-50">Hủy</button>
+            <button onclick="doReject()"
+                class="flex-1 border border-red-200 text-red-600 py-2.5 rounded-xl font-bold text-sm hover:bg-red-50">
+                <span class="material-symbols-outlined text-sm align-middle">close</span> Từ chối
+            </button>
+            <button onclick="doApprove()"
+                class="flex-1 bg-primary text-white py-2.5 rounded-xl font-bold text-sm hover:bg-primary/90">
+                <span class="material-symbols-outlined text-sm align-middle">check</span> Phê duyệt
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        const user = window.Auth.getCurrentUser();
+        const role = window.MockData.getUserRole(user);
+
+        function updateDashboard() {
+            const batches = window.MockData.BATCHES;
+            const products = window.MockData.PRODUCTS;
+            const sos = window.MockData.SALES_ORDERS;
+            const pos = window.MockData.PURCHASE_ORDERS;
+            const approvals = window.MockData.APPROVALS;
+
+            // 1. KPI Calculation
+            let totalValue = 0;
+            batches.forEach(b => {
+                const p = products.find(x => x.ProductID === b.ProductID);
+                if (p) totalValue += (b.Quantity * (p.ImportPrice || p.UnitPrice || 0));
+            });
+
+            const nearExpiry = batches.filter(b => {
+                const exp = new Date(b.ExpDate);
+                const soon = new Date(); soon.setMonth(soon.getMonth() + 6);
+                return exp < soon && b.BatchStatus !== 'DESTROYED';
+            }).length;
+
+            const quarantine = batches.filter(b => b.BatchStatus === 'QUARANTINE').length;
+            const pendingOrders = sos.filter(s => s.status !== 'COMPLETED').length + pos.filter(p => p.status !== 'COMPLETED').length;
+            const todayOut = sos.filter(s => s.status === 'COMPLETED').length;
+            const todayIn = batches.filter(b => b.BatchStatus === 'RELEASED').length; // Simplified proxy for "new stock"
+
+            // Update UI Stats
+            document.getElementById('dir-date').textContent = new Date().toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
+            document.getElementById('db-total-value').textContent = (totalValue / 1000000000).toFixed(1) + 'B VNĐ';
+            document.getElementById('db-quarantine').textContent = quarantine;
+            document.getElementById('db-near-expiry').textContent = nearExpiry;
+            document.getElementById('db-pending-orders').textContent = pendingOrders;
+            document.getElementById('db-today-in').textContent = todayIn;
+            document.getElementById('db-today-out').textContent = todayOut;
+
+            // 2. Render Approvals (TAB 2)
+            const approvalItems = document.getElementById('approval-items');
+            if (approvalItems) {
+                approvalItems.innerHTML = approvals.filter(a => a.status === 'PENDING').map(a => `
+                    <div class="approval-card bg-white rounded-xl border-2 ${a.urgent ? 'border-red-200' : 'border-slate-200'} shadow-sm p-6 mb-4">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="flex items-center gap-3">
+                                <div class="size-10 rounded-xl ${a.urgent ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-600'} flex items-center justify-center">
+                                    <span class="material-symbols-outlined">gavel</span>
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <h4 class="font-black text-slate-900">${a.type}</h4>
+                                        ${a.urgent ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-700">KHẨN CẤP</span>' : ''}
+                                    </div>
+                                    <p class="text-xs text-slate-400">#${a.id} • Từ: ${a.dept}</p>
+                                </div>
+                            </div>
+                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700">CHỜ PHÊ DUYỆT</span>
+                        </div>
+                        <p class="text-sm text-slate-600 mb-4 leading-relaxed">${a.desc}</p>
+                        <div class="flex gap-3">
+                            <button onclick="openApproveModal('${a.id}','${a.type}','${a.desc}')"
+                                class="flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-primary/90">
+                                <span class="material-symbols-outlined text-sm">gavel</span> Phê duyệt
+                            </button>
+                            <button onclick="window.MockData.updateApproval('${a.id}', 'REJECTED')"
+                                class="flex items-center gap-2 border border-slate-200 px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50">
+                                <span class="material-symbols-outlined text-sm">close</span> Từ chối
+                            </button>
+                        </div>
+                    </div>`).join('') || '<p class="text-center text-slate-400 py-12">Hiện không có yêu cầu phê duyệt nào.</p>';
+            }
+
+            // 3. Render Approvals (TAB 3 - db-approval-list)
+            const appList = document.getElementById('db-approval-list');
+            if (appList) {
+                appList.innerHTML = approvals.filter(a => a.status === 'PENDING').map(a => `
+          <div class="p-4 rounded-xl border border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer">
+            <div class="flex items-start gap-3">
+              <div class="size-8 rounded-lg ${a.urgent ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'} flex items-center justify-center flex-shrink-0">
+                <span class="material-symbols-outlined text-sm">${a.urgent ? 'priority_high' : 'assignment'}</span>
+              </div>
+              <div class="flex-1">
+                <div class="flex items-center justify-between mb-0.5">
+                  <p class="text-xs font-bold text-slate-900">${a.type}</p>
+                  <span class="text-[10px] text-slate-400">#${a.id}</span>
+                </div>
+                <p class="text-[11px] text-slate-500 line-clamp-2">${a.desc}</p>
+                <div class="flex items-center justify-between mt-2">
+                  <span class="text-[10px] font-bold text-slate-400 uppercase">${a.dept}</span>
+                  <div class="flex gap-2">
+                    <button onclick="openApproveModal('${a.id}', '${a.type}', '${a.desc}')" class="text-[10px] font-bold text-primary hover:underline">DUYỆT</button>
+                    <button onclick="window.MockData.updateApproval('${a.id}', 'REJECTED')" class="text-[10px] font-bold text-slate-400 hover:text-red-500">TỪ CHỐI</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `).join('') || '<p class="text-center text-slate-400 py-8 text-xs">Không có yêu cầu phê duyệt mới</p>';
+            }
+
+            // 4. Update Badge
+            const approvalCountBadge = document.getElementById('approval-count-badge');
+            const pendingCount = approvals.filter(a => a.status === 'PENDING').length;
+            if (approvalCountBadge) {
+                approvalCountBadge.textContent = pendingCount;
+                approvalCountBadge.classList.toggle('hidden', pendingCount === 0);
+            }
+
+            // 5. Role Badge
+            const badge = document.getElementById('dir-role-badge');
+            if (badge && role) {
+                badge.innerHTML = `
+                    <div class="flex items-center gap-2 px-4 py-2 rounded-xl border-2" style="border-color:${role.color}20;color:${role.color};background:${role.color}10">
+                        <span class="material-symbols-outlined text-base">${role.icon}</span><span class="text-sm font-bold uppercase tracking-wider">${role.label}</span>
+                    </div>`;
+            }
+
+            // 6. Build Stock Quality Grid (TAB 4)
+            const stockQualityGrid = document.getElementById('stock-quality-grid');
+            if (stockQualityGrid) {
+                stockQualityGrid.innerHTML = products.map(p => {
+                    const productBatches = batches.filter(b => b.ProductID === p.ProductID && b.BatchStatus !== 'DESTROYED');
+                    const totalQty = productBatches.reduce((sum, b) => sum + b.Quantity, 0);
+                    const status = totalQty === 0 ? 'Hết hàng' : totalQty < 100 ? 'Sắp hết' : 'Đủ hàng';
+                    const statusCls = totalQty === 0 ? 'bg-red-100 text-red-700' : totalQty < 100 ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700';
+                    return `
+                        <div class="p-4 flex items-center justify-between hover:bg-slate-50">
+                            <div>
+                                <p class="text-sm font-bold text-slate-900">${p.ProductName}</p>
+                                <p class="text-[10px] text-slate-400">${p.ProductID} • ${p.CategoryID || ''}</p>
+                            </div>
+                            <div class="flex items-center gap-6 text-right">
+                                <div>
+                                    <p class="text-sm font-black">${totalQty.toLocaleString()}</p>
+                                    <p class="text-[10px] text-slate-400">${p.BaseUnit}</p>
+                                </div>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${statusCls}">${status.toUpperCase()}</span>
+                            </div>
+                        </div>`;
+                }).join('');
+            }
+
+            // 7. NXT Table
+            const dirNxtTable = document.getElementById('dir-nxt-table');
+            if (dirNxtTable) {
+                dirNxtTable.innerHTML = products.map(p => {
+                    const productBatches = batches.filter(b => b.ProductID === p.ProductID);
+                    const initialStock = productBatches.reduce((sum, b) => sum + b.Quantity, 0); // Simplified
+                    const incoming = pos.filter(po => (po.itemsDetails || po.items || []).some(item => (item.ProductID === p.ProductID) && po.status === 'COMPLETED')).reduce((sum, po) => sum + (po.itemsDetails || po.items || []).filter(item => item.ProductID === p.ProductID).reduce((s, i) => s + (i.OrderedQty || i.qty), 0), 0);
+                    const outgoing = sos.filter(so => (so.itemsDetails || so.items || []).some(item => (item.ProductID === p.ProductID) && so.status === 'COMPLETED')).reduce((sum, so) => sum + (so.itemsDetails || so.items || []).filter(item => item.ProductID === p.ProductID).reduce((s, i) => s + (i.OrderedQty || i.qty), 0), 0);
+                    const finalStock = initialStock + incoming - outgoing;
+                    const value = finalStock * (p.ImportPrice || p.UnitPrice || 0);
+
+                    return `<tr class="hover:bg-slate-50 text-sm">
+                        <td class="px-5 py-3 font-medium">${p.ProductName}</td>
+                        <td class="px-5 py-3 text-right">${initialStock.toLocaleString()}</td>
+                        <td class="px-5 py-3 text-right text-blue-600 font-bold">+${incoming.toLocaleString()}</td>
+                        <td class="px-5 py-3 text-right text-orange-600 font-bold">-${outgoing.toLocaleString()}</td>
+                        <td class="px-5 py-3 text-right font-bold">${finalStock.toLocaleString()}</td>
+                        <td class="px-5 py-3 text-right font-bold text-primary">${value.toLocaleString()}</td>
+                    </tr>`;
+                }).join('');
+            }
+
+            // 8. QA summary
+            const releasedCount = batches.filter(b => b.BatchStatus === 'RELEASED').length;
+            const quarantineCount = batches.filter(b => b.BatchStatus === 'QUARANTINE').length;
+            const qaData = [{ l: 'Đã xuất xưởng (Released)', v: releasedCount, cls: 'bg-green-500' }, { l: 'Đang biệt trữ (Quarantine)', v: quarantineCount, cls: 'bg-amber-500' }];
+            const totalBatches = releasedCount + quarantineCount || 1;
+            const qaSummaryPie = document.getElementById('qa-summary-pie');
+            if (qaSummaryPie) {
+                qaSummaryPie.innerHTML = qaData.map(d => `
+                    <div>
+                        <div class="flex justify-between text-xs mb-1"><span class="font-medium">${d.l}</span><span class="font-bold">${d.v} lô</span></div>
+                        <div class="h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full ${d.cls} rounded-full" style="width:${Math.round(d.v / totalBatches * 100)}%"></div></div>
+                    </div>`).join('');
+            }
+
+            // 9. Expiry warnings
+            const expiryWarnings = document.getElementById('expiry-warnings');
+            if (expiryWarnings) {
+                const nearExpiryBatches = batches.filter(b => {
+                    const exp = new Date(b.ExpDate);
+                    const now = new Date();
+                    const diffMonths = (exp.getFullYear() - now.getFullYear()) * 12 + (exp.getMonth() - now.getMonth());
+                    return diffMonths > 0 && diffMonths <= 6 && b.BatchStatus !== 'DESTROYED';
+                }).sort((a, b) => new Date(a.ExpDate) - new Date(b.ExpDate)).slice(0, 3);
+
+                expiryWarnings.innerHTML = nearExpiryBatches.map(b => {
+                    const p = products.find(x => x.ProductID === b.ProductID) || {};
+                    const exp = new Date(b.ExpDate);
+                    const now = new Date();
+                    const diffMonths = (exp.getFullYear() - now.getFullYear()) * 12 + (exp.getMonth() - now.getMonth());
+                    return `<div class="flex items-center gap-2 p-2 rounded-lg bg-amber-50 border border-amber-200">
+                        <span class="material-symbols-outlined text-amber-500 text-sm">schedule</span>
+                        <div class="flex-1">
+                            <p class="text-xs font-bold text-slate-800">${p.ProductName || b.ProductID}</p>
+                            <p class="text-[10px] text-slate-500">HSD: ${b.ExpDate} (còn ${diffMonths} tháng)</p>
+                        </div>
+                    </div>`;
+                }).join('') || '<p class="text-center text-slate-400 py-4 text-xs">Không có cảnh báo hết hạn.</p>';
+            }
+
+            // 10. Recent alerts (simplified, using mock data for alerts)
+            const qCount = batches.filter(b => b.BatchStatus === 'QUARANTINE').length;
+            const alerts = [
+                { icon: 'warning', color: 'text-red-500 bg-red-50', msg: 'Lô PX-230901 bị Cục quản lý dược thu hồi — chờ xử lý', time: '2 giờ trước' },
+                { icon: 'science', color: 'text-amber-500 bg-amber-50', msg: `${qCount} lô hàng đang biệt trữ, chờ QA/QC phê duyệt chất lượng`, time: '5 giờ trước' },
+                { icon: 'local_shipping', color: 'text-blue-500 bg-blue-50', msg: '3 đơn hàng hoàn thành giao hàng — cần đối soát công nợ', time: '8 giờ trước' },
+            ];
+            const recentAlerts = document.getElementById('recent-alerts');
+            if (recentAlerts) {
+                recentAlerts.innerHTML = alerts.map(a => `
+                    <div class="flex items-center gap-4 p-3 ${a.color.split(' ')[1]} rounded-xl">
+                        <span class="material-symbols-outlined ${a.color.split(' ')[0]} text-xl">${a.icon}</span>
+                        <p class="flex-1 text-sm font-medium text-slate-800">${a.msg}</p>
+                        <span class="text-xs text-slate-400">${a.time}</span>
+                    </div>`).join('');
+            }
+
+            // 11. Category breakdown (removed as no MockData provided for this)
+            const categoryBreakdown = document.getElementById('category-breakdown');
+            if (categoryBreakdown) {
+                categoryBreakdown.innerHTML = ''; // Clear hardcoded content
+            }
+
+            // 12. Supplier performance (removed as no MockData provided for this)
+            const supplierPerf = document.getElementById('supplier-perf');
+            if (supplierPerf) {
+                supplierPerf.innerHTML = ''; // Clear hardcoded content
+            }
+
+            // 13. Render Chart
+            const chartBars = document.getElementById('chart-bars');
+            const chartLabels = document.getElementById('chart-labels');
+            if (chartBars && chartLabels) {
+                const months = ['Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10'];
+                const values = [420, 580, 510, 690, 890, 1200]; // mock revenue in millions
+                const maxVal = Math.max(...values);
+                
+                chartBars.innerHTML = values.map((val, idx) => {
+                    const heightPct = (val / maxVal) * 100;
+                    const isLast = idx === values.length - 1;
+                    return `<div class="flex-1 flex flex-col justify-end group cursor-pointer relative h-full">
+                        <!-- Tooltip -->
+                        <div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10 shadow-lg font-bold">
+                            ${val}M VNĐ
+                        </div>
+                        <div class="w-full ${isLast ? 'bg-primary' : 'bg-primary/20 group-hover:bg-primary/40'} rounded-t-md transition-all duration-300" style="height: ${heightPct}%"></div>
+                    </div>`;
+                }).join('');
+                
+                chartLabels.innerHTML = months.map(m => `<div class="flex-1 text-center truncate">${m.split(' ')[1]}</div>`).join('');
+            }
+        }
+
+        // Shared Logic
+        window.switchDirTab = function (tabId) {
+            ['overview', 'approval', 'report', 'quality'].forEach(t => {
+                document.getElementById(`dir-tab-${t}`).className = `pb-3 text-sm ${t === tabId ? 'tab-active' : 'tab-inactive'}`;
+                document.getElementById(`dir-tab-content-${t}`).classList.toggle('hidden', t !== tabId);
+            });
+        };
+
+        // Modal helpers
+        window.openApproveModal = function (id, type, desc) {
+            currentApprovalId = id;
+            document.getElementById('modal-title').textContent = `Phê duyệt: ${type}`;
+            document.getElementById('modal-body').textContent = desc;
+            document.getElementById('modal-comment').value = '';
+            document.getElementById('approve-modal').classList.add('open');
+        };
+        window.doApprove = function () {
+            const comment = document.getElementById('modal-comment').value;
+            window.MockData.updateApproval(currentApprovalId, 'APPROVED', comment);
+            const card = document.getElementById(`apv-card-${currentApprovalId}`);
+            if (card) card.innerHTML = `<div class="flex items-center gap-4 p-2">
+      <span class="material-symbols-outlined text-3xl text-green-600">check_circle</span>
+      <div><p class="font-bold text-green-700">✅ Đã phê duyệt bởi Ban giám đốc</p>
+      <p class="text-sm text-slate-500">Thông báo đã gửi đến phòng ban liên quan. ${new Date().toLocaleString('vi-VN')}</p>
+      ${comment ? `<p class="text-xs text-slate-400 mt-1 italic">"${comment}"</p>` : ''}</div></div>`;
+            document.getElementById('approve-modal').classList.remove('open');
+            const badge = document.getElementById('approval-count-badge');
+            if (badge) { const c = parseInt(badge.textContent) - 1; if (c <= 0) badge.classList.add('hidden'); else badge.textContent = c; }
+        };
+        window.doReject = function () {
+            const comment = document.getElementById('modal-comment').value;
+            window.MockData.updateApproval(currentApprovalId, 'REJECTED', comment);
+            const card = document.getElementById(`apv-card-${currentApprovalId}`);
+            if (card) card.innerHTML = `<div class="flex items-center gap-4 p-2">
+      <span class="material-symbols-outlined text-3xl text-red-500">cancel</span>
+      <div><p class="font-bold text-red-600">❌ Đã từ chối bởi Ban giám đốc</p>
+      <p class="text-sm text-slate-500">Bộ phận liên quan đã được thông báo. ${new Date().toLocaleString('vi-VN')}</p>
+      ${comment ? `<p class="text-xs text-slate-400 mt-1 italic">"${comment}"</p>` : ''}</div></div>`;
+            document.getElementById('approve-modal').classList.remove('open');
+            const badge = document.getElementById('approval-count-badge');
+            if (badge) { const c = parseInt(badge.textContent) - 1; if (c <= 0) badge.classList.add('hidden'); else badge.textContent = c; }
+        };
+
+        // Initialize and listen for changes
+        updateDashboard();
+        window.addEventListener('pharma:statechange', updateDashboard);
+    })();
+</script>

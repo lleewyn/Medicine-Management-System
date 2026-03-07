@@ -1,0 +1,38 @@
+<!-- pages/qa-pending.html -->
+<div class="p-8 max-w-[1400px] mx-auto w-full">
+    <div class="mb-8">
+        <h2 class="text-2xl font-black text-slate-900 tracking-tight">Lô hàng chờ kiểm định</h2>
+        <p class="text-slate-500 text-sm mt-1">Các lô đang trong trạng thái biệt trữ, chờ kết quả xét nghiệm.</p>
+    </div>
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
+        <div class="p-4 border-b border-slate-100 bg-amber-50 flex items-center gap-3">
+            <span class="material-symbols-outlined text-amber-500">pending_actions</span>
+            <p class="text-sm font-bold text-amber-800">Các lô này đang chờ phiếu kiểm nghiệm từ bộ phận QA</p>
+        </div>
+        <div id="pending-list" class="divide-y divide-slate-100"></div>
+    </div>
+</div>
+<script>
+    (function () {
+        const user = window.Auth.getCurrentUser();
+        const batches = window.MockData.BATCHES.filter(b => b.BatchStatus === 'QUARANTINE');
+        const products = window.MockData.PRODUCTS;
+        document.getElementById('pending-list').innerHTML = batches.map(b => {
+            const p = products.find(x => x.ProductID === b.ProductID) || {};
+            return `<div class="p-5 flex items-center gap-4 hover:bg-slate-50">
+      <div class="size-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center"><span class="material-symbols-outlined">science</span></div>
+      <div class="flex-1">
+        <p class="font-bold text-sm">${p.ProductName || b.ProductID}</p>
+        <p class="text-xs text-slate-400">Lô: ${b.Batchcode} • ${b.Quantity} ${p.BaseUnit || ''} • HSD: ${b.ExpDate}</p>
+      </div>
+      <div class="flex items-center gap-4">
+        <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700">CHỜ KIỂM ĐỊNH</span>
+        ${(window.MockData.hasPermission(user, 'write_qa_result') || window.MockData.hasPermission(user, 'write_all')) ? `
+        <button onclick="window.Router.navigate('qa-approval'); setTimeout(() => window.startQCRecord('${b.BatchID}'), 100);" class="flex items-center gap-1 text-sm font-bold text-primary hover:underline">
+          <span class="material-symbols-outlined text-[16px]">edit_note</span> Kiểm định ngay
+        </button>` : ''}
+      </div>
+    </div>`;
+        }).join('') || '<p class="p-8 text-center text-slate-400">Không có lô hàng nào đang chờ</p>';
+    })();
+</script>

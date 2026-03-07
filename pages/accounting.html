@@ -1,0 +1,390 @@
+<!-- pages/accounting.html -->
+<!-- Use case: Hạch toán kho — Kế toán kho -->
+<style>
+    .tab-active {
+        border-bottom: 2px solid #2563EB;
+        color: #2563EB;
+        font-weight: 700;
+    }
+
+    .tab-inactive {
+        border-bottom: 2px solid transparent;
+        color: #64748B;
+    }
+</style>
+<div class="p-8 max-w-[1400px] mx-auto">
+    <div class="mb-6 flex items-end justify-between">
+        <div>
+            <h2 class="text-2xl font-black text-slate-900">Hạch toán kho</h2>
+            <p class="text-slate-500 text-sm mt-1">Sổ Nhập–Xuất–Tồn (NXT), bảng đối chiếu công nợ và báo cáo giá vốn.
+            </p>
+        </div>
+        <span id="acc-role-badge"></span>
+    </div>
+
+    <!-- KPI Row -->
+    <div class="grid grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+            <p class="text-xs text-slate-500 mb-1 font-medium">Tổng giá trị tồn kho</p>
+            <h3 class="text-2xl font-black text-slate-900" id="acc-kpi-stock">--</h3>
+            <p class="text-xs text-green-600 font-medium mt-1" id="acc-kpi-stock-delta">+2.1% so tháng trước</p>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+            <p class="text-xs text-slate-500 mb-1 font-medium">Nhập kho tháng này</p>
+            <h3 class="text-2xl font-black text-blue-600" id="acc-kpi-in">--</h3>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+            <p class="text-xs text-slate-500 mb-1 font-medium">Xuất kho tháng này</p>
+            <h3 class="text-2xl font-black text-orange-500" id="acc-kpi-out">--</h3>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+            <p class="text-xs text-slate-500 mb-1 font-medium">Giá vốn hàng xuất (COGS)</p>
+            <h3 class="text-2xl font-black text-purple-600" id="acc-kpi-cogs">--</h3>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex border-b border-slate-200 mb-6 gap-6">
+        <button onclick="switchAccTab('nxt')" id="acc-tab-nxt" class="pb-3 text-sm tab-active">Sổ NXT
+            (Nhập–Xuất–Tồn)</button>
+        <button onclick="switchAccTab('journal')" id="acc-tab-journal" class="pb-3 text-sm tab-inactive">Bút toán Hạch
+            toán</button>
+        <button onclick="switchAccTab('report')" id="acc-tab-report" class="pb-3 text-sm tab-inactive">Báo cáo Giá
+            vốn</button>
+    </div>
+
+    <!-- TAB 1: NXT -->
+    <div id="acc-tab-content-nxt">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+                <h4 class="font-bold text-slate-800">Sổ Nhập–Xuất–Tồn tháng 10/2023</h4>
+                <div class="flex gap-2">
+                    <select class="border border-slate-200 rounded-lg px-3 py-1.5 text-xs outline-none">
+                        <option>Tháng 10/2023</option>
+                        <option>Tháng 9/2023</option>
+                        <option>Tháng 8/2023</option>
+                    </select>
+                    <button onclick="exportNXTExcel()"
+                        class="flex items-center gap-1 border border-slate-200 text-slate-600 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-slate-50">
+                        <span class="material-symbols-outlined text-xs">file_download</span> Xuất Excel
+                    </button>
+                </div>
+            </div>
+            <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50">
+                    <tr>
+                        <th class="px-4 py-3 text-slate-500 font-bold uppercase">Sản phẩm</th>
+                        <th class="px-4 py-3 text-slate-500 font-bold uppercase">Số lô</th>
+                        <th class="px-4 py-3 text-slate-500 font-bold uppercase text-right">Tồn đầu kỳ</th>
+                        <th class="px-4 py-3 text-slate-500 font-bold uppercase text-right">Nhập trong kỳ</th>
+                        <th class="px-4 py-3 text-slate-500 font-bold uppercase text-right">Xuất trong kỳ</th>
+                        <th class="px-4 py-3 text-slate-500 font-bold uppercase text-right">Tồn cuối kỳ</th>
+                        <th class="px-4 py-3 text-slate-500 font-bold uppercase text-right">Đơn giá TB</th>
+                        <th class="px-4 py-3 text-slate-500 font-bold uppercase text-right">Giá trị tồn</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100" id="nxt-table"></tbody>
+                <tfoot class="bg-slate-50 border-t-2 border-slate-300">
+                    <tr>
+                        <td colspan="2" class="px-4 py-3 font-black text-slate-900">TỔNG CỘNG</td>
+                        <td class="px-4 py-3 text-right font-bold" id="nxt-total-open">—</td>
+                        <td class="px-4 py-3 text-right font-bold text-blue-600" id="nxt-total-in">—</td>
+                        <td class="px-4 py-3 text-right font-bold text-orange-600" id="nxt-total-out">—</td>
+                        <td class="px-4 py-3 text-right font-black text-slate-900" id="nxt-total-close">—</td>
+                        <td class="px-4 py-3"></td>
+                        <td class="px-4 py-3 text-right font-black text-primary" id="nxt-total-value">—</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    <!-- TAB 2: Journal -->
+    <div id="acc-tab-content-journal" class="hidden">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+                <h4 class="font-bold text-slate-800">Bút toán Hạch toán kho</h4>
+                <button onclick="openAddJournal()"
+                    class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-primary/90 flex items-center gap-1"><span
+                        class="material-symbols-outlined text-sm">add</span> Thêm bút toán</button>
+            </div>
+            <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50">
+                    <tr>
+                        <th class="px-4 py-3 text-slate-500 font-bold uppercase">Ngày</th>
+                        <th class="px-4 py-3 text-slate-500 font-bold uppercase">Chứng từ</th>
+                        <th class="px-4 py-3 text-slate-500 font-bold uppercase">Diễn giải</th>
+                        <th class="px-4 py-3 text-slate-500 font-bold uppercase">TK Nợ</th>
+                        <th class="px-4 py-3 text-slate-500 font-bold uppercase">TK Có</th>
+                        <th class="px-4 py-3 text-slate-500 font-bold uppercase text-right">Số tiền</th>
+                        <th class="px-4 py-3 text-slate-500 font-bold uppercase text-center">Trạng thái</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    <tr class="hover:bg-slate-50">
+                        <td class="px-4 py-3">01/10/2023</td>
+                        <td class="px-4 py-3 font-mono text-primary font-bold">PO-2023-0889</td>
+                        <td class="px-4 py-3">Nhập kho Vaccine Pfizer — LOT PF-230401</td>
+                        <td class="px-4 py-3 font-mono font-bold">1561</td>
+                        <td class="px-4 py-3 font-mono font-bold">3311</td>
+                        <td class="px-4 py-3 text-right font-bold text-blue-600">384,000,000</td>
+                        <td class="px-4 py-3 text-center"><span
+                                class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-700">Đã
+                                duyệt</span></td>
+                    </tr>
+                    <tr class="hover:bg-slate-50">
+                        <td class="px-4 py-3">05/10/2023</td>
+                        <td class="px-4 py-3 font-mono text-primary font-bold">SO-2023-1481</td>
+                        <td class="px-4 py-3">Xuất kho Hapacol — Pharmacity HN</td>
+                        <td class="px-4 py-3 font-mono font-bold">6320</td>
+                        <td class="px-4 py-3 font-mono font-bold">1561</td>
+                        <td class="px-4 py-3 text-right font-bold text-orange-600">2,250,000</td>
+                        <td class="px-4 py-3 text-center"><span
+                                class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-700">Đã
+                                duyệt</span></td>
+                    </tr>
+                    <tr class="hover:bg-slate-50">
+                        <td class="px-4 py-3">12/10/2023</td>
+                        <td class="px-4 py-3 font-mono text-primary font-bold">ADJ-2023-041</td>
+                        <td class="px-4 py-3">Điều chỉnh chênh lệch kiểm kê — Vitamin C</td>
+                        <td class="px-4 py-3 font-mono font-bold">6320</td>
+                        <td class="px-4 py-3 font-mono font-bold">1561</td>
+                        <td class="px-4 py-3 text-right font-bold text-red-500">360,000</td>
+                        <td class="px-4 py-3 text-center"><span
+                                class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700">Chờ
+                                duyệt</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- TAB 3: COGS Report -->
+    <div id="acc-tab-content-report" class="hidden">
+        <div class="grid grid-cols-2 gap-6">
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                <h4 class="font-bold text-slate-800 mb-4">Giá vốn hàng bán theo sản phẩm (COGS)</h4>
+                <div class="space-y-3" id="cogs-breakdown"></div>
+            </div>
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                <h4 class="font-bold text-slate-800 mb-4">Phương pháp tính giá xuất kho</h4>
+                <div class="space-y-3">
+                    <label
+                        class="flex items-center gap-3 p-3 border-2 border-primary bg-primary/5 rounded-xl cursor-pointer">
+                        <input type="radio" name="cost-method" value="FEFO" checked class="accent-primary"
+                            onchange="updateCOGSMethod('FEFO')">
+                        <div>
+                            <p class="text-sm font-bold text-slate-900">FEFO — First Expired First Out</p>
+                            <p class="text-xs text-slate-500 mt-0.5">Xuất hàng gần hết hạn trước (tiêu chuẩn GSP dược
+                                phẩm)</p>
+                        </div>
+                    </label>
+                    <label
+                        class="flex items-center gap-3 p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50">
+                        <input type="radio" name="cost-method" value="FIFO" class="accent-primary"
+                            onchange="updateCOGSMethod('FIFO')">
+                        <div>
+                            <p class="text-sm font-bold text-slate-900">FIFO — First In First Out</p>
+                            <p class="text-xs text-slate-500 mt-0.5">Xuất hàng nhập trước trước</p>
+                        </div>
+                    </label>
+                    <label
+                        class="flex items-center gap-3 p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50">
+                        <input type="radio" name="cost-method" value="WAC" class="accent-primary"
+                            onchange="updateCOGSMethod('WAC')">
+                        <div>
+                            <p class="text-sm font-bold text-slate-900">Bình quân gia quyền (WAC)</p>
+                            <p class="text-xs text-slate-500 mt-0.5">Giá bình quân theo số lượng mỗi lần nhập</p>
+                        </div>
+                    </label>
+                </div>
+                <div class="mt-5 p-4 bg-slate-50 rounded-xl text-xs text-slate-600">
+                    <p class="font-bold mb-2">Lưu ý:</p>
+                    <p>Theo Thông tư 200/2014/TT-BTC, kho dược phẩm bắt buộc áp dụng FEFO để đảm bảo an toàn thuốc và
+                        tiêu chuẩn GSP.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Journal Modal -->
+<div class="modal-overlay" id="journal-modal"
+    style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:50;align-items:center;justify-content:center">
+    <div class="bg-white rounded-2xl shadow-2xl p-7 max-w-md w-full mx-4">
+        <h3 class="text-lg font-black text-slate-900 mb-5">Thêm Bút toán mới</h3>
+        <div class="space-y-3">
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1 uppercase">Ngày</label>
+                    <input type="date" id="jn-date"
+                        class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1 uppercase">Số chứng từ</label>
+                    <input type="text" id="jn-ref" placeholder="VD: PO-2023-0910"
+                        class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20">
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1 uppercase">Diễn giải</label>
+                <input type="text" id="jn-desc" placeholder="Mô tả nội dung bút toán..."
+                    class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20">
+            </div>
+            <div class="grid grid-cols-3 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1 uppercase">TK Nợ</label>
+                    <input type="text" id="jn-debit" placeholder="1561"
+                        class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1 uppercase">TK Có</label>
+                    <input type="text" id="jn-credit" placeholder="3311"
+                        class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1 uppercase">Số tiền (VNĐ)</label>
+                    <input type="number" id="jn-amount" placeholder="0"
+                        class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20">
+                </div>
+            </div>
+        </div>
+        <div class="flex gap-3 mt-6">
+            <button onclick="document.getElementById('journal-modal').style.display='none'"
+                class="flex-1 border border-slate-200 text-slate-600 py-2.5 rounded-xl text-sm font-bold">Hủy</button>
+            <button onclick="saveJournal()"
+                class="flex-1 bg-primary text-white py-2.5 rounded-xl text-sm font-bold hover:bg-primary/90">Lưu bút
+                toán</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast notification -->
+<div id="acc-toast" style="display:none;position:fixed;bottom:24px;right:24px;z-index:100"
+    class="bg-slate-900 text-white px-5 py-3 rounded-xl text-sm font-medium flex items-center gap-2 shadow-xl"></div>
+
+<script>
+    (function () {
+        const user = window.Auth.getCurrentUser();
+        const role = window.MockData.getUserRole(user);
+
+        function updateAccountingUI() {
+            const products = window.MockData.PRODUCTS;
+            const batches = window.MockData.BATCHES;
+            const pos = window.MockData.PURCHASE_ORDERS;
+            const sos = window.MockData.SALES_ORDERS;
+
+            // 1. Role Badge
+            const badge = document.getElementById('acc-role-badge');
+            if (badge && role) {
+                badge.innerHTML = `
+                    <div class="flex items-center gap-2 px-4 py-2 rounded-xl border-2" style="border-color:${role.color}20;color:${role.color};background:${role.color}10">
+                        <span class="material-symbols-outlined text-base">${role.icon}</span><span class="text-sm font-bold uppercase tracking-wider">${role.label}</span>
+                    </div>`;
+            }
+
+            // 2. Calculate NXT & Financials
+            let totalVal = 0;
+            let totalIn = 0;
+            let totalOut = 0;
+            let totalCogs = 0;
+
+            const nxtRows = products.map(p => {
+                const productBatches = batches.filter(b => b.ProductID === p.ProductID);
+                const currentStock = productBatches.reduce((sum, b) => sum + b.Quantity, 0);
+
+                // In/Out from COMPLETED orders
+                const inQty = pos.filter(po => po.status === 'COMPLETED').reduce((sum, po) => sum + (po.itemsDetails?.find(i => i.ProductID === p.ProductID)?.OrderedQty || 0), 0);
+                const outQty = sos.filter(so => so.status === 'COMPLETED').reduce((sum, so) => sum + (so.itemsDetails?.find(i => i.ProductID === p.ProductID)?.OrderedQty || 0), 0);
+
+                const openQty = currentStock - inQty + outQty;
+                const value = currentStock * p.ImportPrice;
+                const cogs = outQty * p.ImportPrice;
+
+                totalVal += value;
+                totalIn += inQty * p.ImportPrice; // Approximate value
+                totalOut += outQty * p.ImportPrice; // Approximate revenue
+                totalCogs += cogs;
+
+                return {
+                    p,
+                    lot: productBatches[0]?.Batchcode || '—',
+                    open: openQty,
+                    in: inQty,
+                    out: outQty,
+                    close: currentStock,
+                    val: value,
+                    cogs: cogs
+                };
+            });
+
+            // Update NXT Table
+            document.getElementById('nxt-table').innerHTML = nxtRows.map(r => `
+                <tr class="hover:bg-slate-50">
+                    <td class="px-4 py-3 font-medium text-slate-800">${r.p.ProductName}</td>
+                    <td class="px-4 py-3 font-mono text-slate-500">${r.lot}</td>
+                    <td class="px-4 py-3 text-right">${r.open.toLocaleString()}</td>
+                    <td class="px-4 py-3 text-right font-bold text-blue-600">+${r.in.toLocaleString()}</td>
+                    <td class="px-4 py-3 text-right font-bold text-orange-600">-${r.out.toLocaleString()}</td>
+                    <td class="px-4 py-3 text-right font-bold text-slate-900">${r.close.toLocaleString()}</td>
+                    <td class="px-4 py-3 text-right text-slate-500">${r.p.ImportPrice.toLocaleString()}</td>
+                    <td class="px-4 py-3 text-right font-bold text-primary">${r.val.toLocaleString()}</td>
+                </tr>`).join('');
+
+            // Totals
+            document.getElementById('nxt-total-open').textContent = nxtRows.reduce((s, r) => s + r.open, 0).toLocaleString();
+            document.getElementById('nxt-total-in').textContent = '+' + nxtRows.reduce((s, r) => s + r.in, 0).toLocaleString();
+            document.getElementById('nxt-total-out').textContent = '-' + nxtRows.reduce((s, r) => s + r.out, 0).toLocaleString();
+            document.getElementById('nxt-total-close').textContent = nxtRows.reduce((s, r) => s + r.close, 0).toLocaleString();
+            document.getElementById('nxt-total-value').textContent = totalVal.toLocaleString() + ' VNĐ';
+
+            // KPIs
+            const fmt = v => v >= 1e9 ? (v / 1e9).toFixed(1) + 'B VNĐ' : (v / 1e6).toFixed(0) + 'M VNĐ';
+            document.getElementById('acc-kpi-stock').textContent = fmt(totalVal);
+            document.getElementById('acc-kpi-in').textContent = fmt(totalIn);
+            document.getElementById('acc-kpi-out').textContent = fmt(totalOut);
+            document.getElementById('acc-kpi-cogs').textContent = fmt(totalCogs);
+
+            // COGS Breakdown
+            const colors = ['bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-amber-500', 'bg-red-500'];
+            document.getElementById('cogs-breakdown').innerHTML = nxtRows.filter(r => r.cogs > 0).map((r, i) => {
+                const pct = totalCogs > 0 ? Math.round(r.cogs / totalCogs * 100) : 0;
+                return `
+                    <div class="mb-4">
+                        <div class="flex items-center justify-between mb-1 text-xs">
+                            <span class="font-medium text-slate-700">${r.p.ProductName}</span>
+                            <span class="font-bold text-slate-900">${r.cogs.toLocaleString()} VNĐ</span>
+                        </div>
+                        <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
+                            <div class="h-full ${colors[i % colors.length]} rounded-full" style="width:${pct}%"></div>
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-0.5">${pct}% tổng COGS</p>
+                    </div>`;
+            }).join('') || '<p class="text-center text-slate-400 py-8 text-xs">Chưa có giá vốn hàng bán phát sinh.</p>';
+        }
+
+        window.switchAccTab = function (t) {
+            ['nxt', 'journal', 'report'].forEach(x => {
+                document.getElementById(`acc-tab-${x}`).className = `pb-3 text-sm ${x === t ? 'tab-active' : 'tab-inactive'}`;
+                document.getElementById(`acc-tab-content-${x}`).classList.toggle('hidden', x !== t);
+            });
+        };
+
+        window.exportNXTExcel = function () {
+            alert('Đang tải xuống báo cáo NXT...');
+        };
+
+        window.openAddJournal = function () {
+            document.getElementById('journal-modal').style.display = 'flex';
+        };
+
+        window.saveJournal = function () {
+            alert('Bút toán đã được lưu và gửi phê duyệt.');
+            document.getElementById('journal-modal').style.display = 'none';
+        };
+
+        // Initialize
+        updateAccountingUI();
+        window.addEventListener('pharma:statechange', updateAccountingUI);
+    })();
+</script>

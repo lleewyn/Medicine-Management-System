@@ -1,0 +1,498 @@
+<!-- pages/inventory-management.html -->
+<!-- Reactive: reads from MockData.BATCHES getter every page load; listens for state changes -->
+<style>
+    .tab-active {
+        border-bottom: 2px solid #2563EB;
+        color: #2563EB;
+        font-weight: 700;
+    }
+
+    .tab-inactive {
+        border-bottom: 2px solid transparent;
+        color: #64748B;
+    }
+
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 50;
+    }
+
+    .modal-overlay.open {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
+<div class="p-8 max-w-[1400px] mx-auto w-full">
+    <div class="mb-6 flex items-end justify-between">
+        <div>
+            <h2 class="text-2xl font-black text-slate-900 tracking-tight">Quản lý Tồn kho</h2>
+            <p class="text-slate-500 text-sm mt-1">Danh sách lô hàng, tình trạng tồn kho thực tế và kiểm kê định kỳ.</p>
+        </div>
+        <div class="flex gap-3 items-center">
+            <select id="inv-filter-status"
+                class="border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20">
+                <option value="">Tất cả trạng thái</option>
+                <option value="RELEASED">Xuất xưởng</option>
+                <option value="QUARANTINE">Biệt trữ</option>
+                <option value="LOCKED">Đã khóa</option>
+            </select>
+            <button onclick="exportInventory()"
+                class="border border-slate-200 text-slate-600 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-50 flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm">file_download</span> Xuất CSV
+            </button>
+            <button onclick="renderInventory()"
+                class="bg-primary/10 text-primary px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-primary/20 flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm">refresh</span> Làm mới
+            </button>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex border-b border-slate-200 mb-6 gap-6">
+        <button onclick="switchInvTab('list')" id="inv-tab-list" class="pb-3 text-sm tab-active">
+            Tổng hợp Tồn kho
+        </button>
+        <button onclick="switchInvTab('check')" id="inv-tab-check" class="pb-3 text-sm tab-inactive">
+            Kiểm kê Kho
+        </button>
+    </div>
+
+    <!-- TAB 1: Danh sách & Tổng hợp Tồn kho -->
+    <div id="inv-tab-content-list">
+        <!-- Stats -->
+        <div class="grid grid-cols-4 gap-4 mb-6">
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+                <div class="size-11 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center">
+                    <span class="material-symbols-outlined">inventory</span>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-slate-500 mb-0.5">Tổng lô hàng</p>
+                    <p class="text-2xl font-bold" id="inv-total">--</p>
+                </div>
+            </div>
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+                <div class="size-11 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center">
+                    <span class="material-symbols-outlined">lock_clock</span>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-slate-500 mb-0.5">Biệt trữ (Quarantine)</p>
+                    <p class="text-2xl font-bold text-amber-600" id="inv-quarantine">--</p>
+                </div>
+            </div>
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+                <div class="size-11 bg-green-100 text-green-600 rounded-xl flex items-center justify-center">
+                    <span class="material-symbols-outlined">check_circle</span>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-slate-500 mb-0.5">Đã xuất xưởng</p>
+                    <p class="text-2xl font-bold text-green-600" id="inv-released">--</p>
+                </div>
+            </div>
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+                <div class="size-11 bg-red-100 text-red-500 rounded-xl flex items-center justify-center">
+                    <span class="material-symbols-outlined">lock</span>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-slate-500 mb-0.5">Đã khóa / Thu hồi</p>
+                    <p class="text-2xl font-bold text-red-500" id="inv-locked">--</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Batch Table -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+                <h4 class="font-bold text-slate-800">Danh sách Lô hàng</h4>
+                <span class="text-xs text-slate-400 font-medium" id="inv-count-label">-- lô</span>
+            </div>
+            <table class="w-full text-left">
+                <thead class="bg-slate-50">
+                    <tr>
+                        <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase">Mã lô</th>
+                        <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase">Sản phẩm</th>
+                        <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase">Số lô (LOT)</th>
+                        <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase text-right">Số lượng</th>
+                        <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase">Hạn dùng</th>
+                        <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase">Vị trí kê</th>
+                        <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase text-center">Trạng thái</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100" id="inv-table-body"></tbody>
+            </table>
+        </div>
+    </div> <!-- /TAB 1 -->
+
+    <!-- TAB 2: Kiểm kê kho -->
+    <div id="inv-tab-content-check" class="hidden">
+        <!-- Dashboard / List view -->
+        <div id="stock-check-list-view">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h3 class="font-bold text-slate-800 text-lg">Phiếu Kiểm kê Tồn kho</h3>
+                    <p class="text-sm text-slate-500">Đối chiếu tồn kho thực tế với hệ thống sổ sách.</p>
+                </div>
+                <!-- Auth check applied in JS for role visibility -->
+                <button id="btn-create-check" onclick="createNewStockCheck()"
+                    class="bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-primary/90 transition-colors hidden">
+                    <span class="material-symbols-outlined text-sm">add</span> Tạo phiếu Kiểm kê
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="stock-checks-container">
+                <!-- Nạp động bằng JavaScript -->
+            </div>
+        </div>
+
+        <!-- Detail view -->
+        <div id="stock-check-detail-view" class="hidden">
+            <div class="flex items-center gap-4 mb-6">
+                <button onclick="showStockCheckList()"
+                    class="p-2 hover:bg-slate-100 rounded-full text-slate-500 flex items-center justify-center transition-colors">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                </button>
+                <div>
+                    <div class="flex items-center gap-3">
+                        <h3 class="font-black text-slate-900 text-xl" id="detail-sheet-id">Phiếu Kiểm kê</h3>
+                        <span id="detail-sheet-status" class="px-2.5 py-1 rounded-full text-[10px] font-bold"></span>
+                    </div>
+                    <p class="text-sm text-slate-500 mt-1" id="detail-sheet-info">Thông tin phiếu</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-6">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50">
+                        <tr>
+                            <!-- Nạp động by javascript (Blind count hide book qty) -->
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100" id="stock-check-table">
+                        <!-- Nạp động bằng JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="flex gap-3 justify-end" id="stock-check-actions">
+                <!-- Nạp động bằng JavaScript -->
+            </div>
+        </div>
+    </div> <!-- /TAB 2 -->
+
+</div>
+
+<!-- Modal Kiểm kê Hoàn thành -->
+<div class="modal-overlay" id="stock-check-modal">
+    <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 text-center">
+        <div class="size-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+            <span class="material-symbols-outlined text-3xl text-green-600">verified</span>
+        </div>
+        <h3 class="text-xl font-black text-slate-900 mb-2">Đã hoàn tất Kiểm kê!</h3>
+        <p class="text-slate-500 text-sm mb-6">Số liệu tồn kho thực tế đã được cập nhật thành công lên hệ thống.</p>
+        <button onclick="document.getElementById('stock-check-modal').classList.remove('open'); showStockCheckList()"
+            class="w-full bg-primary text-white py-3 rounded-xl font-bold text-sm hover:bg-primary/90 transition-colors">Về
+            danh sách Phiếu</button>
+    </div>
+</div>
+
+<script>
+    (function () {
+        const products = window.MockData.PRODUCTS;
+        const statusMap = {
+            RELEASED: { label: 'Xuất xưởng', cls: 'bg-green-100 text-green-700' },
+            QUARANTINE: { label: 'Biệt trữ', cls: 'bg-amber-100 text-amber-700' },
+            LOCKED: { label: 'Đã khóa', cls: 'bg-red-100 text-red-600' },
+            DESTROYED: { label: 'Tiêu hủy', cls: 'bg-slate-100 text-slate-500' },
+        };
+
+        window.renderInventory = function () {
+            // Always read from reactive getter
+            const rawBatches = window.MockData.BATCHES;
+            const batches = rawBatches.map(b => window.NocoMappers.toUIBatch(b));
+            
+            const filter = document.getElementById('inv-filter-status').value;
+            const filtered = filter ? batches.filter(b => b.status === filter) : batches;
+
+            document.getElementById('inv-total').textContent = batches.length;
+            document.getElementById('inv-quarantine').textContent = batches.filter(b => b.status === 'QUARANTINE').length;
+            document.getElementById('inv-released').textContent = batches.filter(b => b.status === 'RELEASED').length;
+            document.getElementById('inv-locked').textContent = batches.filter(b => b.status === 'LOCKED' || b.status === 'DESTROYED').length;
+            document.getElementById('inv-count-label').textContent = `${filtered.length} lô`;
+
+            document.getElementById('inv-table-body').innerHTML = filtered.map(b => {
+                const product = products.find(p => p.id === b.productId) || {};
+                const st = statusMap[b.status] || { label: b.status, cls: 'bg-slate-100 text-slate-600' };
+                // Expiry warning
+                const expiryDate = new Date(b.expiry);
+                const daysLeft = Math.ceil((expiryDate - Date.now()) / 86400000);
+                const expiryWarn = daysLeft < 90 && daysLeft > 0 ? `<span class="text-[10px] font-bold text-red-500 ml-1">(còn ${daysLeft} ngày)</span>` : 
+                                   daysLeft <= 0 ? `<span class="text-[10px] font-bold text-slate-400 ml-1">(hết hạn)</span>` : '';
+                return `
+      <tr class="hover:bg-slate-50 transition-colors border-b border-slate-50">
+        <td class="px-5 py-4 font-bold text-primary text-sm">${b.id}</td>
+        <td class="px-5 py-4">
+          <p class="text-sm font-semibold text-slate-800">${product.name || b.productId}</p>
+          <div class="flex items-center gap-2 mt-0.5">
+            <span class="px-1.5 py-0.5 bg-slate-100 text-slate-500 rounded text-[10px] font-medium uppercase tracking-wider">${product.category || 'N/A'}</span>
+            <span class="text-[10px] text-slate-400">• ${product.unit || 'Đơn vị'}</span>
+          </div>
+        </td>
+        <td class="px-5 py-4 text-sm font-mono text-slate-600 bg-slate-50/50">${b.lotNumber}</td>
+        <td class="px-5 py-4 text-sm font-bold text-right text-slate-900">${b.qty.toLocaleString()}</td>
+        <td class="px-5 py-4 text-sm text-slate-600">
+            <div class="flex flex-col">
+                <span>${b.expiry}</span>
+                ${expiryWarn}
+            </div>
+        </td>
+        <td class="px-5 py-4">
+            <span class="px-2 py-1 bg-blue-50 text-blue-700 rounded-lg font-mono text-xs font-bold border border-blue-100">${b.location}</span>
+        </td>
+        <td class="px-5 py-4 text-center">
+            <span class="px-2.5 py-1.5 rounded-full text-[10px] font-extrabold uppercase tracking-widest ${st.cls}">${st.label}</span>
+        </td>
+      </tr>`;
+            }).join('') || '<tr><td colspan="7" class="px-5 py-20 text-center"><div class="flex flex-col items-center gap-2 text-slate-400"><span class="material-symbols-outlined text-4xl">inventory_2</span><p class="text-sm">Không tìm thấy lô hàng nào phù hợp</p></div></td></tr>';
+        };
+
+        window.switchInvTab = function (tabId) {
+            ['list', 'check'].forEach(t => {
+                const btn = document.getElementById(`inv-tab-${t}`);
+                const content = document.getElementById(`inv-tab-content-${t}`);
+                if (btn) btn.className = `pb-3 text-sm ${t === tabId ? 'tab-active' : 'tab-inactive'}`;
+                if (content) content.classList.toggle('hidden', t !== tabId);
+            });
+            if (tabId === 'check') renderStockChecksList();
+        };
+
+        // ====== TAB 2: STOCK CHECK LOGIC ======
+        let activeStockCheckId = null;
+
+        window.renderStockChecksList = function () {
+            const checks = window.MockData.STOCK_CHECKS || [];
+            const container = document.getElementById('stock-checks-container');
+
+            // Show create button only if Manager/Admin
+            const user = window.Auth.getCurrentUser();
+            if (window.MockData.hasPermission(user, 'update_stock')) {
+                document.getElementById('btn-create-check').classList.remove('hidden');
+            }
+
+            if (checks.length === 0) {
+                container.innerHTML = `<div class="col-span-1 md:col-span-2 lg:col-span-3 text-center py-12 border-2 border-dashed border-slate-200 rounded-xl">
+                    <span class="material-symbols-outlined text-4xl text-slate-300 mb-2">fact_check</span>
+                    <p class="text-slate-500 font-medium">Chưa có Phiếu Kiểm kê nào</p>
+                </div>`;
+                return;
+            }
+
+            container.innerHTML = checks.map(sc => {
+                const isCompleted = sc.status === 'COMPLETED';
+                const stCls = isCompleted ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700';
+                const stLabel = isCompleted ? 'ĐÃ CHỐT' : 'ĐANG KIỂM';
+
+                return `
+                <div class="bg-white border border-slate-200 p-5 rounded-xl shadow-sm hover:shadow-md transition-shadow cursor-pointer relative" 
+                     onclick="viewStockCheckDetail('${sc.id}')">
+                    <div class="flex justify-between items-start mb-3">
+                        <h4 class="font-black text-slate-800 tracking-tight">${sc.id}</h4>
+                        <span class="px-2 py-1 rounded-full text-[10px] font-bold ${stCls}">${stLabel}</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-sm text-slate-500 mb-1">
+                        <span class="material-symbols-outlined text-[16px]">calendar_today</span>
+                        <span>Ngày tạo: ${sc.date}</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-sm text-slate-500 mb-4">
+                        <span class="material-symbols-outlined text-[16px]">warehouse</span>
+                        <span>Kho: ${sc.warehouse || 'HN'}</span>
+                    </div>
+                    
+                    <div class="text-right text-sm font-bold text-primary flex items-center justify-end gap-1">
+                        Chi tiết <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                    </div>
+                </div>`;
+            }).join('');
+        };
+
+        window.viewStockCheckDetail = function (id) {
+            activeStockCheckId = id;
+            document.getElementById('stock-check-list-view').classList.add('hidden');
+            document.getElementById('stock-check-detail-view').classList.remove('hidden');
+            renderStockCheckDetail(id);
+        };
+
+        window.showStockCheckList = function () {
+            activeStockCheckId = null;
+            document.getElementById('stock-check-list-view').classList.remove('hidden');
+            document.getElementById('stock-check-detail-view').classList.add('hidden');
+            renderStockChecksList();
+        };
+
+        window.renderStockCheckDetail = function (id) {
+            const sc = window.MockData.STOCK_CHECKS.find(c => c.id === id);
+            if (!sc) return;
+
+            const isPending = sc.status === 'PENDING';
+            document.getElementById('detail-sheet-id').textContent = `Phiếu: ${sc.id}`;
+            document.getElementById('detail-sheet-info').textContent = `Ngày lập phiếu: ${sc.date} — Áp dụng cho Kho: ${sc.warehouse || 'HN'}`;
+
+            const badge = document.getElementById('detail-sheet-status');
+            badge.className = `px-2.5 py-1 rounded-full text-[10px] font-bold ${isPending ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'}`;
+            badge.textContent = isPending ? 'ĐANG KIỂM KÊ (TRẠNG THÁI NHÁP)' : 'ĐÃ HOÀN TẤT ĐỐI SOÁT';
+
+            // Biểu mẫu tùy biến theo trạng thái Pend (Blind count) vs Hoàn tất
+            const tableHead = document.querySelector('#stock-check-detail-view thead tr');
+            tableHead.innerHTML = `
+                <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase">Sản phẩm</th>
+                <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase">Số lô</th>
+                <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase">Vị trí kê</th>
+                ${!isPending ? '<th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase text-right">Tồn hệ thống</th>' : ''}
+                <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase text-right">Thực tế (Thực đếm)</th>
+                ${!isPending ? '<th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase text-right">Chênh lệch</th>' : ''}
+                <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase text-center">Tình trạng</th>
+            `;
+
+            const table = document.getElementById('stock-check-table');
+            let diffCount = 0;
+            table.innerHTML = (sc.items || []).map((it, idx) => {
+                const p = window.MockData.PRODUCTS.find(x => x.ProductID === it.ProductID) || { ProductName: it.ProductID, BaseUnit: 'sp' };
+                const diff = (it.actualQty || 0) - it.bookQty;
+                if (diff !== 0 && !isPending) diffCount++;
+
+                return `
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="px-5 py-4">
+                        <p class="text-sm font-bold text-slate-900">${p.ProductName}</p>
+                        <p class="text-[10px] text-slate-400 font-mono tracking-tight">${it.ProductID}</p>
+                    </td>
+                    <td class="px-5 py-4 text-sm font-mono font-medium text-slate-700">${it.Batchcode}</td>
+                    <td class="px-5 py-4">
+                        <span class="px-2 py-0.5 rounded border border-slate-200 bg-white font-mono text-xs text-slate-600">${it.LocationID || '--'}</span>
+                    </td>
+                    ${!isPending ? `<td class="px-5 py-4 text-sm font-medium text-slate-900 text-right">${it.bookQty}</td>` : ''}
+                    <td class="px-5 py-4 text-right">
+                        ${isPending ? `
+                            <input type="number" min="0" value="${it.actualQty !== undefined ? it.actualQty : ''}" 
+                                placeholder="Nhập số ..."
+                                oninput="updateItemQty('${id}', ${idx}, this.value)"
+                                class="w-24 px-2 py-1.5 text-sm border border-slate-300 rounded-lg text-right font-medium focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all">
+                        ` : `<span class="text-sm font-bold text-primary bg-primary/10 px-3 py-1 rounded-lg">${it.actualQty}</span>`}
+                    </td>
+                    ${!isPending ? `
+                        <td class="px-5 py-4 text-sm text-right font-black ${diff === 0 ? 'text-slate-300' : diff > 0 ? 'text-green-600' : 'text-red-500'}">
+                            ${diff > 0 ? '+' : ''}${diff}
+                        </td>` : ''}
+                    <td class="px-5 py-4 text-center">
+                        ${isPending ?
+                        `<span class="material-symbols-outlined text-sm ${it.actualQty !== undefined ? 'text-green-500' : 'text-slate-300'}">check_circle</span>` :
+                        `<span class="material-symbols-outlined text-sm ${diff === 0 ? 'text-green-500' : 'text-amber-500'}">${diff === 0 ? 'check_circle' : 'warning'}</span>`
+                    }
+                    </td>
+                </tr>`;
+            }).join('');
+
+            const actions = document.getElementById('stock-check-actions');
+            if (isPending) {
+                actions.innerHTML = `
+                <button onclick="finishStockCheck('${id}')"
+                    class="bg-primary text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-primary/90 flex items-center gap-2 shadow-sm">
+                    <span class="material-symbols-outlined text-sm">assignment_turned_in</span> Hoàn tất Nhập liệu & Đối soát
+                </button>
+            `;
+            } else {
+                actions.innerHTML = `
+                ${diffCount > 0 ? `<div class="bg-amber-50 text-amber-700 px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2 mr-auto border border-amber-200"><span class="material-symbols-outlined text-amber-500">info</span> Có ${diffCount} mặt hàng chênh lệch (đã tự điều chỉnh tồn kho)</div>` : ''}
+                <button onclick="window.MockData.exportToCSV([], '${sc.id}.csv')"
+                    class="border border-slate-200 text-slate-600 px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-50 flex items-center gap-2 transition-colors">
+                    <span class="material-symbols-outlined text-sm">download</span> Xuất Biên bản
+                </button>
+            `;
+            }
+        };
+
+        window.updateItemQty = function (sheetId, itemIdx, val) {
+            const sc = window.MockData.STOCK_CHECKS.find(c => c.id === sheetId);
+            if (sc && sc.items[itemIdx]) {
+                sc.items[itemIdx].actualQty = val === '' ? undefined : parseInt(val);
+                if (isNaN(sc.items[itemIdx].actualQty)) sc.items[itemIdx].actualQty = undefined;
+                renderStockCheckDetail(sheetId);
+            }
+        };
+
+        window.createNewStockCheck = function () {
+            // Lấy ngẫu nhiên vài lô hàng trong kho lập thành phiếu kiểm kê mù
+            const batches = window.MockData.BATCHES;
+            const size = Math.min(batches.length, 6);
+
+            // Fisher-Yates shuffle
+            const shuffled = [...batches].sort(() => 0.5 - Math.random());
+            const selected = shuffled.slice(0, size);
+
+            const items = selected.map(b => ({
+                ProductID: b.ProductID,
+                Batchcode: b.Batchcode,
+                bookQty: b.Quantity,
+                actualQty: undefined, // Blind count
+                LocationID: b.LocationID
+            }));
+
+            const newSheet = window.MockData.addStockCheck({
+                warehouse: 'HN',
+                items: items
+            });
+
+            // Re-render
+            renderStockChecksList();
+            viewStockCheckDetail(newSheet.id);
+        };
+
+        window.finishStockCheck = function (id) {
+            const sc = window.MockData.STOCK_CHECKS.find(c => c.id === id);
+            if (!sc) return;
+
+            const incomplete = sc.items.some(it => it.actualQty === undefined);
+            if (incomplete) {
+                alert('Có mặt hàng chưa được kiểm đếm (chưa nhập Thực đếm). Vui lòng hoàn tất!');
+                return;
+            }
+
+            const discrepancies = sc.items.filter(it => it.actualQty !== it.bookQty);
+            if (discrepancies.length > 0) {
+                const msg = `Phát hiện ${discrepancies.length} dòng hàng có chênh lệch so với sổ sách.\n\nHệ thống sẽ tự động điều chỉnh số tồn kho theo số liệu thực đếm này.\nBạn có chắc chắn muốn chốt Phiếu kiểm kê và thay đổi tồn kho?`;
+                if (!confirm(msg)) return;
+            } else {
+                if (!confirm('Số liệu hoàn toàn khớp nối. Bạn có chắc chắn muốn chốt Phiếu kiểm kê?')) return;
+            }
+
+            // Ghi đè vào data - Cập nhật status sẽ trigger cập nhật kho trong MockData
+            window.MockData.updateStockCheckStatus(id, 'COMPLETED');
+            document.getElementById('stock-check-modal').classList.add('open');
+            renderInventory(); // Reload background table
+        };
+
+        // Initial render
+        renderInventory();
+
+        // Re-render when state changes (e.g., QA approval → RELEASED)
+        window.addEventListener('pharma:statechange', () => {
+            renderInventory();
+            if (!document.getElementById('inv-tab-content-check').classList.contains('hidden')) {
+                renderStockChecksList();
+                if (activeStockCheckId) renderStockCheckDetail(activeStockCheckId);
+            }
+        });
+
+        // Filter change
+        document.getElementById('inv-filter-status').addEventListener('change', renderInventory);
+
+        window.exportInventory = function () {
+            const batches = window.MockData.BATCHES;
+            const filter = document.getElementById('inv-filter-status').value;
+            const filtered = filter ? batches.filter(b => b.status === filter) : batches;
+            window.MockData.exportToCSV(filtered, `TonKho_${new Date().toISOString().slice(0, 10)}.csv`);
+        };
+    })();
+</script>

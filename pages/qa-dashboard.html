@@ -1,0 +1,122 @@
+<!-- pages/qa-dashboard.html -->
+<div class="p-8 max-w-[1400px] mx-auto w-full">
+    <div class="mb-8">
+        <h2 class="text-2xl font-black text-slate-900 tracking-tight">QA/QC Dashboard</h2>
+        <p class="text-slate-500 text-sm mt-1">Tổng quan hoạt động kiểm soát chất lượng kho dược.</p>
+    </div>
+
+    <div class="grid grid-cols-3 gap-6 mb-8">
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <span
+                    class="p-2 rounded-lg bg-amber-100 text-amber-600 material-symbols-outlined">pending_actions</span>
+                <span class="text-xs font-bold text-amber-700 bg-amber-100 px-2 py-1 rounded-full">Chờ duyệt</span>
+            </div>
+            <p class="text-slate-500 text-sm font-medium">Lô đang biệt trữ</p>
+            <h3 class="text-3xl font-black text-slate-900 mt-1" id="qa-quarantine">--</h3>
+            <button onclick="window.Router.navigate('qa-pending')"
+                class="mt-4 text-xs text-primary font-bold hover:underline">Xem danh sách →</button>
+        </div>
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <span class="p-2 rounded-lg bg-green-100 text-green-600 material-symbols-outlined">task_alt</span>
+                <span class="text-xs font-bold text-green-700 bg-green-100 px-2 py-1 rounded-full">Released</span>
+            </div>
+            <p class="text-slate-500 text-sm font-medium">Lô đã xuất xưởng</p>
+            <h3 class="text-3xl font-black text-slate-900 mt-1" id="qa-released">--</h3>
+            <button onclick="window.Router.navigate('qa-approval')"
+                class="mt-4 text-xs text-primary font-bold hover:underline">Duyệt lô hàng →</button>
+        </div>
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <span
+                    class="p-2 rounded-lg bg-red-100 text-red-600 material-symbols-outlined">remove_shopping_cart</span>
+                <span class="text-xs font-bold text-red-700 bg-red-100 px-2 py-1 rounded-full">Alert</span>
+            </div>
+            <p class="text-slate-500 text-sm font-medium">Lô sắp hết hạn</p>
+            <h3 class="text-3xl font-black text-red-600 mt-1" id="qa-expiry">--</h3>
+            <button onclick="window.Router.navigate('qa-recall')"
+                class="mt-4 text-xs text-primary font-bold hover:underline">Thu hồi →</button>
+        </div>
+    </div>
+
+    <!-- Quarantine Batches Preview -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+            <h4 class="font-bold text-slate-800">Lô đang Biệt trữ — cần kiểm tra</h4>
+            <button onclick="window.Router.navigate('qa-approval')"
+                class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-primary/90 transition-colors"
+                id="qa-approve-btn">
+                <span class="material-symbols-outlined text-sm">gavel</span> Duyệt lô
+            </button>
+        </div>
+        <div id="qa-quarantine-list" class="divide-y divide-slate-100"></div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        const user = window.Auth.getCurrentUser();
+        const products = window.MockData.PRODUCTS;
+        const canApprove = window.MockData.hasPermission(user, 'approve_qa');
+
+        // Hide approve button if no permission
+        if (!canApprove) document.getElementById('qa-approve-btn').style.display = 'none';
+
+        // ── Render stats + list from reactive getter ──
+        function render() {
+            const batches = window.MockData.BATCHES;
+            const quarantine = batches.filter(b => b.BatchStatus === 'QUARANTINE');
+            const released = batches.filter(b => b.BatchStatus === 'RELEASED');
+
+            document.getElementById('qa-quarantine').textContent = quarantine.length;
+            document.getElementById('qa-released').textContent = released.length;
+
+            const today = new Date();
+            const expirySoon = batches.filter(b => {
+                const d = new Date(b.ExpDate);
+                const diffMonths = (d - today) / (1000 * 60 * 60 * 24 * 30);
+                return diffMonths < 6;
+            });
+            document.getElementById('qa-expiry').textContent = expirySoon.length;
+
+            document.getElementById('qa-quarantine-list').innerHTML = quarantine.map(b => {
+                const product = products.find(p => p.ProductID === b.ProductID) || {};
+                const daysLeft = Math.ceil((new Date(b.ExpDate) - today) / (1000 * 60 * 60 * 24));
+                const urgentCls = daysLeft < 90 ? 'text-red-600' : 'text-slate-400';
+                return `
+      <div class="p-4 flex items-center gap-4 hover:bg-slate-50" id="qa-row-${b.BatchID}">
+        <div class="size-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-600">
+          <span class="material-symbols-outlined">lock_clock</span>
+        </div>
+        <div class="flex-1">
+          <p class="text-sm font-bold text-slate-900">${product.ProductName || b.ProductID}</p>
+          <p class="text-xs text-slate-500">Lô: ${b.Batchcode} • ${b.Quantity} ${product.BaseUnit || ''} • HSD: ${b.ExpDate}
+            <span class="${urgentCls} font-bold">(còn ${daysLeft} ngày)</span>
+          </p>
+        </div>
+        ${canApprove ? `
+          <button onclick="quickApproveFromDashboard('${b.BatchID}', this)"
+            class="text-xs font-bold px-3 py-1.5 bg-primary text-white rounded-lg hover:bg-primary/90 flex items-center gap-1">
+            <span class="material-symbols-outlined text-xs">gavel</span> Duyệt ngay
+          </button>` : `
+          <span class="text-xs text-slate-400 italic">Chưa có quyền duyệt</span>`}
+      </div>`;
+            }).join('') || '<p class="p-6 text-slate-400 text-sm text-center">Không có lô hàng nào đang biệt trữ ✅</p>';
+        }
+
+        render();
+
+        // ── Quick approve directly from dashboard ──
+        window.quickApproveFromDashboard = function (batchId, btn) {
+            if (!confirm('Xác nhận phê duyệt (RELEASE) lô này ngay từ Dashboard?')) return;
+            btn.disabled = true;
+            btn.textContent = 'Đang duyệt...';
+            window.MockData.updateBatchStatus(batchId, 'RELEASED');
+            setTimeout(render, 300);
+        };
+
+        // ── Auto-refresh when other pages mutate state ──
+        window.addEventListener('pharma:statechange', render);
+    })();
+</script>

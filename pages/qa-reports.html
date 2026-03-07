@@ -1,0 +1,92 @@
+<!-- pages/qa-reports.html -->
+<div class="p-8 max-w-[1400px] mx-auto w-full">
+    <div class="mb-8 flex items-end justify-between">
+        <div>
+            <h2 class="text-2xl font-black text-slate-900 tracking-tight">Báo cáo QA/QC</h2>
+            <p class="text-slate-500 text-sm mt-1">Tổng hợp kết quả kiểm định và biên bản QA/QC.</p>
+        </div>
+        <button
+            class="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-primary/90">
+            <span class="material-symbols-outlined text-sm">file_download</span> Xuất PDF
+        </button>
+    </div>
+    <div class="grid grid-cols-4 gap-4 mb-8">
+        <div class="bg-white p-5 rounded-xl border border-slate-200 text-center">
+            <p class="text-3xl font-black text-green-600" id="stat-released">-</p>
+            <p class="text-xs text-slate-500 mt-1">Lô đã duyệt</p>
+        </div>
+        <div class="bg-white p-5 rounded-xl border border-slate-200 text-center">
+            <p class="text-3xl font-black text-red-600" id="stat-rejected">-</p>
+            <p class="text-xs text-slate-500 mt-1">Lô bị từ chối/khóa</p>
+        </div>
+        <div class="bg-white p-5 rounded-xl border border-slate-200 text-center">
+            <p class="text-3xl font-black text-amber-600" id="stat-quarantine">-</p>
+            <p class="text-xs text-slate-500 mt-1">Đang biệt trữ</p>
+        </div>
+        <div class="bg-white p-5 rounded-xl border border-slate-200 text-center">
+            <p class="text-3xl font-black text-primary" id="stat-compliance">-</p>
+            <p class="text-xs text-slate-500 mt-1">Tỷ lệ đạt chuẩn</p>
+        </div>
+    </div>
+    <div class="bg-white rounded-xl border border-slate-200 p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h4 class="font-bold text-slate-800 text-sm italic">Xu hướng chất lượng (Mô phỏng)</h4>
+        </div>
+        <div class="h-48 flex items-end gap-2 px-4">
+            <!-- Simulated Chart -->
+            <div class="flex-1 bg-slate-100 rounded-t-lg h-[60%] relative group">
+                <div
+                    class="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity">
+                    94%</div>
+            </div>
+            <div class="flex-1 bg-slate-100 rounded-t-lg h-[75%] relative group">
+                <div
+                    class="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity">
+                    96%</div>
+            </div>
+            <div class="flex-1 bg-slate-100 rounded-t-lg h-[70%] relative group">
+                <div
+                    class="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity">
+                    95%</div>
+            </div>
+            <div class="flex-1 bg-primary/20 rounded-t-lg h-[90%] relative group border-t-2 border-primary">
+                <div
+                    class="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity">
+                    99.8%</div>
+            </div>
+        </div>
+        <div class="flex justify-between text-[10px] text-slate-400 mt-2 px-4">
+            <span>Tháng 7</span>
+            <span>Tháng 8</span>
+            <span>Tháng 9</span>
+            <span class="font-bold text-primary">Tháng 10</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        function updateReports() {
+            const batches = window.MockData.BATCHES || [];
+            const released = batches.filter(b => b.BatchStatus === 'RELEASED').length;
+            const rejected = batches.filter(b => b.BatchStatus === 'LOCKED' || b.BatchStatus === 'DESTROYED').length;
+            const quarantine = batches.filter(b => b.BatchStatus === 'QUARANTINE').length;
+
+            const totalResult = released + rejected;
+            const compliance = totalResult > 0 ? ((released / totalResult) * 100).toFixed(1) : '100';
+
+            const elReleased = document.getElementById('stat-released');
+            const elRejected = document.getElementById('stat-rejected');
+            const elQuarantine = document.getElementById('stat-quarantine');
+            const elCompliance = document.getElementById('stat-compliance');
+
+            if (elReleased) elReleased.textContent = released;
+            if (elRejected) elRejected.textContent = rejected;
+            if (elQuarantine) elQuarantine.textContent = quarantine;
+            if (elCompliance) elCompliance.textContent = compliance + '%';
+        }
+
+        updateReports();
+        window.addEventListener('pharma:statechange', updateReports);
+    })();
+</script>

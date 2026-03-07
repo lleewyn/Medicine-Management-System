@@ -1,0 +1,554 @@
+<!-- pages/purchase-order.html -->
+<!-- Use cases: Quản lý mua hàng → Tra cứu & đối soát PO + Khiếu nại / đổi trả NCC -->
+<style>
+    .tab-active {
+        border-bottom: 2px solid #2563EB;
+        color: #2563EB;
+        font-weight: 700;
+    }
+
+    .tab-inactive {
+        border-bottom: 2px solid transparent;
+        color: #64748B;
+    }
+
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, .5);
+        z-index: 50;
+    }
+
+    .modal-overlay.open {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
+<div class="p-8 max-w-[1400px] mx-auto">
+    <div class="mb-6 flex items-end justify-between">
+        <div>
+            <h2 class="text-2xl font-black text-slate-900">Quản lý Mua hàng</h2>
+            <p class="text-slate-500 text-sm mt-1">Theo dõi PO, đối soát hàng nhận và khiếu nại Nhà cung cấp.</p>
+        </div>
+        <span id="po-role-badge"></span>
+    </div>
+
+    <div class="flex border-b border-slate-200 mb-6 gap-6">
+        <button onclick="switchPOTab('list')" id="po-tab-list" class="pb-3 text-sm tab-active">Danh sách &amp; Đối soát
+            PO</button>
+        <button onclick="switchPOTab('create')" id="po-tab-create" class="pb-3 text-sm tab-inactive">Tạo PO mới</button>
+        <button onclick="switchPOTab('complaint')" id="po-tab-complaint" class="pb-3 text-sm tab-inactive">Khiếu nại /
+            Đổi trả NCC</button>
+    </div>
+
+    <!-- TAB 1: PO List -->
+    <div id="po-tab-content-list">
+        <div class="grid grid-cols-4 gap-4 mb-6">
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                <p class="text-xs text-slate-500 mb-1">Tổng PO</p>
+                <h3 class="text-2xl font-bold" id="pc-total">--</h3>
+            </div>
+            <div class="bg-white p-5 rounded-xl border border-orange-200 bg-orange-50 shadow-sm">
+                <p class="text-xs text-slate-500 mb-1">Chờ nhận</p>
+                <h3 class="text-2xl font-bold text-orange-600" id="pc-pending">--</h3>
+            </div>
+            <div class="bg-white p-5 rounded-xl border border-blue-200 bg-blue-50 shadow-sm">
+                <p class="text-xs text-slate-500 mb-1">Một phần</p>
+                <h3 class="text-2xl font-bold text-blue-600" id="pc-partial">--</h3>
+            </div>
+            <div class="bg-white p-5 rounded-xl border border-green-200 bg-green-50 shadow-sm">
+                <p class="text-xs text-slate-500 mb-1">Hoàn tất</p>
+                <h3 class="text-2xl font-bold text-green-600" id="pc-done">--</h3>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+                <h4 class="font-bold text-slate-800">Đối soát PO — Đặt vs Thực nhận</h4>
+                <button onclick="switchPOTab('create')"
+                    class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-primary/90 flex items-center gap-1"><span
+                        class="material-symbols-outlined text-sm">add</span> Tạo PO</button>
+            </div>
+            <table class="w-full text-left text-sm">
+                <thead class="bg-slate-50">
+                    <tr>
+                        <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase">Mã PO</th>
+                        <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase">NCC</th>
+                        <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase">Ngày DK</th>
+                        <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase text-center">Đặt</th>
+                        <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase text-center">Nhận</th>
+                        <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase text-center">Lệch</th>
+                        <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase">Trạng thái</th>
+                        <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase text-right">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100" id="po-table-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- TAB 2: Create PO -->
+    <div id="po-tab-content-create" class="hidden">
+        <div class="max-w-2xl bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+            <h4 class="font-black text-slate-900 mb-5">Tạo Đơn nhập hàng (PO) mới</h4>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase">Nhà cung cấp (NCC)</label>
+                    <select
+                        class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20">
+                        <option>Pfizer Vietnam Ltd.</option>
+                        <option>Dược Hậu Giang (DHG)</option>
+                        <option>AstraZeneca VN</option>
+                        <option>Sanofi-Aventis</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase">Ngày đặt hàng</label>
+                        <input type="date" id="po-date-order"
+                            class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase">Ngày giao dự kiến</label>
+                        <input type="date" id="po-date-expected"
+                            class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20">
+                    </div>
+                </div>
+                <!-- Items table -->
+                <div class="border border-slate-200 rounded-xl overflow-hidden">
+                    <div class="p-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                        <span class="text-xs font-bold text-slate-600 uppercase">Sản phẩm đặt mua</span>
+                        <button onclick="addPOLine()" class="text-xs text-primary font-bold">+ Thêm dòng</button>
+                    </div>
+                    <table class="w-full">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-100">
+                                <th class="px-4 py-2 text-left text-xs text-slate-500">Sản phẩm</th>
+                                <th class="px-4 py-2 text-center text-xs text-slate-500">SL</th>
+                                <th class="px-4 py-2 text-right text-xs text-slate-500">Đơn giá</th>
+                                <th class="px-4 py-2 text-right text-xs text-slate-500">Thành tiền</th>
+                                <th class="px-2 py-2"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="po-create-body">
+                            <tr id="po-line-0">
+                                <td class="px-4 py-2">
+                                    <select
+                                        class="w-full border border-slate-200 rounded text-xs px-2 py-1.5 outline-none"
+                                        onchange="updateLine(0,this)">
+                                        <option value="">-- Chọn --</option>
+                                        <option value="320000">Vaccine Pfizer BioNTech</option>
+                                        <option value="45000">Hapacol 650mg</option>
+                                        <option value="85000">Azithromycin 250mg</option>
+                                        <option value="120000">Vitamin C 1000mg</option>
+                                    </select>
+                                </td>
+                                <td class="px-4 py-2 text-center"><input type="number" value="100" min="1"
+                                        class="w-16 text-center border border-slate-200 rounded text-xs px-2 py-1.5 outline-none"
+                                        onchange="recalcLines()"></td>
+                                <td class="px-4 py-2 text-right text-xs" id="price-0">—</td>
+                                <td class="px-4 py-2 text-right text-xs font-bold text-primary" id="sub-0">—</td>
+                                <td class="px-2 py-2"><button onclick="this.closest('tr').remove(); recalcLines()"
+                                        class="text-red-400 hover:text-red-600"><span
+                                            class="material-symbols-outlined text-sm">close</span></button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="p-3 border-t border-slate-200 text-right">
+                        <p class="text-xs text-slate-500">Tổng giá trị</p>
+                        <p class="text-xl font-black text-primary" id="po-grand">0 VNĐ</p>
+                    </div>
+                </div>
+                <textarea rows="2" id="po-note" placeholder="Ghi chú: yêu cầu đóng gói, nhiệt độ vận chuyển..."
+                    class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20 resize-none"></textarea>
+                <button id="po-submit-btn" onclick="submitPO()"
+                    class="w-full bg-primary text-white py-3.5 rounded-xl font-bold text-sm hover:bg-primary/90 flex items-center justify-center gap-2">
+                    <span id="po-submit-icon" class="material-symbols-outlined text-sm">send</span> <span
+                        id="po-submit-text">Gửi PO đến NCC</span>
+                </button>
+                <button id="po-cancel-edit-btn" onclick="resetPOForm()"
+                    class="w-full bg-slate-100 text-slate-700 py-3.5 rounded-xl font-bold text-sm hover:bg-slate-200 flex items-center justify-center gap-2 mt-2 hidden">
+                    Hủy chỉnh sửa
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 3: Khiếu nại -->
+    <div id="po-tab-content-complaint" class="hidden">
+        <div class="grid grid-cols-3 gap-6">
+            <div class="col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                <h4 class="font-black text-slate-900 mb-1 flex items-center gap-2"><span
+                        class="material-symbols-outlined text-amber-500">report_problem</span> Lập phiếu Khiếu nại / Đổi
+                    trả</h4>
+                <p class="text-slate-500 text-sm mb-5">Ghi nhận sự cố và gửi yêu cầu xử lý đến Nhà cung cấp.</p>
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase">PO liên quan</label>
+                            <select id="cpl-po"
+                                class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20"></select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase">Loại khiếu
+                                nại</label>
+                            <select id="cpl-type"
+                                class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20">
+                                <option value="Thiếu hàng (Quantity Shortage)">Thiếu hàng (Quantity Shortage)</option>
+                                <option value="Hàng hư hỏng trong vận chuyển">Hàng hư hỏng trong vận chuyển</option>
+                                <option value="Hàng gần/hết hạn sử dụng">Hàng gần/hết hạn sử dụng</option>
+                                <option value="Giao nhầm sản phẩm">Giao nhầm sản phẩm</option>
+                                <option value="Lỗi chất lượng / CoA không đạt">Lỗi chất lượng / CoA không đạt</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase">Sản phẩm bị
+                                lỗi</label>
+                            <select id="cpl-item"
+                                class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20">
+                                <option value="Vaccine Pfizer BioNTech">Vaccine Pfizer BioNTech</option>
+                                <option value="Hapacol 650mg">Hapacol 650mg</option>
+                                <option value="Azithromycin 250mg">Azithromycin 250mg</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase">Số lượng lỗi</label>
+                            <input type="number" id="cpl-qty" placeholder="0"
+                                class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase">Mô tả chi tiết</label>
+                        <textarea rows="3" id="cpl-desc"
+                            placeholder="Mô tả tình trạng hàng hóa, thời điểm phát hiện, bằng chứng kèm theo..."
+                            class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20 resize-none"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase">Yêu cầu xử lý</label>
+                        <div class="flex gap-3">
+                            <label
+                                class="flex items-center gap-2 p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 flex-1 text-xs font-medium"><input
+                                    type="radio" name="res" value="Đổi hàng mới" class="accent-primary" checked> Đổi
+                                hàng mới</label>
+                            <label
+                                class="flex items-center gap-2 p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 flex-1 text-xs font-medium"><input
+                                    type="radio" name="res" value="Hoàn tiền" class="accent-primary"> Hoàn tiền</label>
+                            <label
+                                class="flex items-center gap-2 p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 flex-1 text-xs font-medium"><input
+                                    type="radio" name="res" value="Bồi thường" class="accent-primary"> Bồi
+                                thường</label>
+                        </div>
+                    </div>
+                    <button onclick="submitComplaint()"
+                        class="w-full bg-amber-600 text-white py-3.5 rounded-xl font-bold text-sm hover:bg-amber-700 flex items-center justify-center gap-2">
+                        <span class="material-symbols-outlined text-sm">send</span> Gửi Phiếu khiếu nại đến NCC
+                    </button>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+                <h5 class="font-bold text-slate-800 mb-4">Lịch sử khiếu nại</h5>
+                <div class="space-y-3" id="cpl-history-list">
+                    <!-- Nạp động bằng JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+<div class="modal-overlay" id="po-ok-modal">
+    <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 text-center">
+        <div class="size-14 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4"><span
+                class="material-symbols-outlined text-3xl text-green-600">receipt_long</span></div>
+        <h3 class="text-lg font-black text-slate-900 mb-2">PO đã được tạo!</h3>
+        <p class="text-slate-500 text-sm mb-4">Đơn nhập hàng đã gửi cho NCC và đang chờ xác nhận.</p>
+        <button onclick="document.getElementById('po-ok-modal').classList.remove('open'); switchPOTab('list')"
+            class="w-full bg-primary text-white py-2.5 rounded-xl font-bold text-sm">OK</button>
+    </div>
+</div>
+<div class="modal-overlay" id="cpl-ok-modal">
+    <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 text-center">
+        <div class="size-14 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-4"><span
+                class="material-symbols-outlined text-3xl text-amber-600">mark_email_read</span></div>
+        <h3 class="text-lg font-black text-slate-900 mb-2">Đã gửi khiếu nại!</h3>
+        <p class="text-slate-500 text-sm mb-4">NCC sẽ phản hồi trong 3 ngày làm việc.</p>
+        <button onclick="document.getElementById('cpl-ok-modal').classList.remove('open')"
+            class="w-full bg-primary text-white py-2.5 rounded-xl font-bold text-sm">OK</button>
+    </div>
+</div>
+
+<script>
+    (function () {
+        const user = window.Auth.getCurrentUser();
+        const role = window.MockData.getUserRole(user);
+        const PRODUCTS = window.MockData.PRODUCTS;
+
+        // 1. UI Initialization
+        if (role) {
+            const badge = document.getElementById('po-role-badge');
+            if (badge) {
+                badge.innerHTML = `
+          <div class="flex items-center gap-2 px-4 py-2 rounded-xl border-2" style="border-color:${role.color}20;color:${role.color};background:${role.color}10">
+            <span class="material-symbols-outlined text-base">${role.icon}</span><span class="text-sm font-bold tracking-wider uppercase">${role.label}</span>
+          </div>`;
+            }
+        }
+
+        // 2. Constants & Helpers
+        const stMap = { PENDING: { l: 'CHỜ NHẬN', c: 'bg-orange-100 text-orange-700' }, PARTIAL: { l: 'MỘT PHẦN', c: 'bg-blue-100 text-blue-700' }, COMPLETED: { l: 'HOÀN TẤT', c: 'bg-green-100 text-green-700' }, CANCELLED: { l: 'Đã Hủy', c: 'bg-slate-100 text-slate-500' } };
+        const colMap = { blue: 'bg-blue-100 text-blue-700', green: 'bg-green-100 text-green-700', purple: 'bg-purple-100 text-purple-700', red: 'bg-red-100 text-red-700' };
+
+        function updatePO() {
+            const pos = window.MockData.PURCHASE_ORDERS;
+            const complaints = window.MockData.COMPLAINTS;
+
+            // Stats
+            document.getElementById('pc-total').textContent = pos.length;
+            document.getElementById('pc-pending').textContent = pos.filter(p => p.status === 'PENDING').length;
+            document.getElementById('pc-partial').textContent = pos.filter(p => p.status === 'PARTIAL').length;
+            document.getElementById('pc-done').textContent = pos.filter(p => p.status === 'COMPLETED').length;
+
+            // Render List
+            document.getElementById('po-table-body').innerHTML = pos.map(po => {
+                const diff = Math.min((po.received - po.total), 0);
+                const st = stMap[po.status] || { l: po.status, c: '' };
+                return `
+          <tr class="hover:bg-slate-50 border-t border-slate-100">
+            <td class="px-5 py-4 font-bold text-primary text-sm">${po.PO_ID}</td>
+            <td class="px-5 py-4">
+              <div class="flex items-center gap-2">
+                <div class="size-6 rounded text-[10px] font-bold flex items-center justify-center ${colMap[po.supplierColor] || 'bg-slate-100'}">${po.supplierCode || 'SU'}</div>
+                <span class="text-sm">${po.SupplierID}</span>
+              </div>
+            </td>
+            <td class="px-5 py-4 text-sm text-slate-500">${po.deliveryDate || po.expectedDate}</td>
+            <td class="px-5 py-4 text-center font-medium text-sm">${po.total}</td>
+            <td class="px-5 py-4 text-center font-medium text-sm ${po.received < po.total ? 'text-amber-600' : 'text-green-600'}">${po.received || 0}</td>
+            <td class="px-5 py-4 text-center text-sm font-bold ${diff < 0 ? 'text-red-600' : diff > 0 ? 'text-green-600' : 'text-slate-400'}">${diff >= 0 && po.status !== 'PENDING' ? '+' : ''}${po.status === 'PENDING' ? '' : diff}</td>
+            <td class="px-5 py-4"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${st.c}">${st.l}</span></td>
+            <td class="px-5 py-4 text-right flex justify-end gap-3 items-center">
+              ${diff < 0 && po.status === 'COMPLETED' ? `<button onclick="switchPOTab('complaint')" class="text-xs font-bold text-amber-600 hover:underline">Khiếu nại</button>` : ''}
+              ${po.status === 'PENDING' ? `<button onclick="editPO('${po.PO_ID}')" class="text-blue-500 font-bold text-xs hover:underline">Sửa</button>` : ''}
+              ${po.status === 'PENDING' ? `<button onclick="cancelPO('${po.PO_ID}')" class="text-red-500 font-bold text-xs hover:underline">Hủy</button>` : ''}
+              <button class="text-xs font-bold text-primary hover:underline">Chi tiết</button>
+            </td>
+          </tr>`;
+            }).join('') || '<tr><td colspan="8" class="p-8 text-center text-slate-400">Không có đơn hàng.</td></tr>';
+
+            // Complaints history
+            document.getElementById('cpl-history-list').innerHTML = complaints.map(c => `
+        <div class="p-3 border border-slate-200 rounded-xl mb-3">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-xs font-bold text-primary">${c.PO_ID}</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-bold">SENT</span>
+          </div>
+          <p class="text-xs font-medium text-slate-700">${c.type} — ${c.item} (SL: ${c.qty})</p>
+          <p class="text-[10px] text-slate-400 mt-0.5">${c.request} • ${new Date().toLocaleDateString('vi-VN')}</p>
+        </div>
+      `).join('') || '<p class="text-xs text-slate-400">Chưa có khiếu nại nào.</p>';
+
+            // Populate selects
+            const cplPo = document.getElementById('cpl-po');
+            if (cplPo) {
+                cplPo.innerHTML = '<option value="">-- Chọn PO --</option>' + pos.map(p => `<option value="${p.PO_ID}">${p.PO_ID} — ${p.SupplierID}</option>`).join('');
+            }
+        }
+
+        let editingPOId = null;
+
+        // 3. PO Creation Logic
+        let lineIdx = 0;
+        window.addPOLine = function () {
+            lineIdx++;
+            const row = document.createElement('tr');
+            row.id = `po-line-${lineIdx}`;
+            row.innerHTML = `
+        <td class="px-4 py-2">
+          <select class="w-full border border-slate-200 rounded text-xs px-2 py-1.5 outline-none" onchange="updateLine(${lineIdx},this)">
+            <option value="">-- Chọn --</option>
+            ${PRODUCTS.map(p => `<option value="${p.ImportPrice}">${p.ProductName}</option>`).join('')}
+          </select>
+        </td>
+        <td class="px-4 py-2 text-center"><input type="number" value="100" min="1" class="w-16 text-center border border-slate-200 rounded text-xs px-2 py-1.5 outline-none" onchange="recalcLines()"></td>
+        <td class="px-4 py-2 text-right text-xs" id="price-${lineIdx}">—</td>
+        <td class="px-4 py-2 text-right text-xs font-bold text-primary" id="sub-${lineIdx}">—</td>
+        <td class="px-2 py-2"><button onclick="this.closest('tr').remove();recalcLines()" class="text-red-400 hover:text-red-600"><span class="material-symbols-outlined text-sm">close</span></button></td>`;
+            document.getElementById('po-create-body').appendChild(row);
+        };
+
+        window.updateLine = function (idx, sel) {
+            const price = parseInt(sel.value) || 0;
+            const row = document.getElementById(`po-line-${idx}`);
+            const qtyInput = row.querySelector('input[type=number]');
+            const qty = parseInt(qtyInput.value) || 0;
+            document.getElementById(`price-${idx}`).textContent = price.toLocaleString() + ' VNĐ';
+            document.getElementById(`sub-${idx}`).textContent = (price * qty).toLocaleString() + ' VNĐ';
+            recalcLines();
+        };
+
+        window.recalcLines = function () {
+            let total = 0;
+            document.querySelectorAll('[id^="sub-"]').forEach(c => { total += parseInt(c.textContent.replace(/\D/g, '')) || 0; });
+            document.getElementById('po-grand').textContent = total.toLocaleString() + ' VNĐ';
+        };
+
+        window.editPO = function (poId) {
+            const po = window.MockData.PURCHASE_ORDERS.find(p => p.PO_ID === poId);
+            if (!po) return;
+            editingPOId = poId;
+            const supplierSelect = document.querySelector('#po-tab-content-create select');
+            if (supplierSelect) {
+                for (let i = 0; i < supplierSelect.options.length; i++) {
+                    if (supplierSelect.options[i].text === po.SupplierID) {
+                        supplierSelect.selectedIndex = i; break;
+                    }
+                }
+            }
+
+            // Set date if available
+            if (po.expectedDate && po.expectedDate.includes('/')) {
+                const [dd, mm, yyyy] = po.expectedDate.split('/');
+                document.getElementById('po-date-expected').value = `${yyyy}-${mm}-${dd}`;
+            }
+            if (po.note) document.getElementById('po-note').value = po.note;
+
+            // Not populating items for simplicity of this edit form right now
+            // We allow editing supplier, date and notes for PENDING orders.
+            document.getElementById('po-submit-text').textContent = 'Lưu thay đổi PO';
+            document.getElementById('po-submit-icon').textContent = 'save';
+            document.getElementById('po-cancel-edit-btn').classList.remove('hidden');
+            switchPOTab('create');
+        };
+
+        window.cancelPO = function (poId) {
+            if (confirm(`Bạn có chắc muốn hủy đơn mua hàng ${poId} này không?`)) {
+                window.MockData.cancelPO(poId);
+                updatePO();
+            }
+        };
+
+        window.resetPOForm = function () {
+            editingPOId = null;
+            document.getElementById('po-submit-text').textContent = 'Gửi PO đến NCC';
+            document.getElementById('po-submit-icon').textContent = 'send';
+            document.getElementById('po-cancel-edit-btn').classList.add('hidden');
+            document.getElementById('po-note').value = '';
+        };
+
+        window.submitPO = function () {
+            const supplierSelect = document.querySelector('#po-tab-content-create select');
+            const supplier = supplierSelect ? supplierSelect.options[supplierSelect.selectedIndex].text : 'N/A';
+            const items = [];
+            document.querySelectorAll('#po-create-body tr').forEach(row => {
+                const sel = row.querySelector('select');
+                const qtyIn = row.querySelector('input[type=number]');
+                if (sel && sel.value) {
+                    items.push({ ProductID: sel.options[sel.selectedIndex].text, OrderedQty: parseInt(qtyIn.value), UnitPrice: parseInt(sel.value) });
+                }
+            });
+
+            if (!editingPOId && !items.length) { alert('Vui lòng chọn ít nhất 1 sản phẩm!'); return; }
+
+            let expectedDate = document.getElementById('po-date-expected').value;
+            if (expectedDate) {
+                const [y, m, d] = expectedDate.split('-');
+                expectedDate = `${d}/${m}/${y}`;
+            }
+
+            if (editingPOId) {
+                window.MockData.updatePO(editingPOId, {
+                    SupplierID: supplier,
+                    expectedDate,
+                    note: document.getElementById('po-note').value
+                });
+                document.getElementById('po-ok-modal').querySelector('h3').textContent = 'Đã cập nhật PO!';
+                document.getElementById('po-ok-modal').querySelector('p').textContent = 'Thay đổi đã được lưu lại thành công.';
+                document.getElementById('po-ok-modal').classList.add('open');
+            } else {
+                const newPO = {
+                    PO_ID: 'PO-' + Date.now().toString().slice(-6),
+                    SupplierID: supplier,
+                    supplierCode: supplier.split(' ')[0].toUpperCase().slice(0, 2),
+                    supplierColor: 'blue',
+                    orderDate: new Date().toLocaleDateString('vi-VN'),
+                    expectedDate,
+                    status: 'PENDING',
+                    total: items.reduce((sum, i) => sum + i.OrderedQty, 0),
+                    received: 0,
+                    itemsDetails: items,
+                    totalValue: items.reduce((sum, i) => sum + (i.OrderedQty * i.UnitPrice), 0),
+                    note: document.getElementById('po-note').value
+                };
+
+                window.MockData.addPO(newPO);
+                document.getElementById('po-ok-modal').querySelector('h3').textContent = 'PO đã được tạo!';
+                document.getElementById('po-ok-modal').querySelector('p').textContent = 'Đơn nhập hàng đã gửi cho NCC và đang chờ xác nhận.';
+                document.getElementById('po-ok-modal').classList.add('open');
+                document.getElementById('po-create-body').innerHTML = `
+            <tr id="po-line-0">
+              <td class="px-4 py-2">
+                <select class="w-full border border-slate-200 rounded text-xs px-2 py-1.5 outline-none" onchange="updateLine(0,this)">
+                  <option value="">-- Chọn --</option>
+                  ${PRODUCTS.map(p => `<option value="${p.ImportPrice}">${p.ProductName}</option>`).join('')}
+                </select>
+              </td>
+              <td class="px-4 py-2 text-center"><input type="number" value="100" min="1" class="w-16 text-center border border-slate-200 rounded text-xs px-2 py-1.5 outline-none" onchange="recalcLines()"></td>
+              <td class="px-4 py-2 text-right text-xs" id="price-0">—</td>
+              <td class="px-4 py-2 text-right text-xs font-bold text-primary" id="sub-0">—</td>
+              <td class="px-2 py-2"><button onclick="this.closest('tr').remove();recalcLines()" class="text-red-400 hover:text-red-600"><span class="material-symbols-outlined text-sm">close</span></button></td>
+            </tr>`;
+                recalcLines();
+            }
+            resetPOForm();
+        };
+
+        // 4. Complaint Logic
+        window.submitComplaint = function () {
+            const payload = {
+                PO_ID: document.getElementById('cpl-po').value,
+                type: document.getElementById('cpl-type').value,
+                item: document.getElementById('cpl-item').value,
+                qty: parseInt(document.getElementById('cpl-qty').value) || 0,
+                desc: document.getElementById('cpl-desc').value,
+                request: document.querySelector('input[name="res"]:checked')?.value || 'N/A'
+            };
+
+            if (!payload.PO_ID || !payload.qty) { alert('Vui lòng điền đủ thông tin!'); return; }
+            window.MockData.addComplaint(payload);
+            document.getElementById('cpl-ok-modal').classList.add('open');
+            document.getElementById('cpl-qty').value = '';
+            document.getElementById('cpl-desc').value = '';
+        };
+
+        // 5. Shared UI logic
+        window.switchPOTab = function (t) {
+            ['list', 'create', 'complaint'].forEach(x => {
+                const tab = document.getElementById(`po-tab-${x}`);
+                if (tab) tab.className = `pb-3 text-sm ${x === t ? 'tab-active' : 'tab-inactive'}`;
+                const content = document.getElementById(`po-tab-content-${x}`);
+                if (content) content.classList.toggle('hidden', x !== t);
+            });
+        };
+
+        window.exportPO = function () {
+            window.MockData.exportToCSV(window.MockData.PURCHASE_ORDERS, `DonMuaHang_${new Date().toISOString().slice(0, 10)}.csv`);
+        };
+
+        // Init
+        updatePO();
+        window.addEventListener('pharma:statechange', updatePO);
+
+        const today = new Date().toISOString().split('T')[0];
+        const deEl = document.getElementById('po-date-expected');
+        const doEl = document.getElementById('po-date-order');
+        if (doEl) doEl.value = today;
+        if (deEl) {
+            let nextWeek = new Date();
+            nextWeek.setDate(nextWeek.getDate() + 7);
+            deEl.value = nextWeek.toISOString().split('T')[0];
+        }
+    })();
+</script>

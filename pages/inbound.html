@@ -1,0 +1,630 @@
+<!-- pages/inbound.html — Luồng Nhập kho đầy đủ -->
+<!-- Use cases: Kiểm tra chứng từ, Lưu kho dựa trên kết quả kiểm tra -->
+
+<style>
+    .step-indicator {
+        transition: all 0.3s ease;
+    }
+
+    .step-active {
+        background: #2563EB;
+        color: white;
+    }
+
+    .step-done {
+        background: #10B981;
+        color: white;
+    }
+
+    .step-pending {
+        background: #E2E8F0;
+        color: #94A3B8;
+    }
+
+    .tab-active {
+        border-bottom: 2px solid #2563EB;
+        color: #2563EB;
+        font-weight: 700;
+    }
+
+    .tab-inactive {
+        border-bottom: 2px solid transparent;
+        color: #64748B;
+    }
+
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 50;
+    }
+
+    .modal-overlay.open {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
+
+<div class="p-8 max-w-[1400px] mx-auto w-full">
+
+    <!-- Title Bar -->
+    <div class="mb-6 flex items-end justify-between">
+        <div>
+            <h2 class="text-2xl font-black text-slate-900 tracking-tight">Quản lý Nhập kho</h2>
+            <p class="text-slate-500 text-sm mt-1">Theo dõi PO và thực hiện quy trình nhận lô hàng vào kho.</p>
+        </div>
+        <div id="inbound-header-actions" class="flex gap-2">
+            <button
+                onclick="if(confirm('Bạn có muốn xóa toàn bộ dữ liệu hiện tại và khôi phục về mặc định không?')) window.MockData.resetState()"
+                class="bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-slate-200 flex items-center gap-1 transition-colors">
+                <span class="material-symbols-outlined text-sm">restart_alt</span> Khôi phục dữ liệu gốc
+            </button>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex border-b border-slate-200 mb-6 gap-6">
+        <button onclick="switchTab('po-list')" id="tab-po-list" class="pb-3 text-sm tab-active">
+            Danh sách PO
+        </button>
+        <button onclick="switchTab('receive')" id="tab-receive" class="pb-3 text-sm tab-inactive">
+            Nhận hàng vào kho
+        </button>
+    </div>
+
+    <!-- TAB 1: PO List -->
+    <div id="tab-content-po-list">
+        <!-- Stats -->
+        <div class="grid grid-cols-4 gap-4 mb-6">
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                <p class="text-slate-500 text-xs font-medium mb-1">Tổng PO</p>
+                <h3 class="text-2xl font-bold" id="po-stats-total">--</h3>
+            </div>
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                <p class="text-slate-500 text-xs font-medium mb-1">Chờ nhận hàng</p>
+                <h3 class="text-2xl font-bold text-orange-500" id="po-stats-pending">--</h3>
+            </div>
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                <p class="text-slate-500 text-xs font-medium mb-1">Nhập một phần</p>
+                <h3 class="text-2xl font-bold text-blue-500" id="po-stats-partial">--</h3>
+            </div>
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                <p class="text-slate-500 text-xs font-medium mb-1">Hoàn thành</p>
+                <h3 class="text-2xl font-bold text-green-500" id="po-stats-done">--</h3>
+            </div>
+        </div>
+
+        <!-- PO Table -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+                <h4 class="font-bold text-slate-800">Danh sách Đơn nhập hàng (PO)</h4>
+                <div class="relative">
+                    <span
+                        class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+                    <input
+                        class="pl-9 pr-4 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-primary/20 outline-none text-sm w-64"
+                        placeholder="Tìm mã PO..." type="text">
+                </div>
+            </div>
+            <table class="w-full text-left">
+                <thead class="bg-slate-50">
+                    <tr>
+                        <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase">Mã PO</th>
+                        <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase">Nhà cung cấp</th>
+                        <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase">Ngày dự kiến</th>
+                        <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase">Tiến độ nhận</th>
+                        <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase">Trạng thái</th>
+                        <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase text-right">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100" id="inbound-po-table"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- TAB 2: Receive Goods -->
+    <div id="tab-content-receive" class="hidden">
+        <div class="max-w-3xl">
+
+            <!-- Step Indicators -->
+            <div class="flex items-center gap-0 mb-8">
+                <div class="flex items-center gap-2" id="step-ind-1">
+                    <div class="size-8 rounded-full step-active flex items-center justify-center text-sm font-bold">
+                        1
+                    </div>
+                    <span class="text-sm font-bold text-primary">Kiểm tra chứng từ</span>
+                </div>
+                <div class="flex-1 h-px bg-slate-200 mx-3"></div>
+                <div class="flex items-center gap-2" id="step-ind-2">
+                    <div class="size-8 rounded-full step-pending flex items-center justify-center text-sm font-bold">
+                        2
+                    </div>
+                    <span class="text-sm font-medium text-slate-400">Nhập lô hàng</span>
+                </div>
+                <div class="flex-1 h-px bg-slate-200 mx-3"></div>
+                <div class="flex items-center gap-2" id="step-ind-3">
+                    <div class="size-8 rounded-full step-pending flex items-center justify-center text-sm font-bold">
+                        3
+                    </div>
+                    <span class="text-sm font-medium text-slate-400">Gán vị trí kê</span>
+                </div>
+                <div class="flex-1 h-px bg-slate-200 mx-3"></div>
+                <div class="flex items-center gap-2" id="step-ind-4">
+                    <div class="size-8 rounded-full step-pending flex items-center justify-center text-sm font-bold">
+                        4
+                    </div>
+                    <span class="text-sm font-medium text-slate-400">Xác nhận lưu kho</span>
+                </div>
+            </div>
+
+            <!-- Step 1: Kiểm tra chứng từ -->
+            <div id="step-content-1" class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                <h3 class="font-black text-lg text-slate-900 mb-1">Bước 1: Kiểm tra chứng từ nhập kho</h3>
+                <p class="text-slate-500 text-sm mb-6">Xác minh tính hợp lệ của hồ sơ trước khi nhận lô hàng vào
+                    kho.
+                </p>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-bold text-slate-700 mb-1.5">Mã PO liên quan</label>
+                    <select
+                        class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20"
+                        id="po-select-receive">
+                        <option value="">-- Chọn PO cần nhận hàng --</option>
+                    </select>
+                </div>
+
+                <div class="space-y-3 mb-6" id="document-checklist">
+                    <!-- Rendered by script -->
+                </div>
+
+                <button onclick="goStep(2)" id="btn-step1-next"
+                    class="bg-primary text-white px-6 py-2.5 rounded-lg font-bold hover:bg-primary/90 transition-colors text-sm flex items-center gap-2">
+                    Tiếp theo: Nhập lô hàng
+                    <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                </button>
+            </div>
+
+            <!-- Step 2: Nhập lô hàng -->
+            <div id="step-content-2" class="hidden bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                <h3 class="font-black text-lg text-slate-900 mb-1">Bước 2: Nhập thông tin lô hàng</h3>
+                <p class="text-slate-500 text-sm mb-6">Nhập số lô, hạn sử dụng và số lượng thực nhận.</p>
+
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wider">Số lô
+                            (LOT
+                            Number)</label>
+                        <input type="text" id="input-lot" placeholder="VD: PF-240101"
+                            class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wider">Hạn sử
+                            dụng (HSD)</label>
+                        <input type="date" id="input-expiry"
+                            class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wider">Số
+                            lượng
+                            thực nhận</label>
+                        <input type="number" id="input-qty" placeholder="0"
+                            class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wider">Tình
+                            trạng
+                            thùng hàng</label>
+                        <select id="input-condition"
+                            class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20">
+                            <option>Nguyên vẹn, không bị hư hỏng</option>
+                            <option>Thùng bị móp nhẹ — vẫn đạt</option>
+                            <option>Cần kiểm tra QA thêm</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div
+                    class="p-4 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800 mb-6 flex items-start gap-2">
+                    <span class="material-symbols-outlined text-amber-500 text-base mt-0.5">warning</span>
+                    Lô hàng sẽ được đặt ở trạng thái <strong>Biệt trữ (Quarantine)</strong> cho đến khi QA/QC phê
+                    duyệt.
+                </div>
+
+                <div class="flex gap-3">
+                    <button onclick="goStep(1)"
+                        class="border border-slate-200 text-slate-600 px-5 py-2.5 rounded-lg font-bold hover:bg-slate-50 text-sm">←
+                        Quay lại</button>
+                    <button onclick="goStep(3)"
+                        class="bg-primary text-white px-6 py-2.5 rounded-lg font-bold hover:bg-primary/90 transition-colors text-sm flex items-center gap-2">
+                        Tiếp theo: Gán vị trí kê <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 3: Gán vị trí kê -->
+            <div id="step-content-3" class="hidden bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                <h3 class="font-black text-lg text-slate-900 mb-1">Bước 3: Gán vị trí kê (Bin Location)</h3>
+                <p class="text-slate-500 text-sm mb-6">Chỉ định vị trí lưu trữ trong kho cho lô hàng này.</p>
+
+                <div class="grid grid-cols-3 gap-4 mb-6">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wider">Khu
+                            vực
+                            (Zone)</label>
+                        <select id="input-zone" onchange="updateLocationSuggestions()"
+                            class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20">
+                            <option>A — Kho thường</option>
+                            <option>B — Kho lạnh 2-8°C</option>
+                            <option>C — Kho lạnh âm</option>
+                            <option>Q — Khu biệt trữ</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wider">Dãy kệ
+                            (Row)</label>
+                        <input type="text" placeholder="VD: 01" id="input-row"
+                            class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wider">Ô
+                            (Bin)</label>
+                        <input type="text" placeholder="VD: 05" id="input-bin"
+                            class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20">
+                    </div>
+                </div>
+                <!-- Suggestions panel -->
+                <div class="mb-4">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="material-symbols-outlined text-sm text-amber-500">lightbulb</span>
+                        <p class="text-xs font-bold text-slate-600 uppercase tracking-wider">Gợi ý vị trí còn trống
+                        </p>
+                        <span class="text-xs text-slate-400">— nhấn để chọn nhanh</span>
+                    </div>
+                    <div class="grid grid-cols-4 gap-2" id="location-suggestions">
+                        <p class="col-span-4 text-xs text-slate-400 text-center py-2">Chọn Khu vực để xem gợi ý</p>
+                    </div>
+                </div>
+
+                <!-- Occupied warning -->
+                <div id="location-occupied-warn"
+                    class="hidden mb-4 p-3 bg-red-50 border border-red-200 rounded-xl flex items-center gap-2 text-sm text-red-700">
+                    <span class="material-symbols-outlined text-base">warning</span>
+                    <span>Vị trí này <strong>đã có lô hàng</strong> khác. Chọn vị trí khác hoặc xác nhận nếu kệ còn
+                        đủ
+                        chỗ.</span>
+                </div>
+
+                <div id="location-preview"
+                    class="p-4 bg-primary/5 border border-primary/20 rounded-xl mb-6 text-center">
+                    <p class="text-xs text-slate-500 mb-1">Vị trí kê sẽ được gán</p>
+                    <p class="text-2xl font-black text-primary tracking-widest" id="loc-preview-text">— — —</p>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="goStep(2)"
+                        class="border border-slate-200 text-slate-600 px-5 py-2.5 rounded-lg font-bold hover:bg-slate-50 text-sm">←
+                        Quay lại</button>
+                    <button onclick="goStep(4)"
+                        class="bg-primary text-white px-6 py-2.5 rounded-lg font-bold hover:bg-primary/90 transition-colors text-sm flex items-center gap-2">
+                        Tiếp theo: Xác nhận lưu kho <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 4: Confirm -->
+            <div id="step-content-4" class="hidden bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                <h3 class="font-black text-lg text-slate-900 mb-1">Bước 4: Xác nhận lưu kho</h3>
+                <p class="text-slate-500 text-sm mb-6">Kiểm tra thông tin lần cuối trước khi xác nhận.</p>
+
+                <div class="bg-slate-50 rounded-xl p-5 space-y-3 mb-6" id="confirm-summary">
+                    <div class="flex justify-between text-sm"><span class="text-slate-500 font-medium">Số lô
+                            (LOT):</span><span class="font-bold" id="summary-lot">—</span></div>
+                    <div class="flex justify-between text-sm"><span class="text-slate-500 font-medium">Hạn sử
+                            dụng:</span><span class="font-bold" id="summary-expiry">—</span></div>
+                    <div class="flex justify-between text-sm"><span class="text-slate-500 font-medium">Số lượng
+                            nhận:</span><span class="font-bold text-primary" id="summary-qty">—</span></div>
+                    <div class="flex justify-between text-sm"><span class="text-slate-500 font-medium">Vị trí
+                            kê:</span><span class="font-bold text-primary" id="summary-location">—</span></div>
+                    <div class="flex justify-between text-sm"><span class="text-slate-500 font-medium">Trạng
+                            thái:</span><span
+                            class="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700">QUARANTINE
+                            —
+                            Chờ QA duyệt</span></div>
+                </div>
+
+                <div class="flex gap-3">
+                    <button onclick="goStep(3)"
+                        class="border border-slate-200 text-slate-600 px-5 py-2.5 rounded-lg font-bold hover:bg-slate-50 text-sm">←
+                        Quay lại</button>
+                    <button onclick="confirmReceive()"
+                        class="bg-green-600 text-white px-6 py-2.5 rounded-lg font-bold hover:bg-green-700 transition-colors text-sm flex items-center gap-2">
+                        <span class="material-symbols-outlined text-sm">inventory</span> Xác nhận Lưu kho
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+
+    <!-- Success Modal -->
+    <div class="modal-overlay" id="success-modal">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 text-center">
+            <div class="size-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+                <span class="material-symbols-outlined text-3xl text-green-600">check_circle</span>
+            </div>
+            <h3 class="text-xl font-black text-slate-900 mb-2">Lưu kho thành công!</h3>
+            <p class="text-slate-500 text-sm mb-6">Lô hàng đã được nhập kho và chuyển sang trạng thái <strong
+                    class="text-amber-600">Biệt trữ</strong> chờ QA/QC phê duyệt.</p>
+            <div class="flex gap-3">
+                <button onclick="closeSuccessModal(); switchTab('po-list')"
+                    class="flex-1 border border-slate-200 text-slate-700 py-2.5 rounded-xl font-bold text-sm hover:bg-slate-50">Về
+                    Danh sách PO</button>
+                <button onclick="closeSuccessModal(); switchTab('receive')"
+                    class="flex-1 bg-primary text-white py-2.5 rounded-xl font-bold text-sm hover:bg-primary/90">Nhập
+                    lô
+                    tiếp theo</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            const user = window.Auth.getCurrentUser();
+            const role = window.MockData.getUserRole(user);
+            const canWrite = window.MockData.hasPermission(user, 'write_inbound');
+            const POs = window.MockData.PURCHASE_ORDERS;
+            const products = window.MockData.PRODUCTS;
+
+            function updateInboundUI() {
+                const currentPOs = window.MockData.PURCHASE_ORDERS;
+                const currentBatches = window.MockData.BATCHES;
+
+                // 1. Update Stats
+                document.getElementById('po-stats-total').textContent = currentPOs.length;
+                document.getElementById('po-stats-pending').textContent = currentPOs.filter(p => p.status === 'PENDING').length;
+                document.getElementById('po-stats-partial').textContent = currentPOs.filter(p => p.status === 'PARTIAL').length;
+                document.getElementById('po-stats-done').textContent = currentPOs.filter(p => p.status === 'COMPLETED').length;
+
+                // 2. Render PO Table
+                const statusMap = {
+                    PENDING: { label: 'CHỜ NHẬN', cls: 'bg-orange-100 text-orange-700' },
+                    PARTIAL: { label: 'NHẬP MỘT PHẦN', cls: 'bg-blue-100 text-blue-700' },
+                    COMPLETED: { label: 'HOÀN THÀNH', cls: 'bg-green-100 text-green-700' },
+                    CANCELLED: { label: 'ĐÃ HỦY', cls: 'bg-slate-100 text-slate-500' },
+                };
+                const colorMap = { blue: 'bg-blue-100 text-blue-700', green: 'bg-green-100 text-green-700', purple: 'bg-purple-100 text-purple-700', red: 'bg-red-100 text-red-700' };
+
+                document.getElementById('inbound-po-table').innerHTML = currentPOs.map(po => {
+                    const st = statusMap[po.status] || { label: po.status, cls: '' };
+                    const pct = po.total > 0 ? Math.round((po.received / po.total) * 100) : 0;
+                    const canReceive = po.status !== 'COMPLETED' && po.status !== 'CANCELLED';
+                    return `
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-5 py-4"><span class="font-bold text-primary text-sm">${po.PO_ID}</span></td>
+                        <td class="px-5 py-4">
+                            <div class="flex items-center gap-2">
+                                <div class="size-7 rounded text-[10px] font-bold flex items-center justify-center ${colorMap[po.supplierColor] || 'bg-slate-100 text-slate-600'}">${po.supplierCode}</div>
+                                <span class="text-sm">${po.SupplierID}</span>
+                            </div>
+                        </td>
+                        <td class="px-5 py-4 text-sm text-slate-500">${po.expectedDate}</td>
+                        <td class="px-5 py-4">
+                            <div class="w-28">
+                                <div class="flex justify-between text-[10px] text-slate-500 mb-1"><span>${pct}%</span><span>${po.received}/${po.total}</span></div>
+                                <div class="h-1.5 bg-slate-100 rounded-full"><div class="h-full bg-primary rounded-full" style="width:${pct}%"></div></div>
+                            </div>
+                        </td>
+                        <td class="px-5 py-4"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${st.cls}">${st.label}</span></td>
+                        <td class="px-5 py-4 text-right">
+                            ${canReceive && canWrite ? `<button onclick="startReceive('${po.PO_ID}')" class="bg-primary/10 text-primary px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-primary/20 transition-colors">
+                                <span class="material-symbols-outlined text-xs align-middle">login</span> Nhận hàng
+                            </button>` : '<span class="text-slate-300 text-xs">—</span>'}
+                        </td>
+                    </tr>`;
+                }).join('');
+
+                // 3. Populate PO select
+                const poSelect = document.getElementById('po-select-receive');
+                if (poSelect) {
+                    const currentVal = poSelect.value;
+                    poSelect.innerHTML = '<option value="">-- Chọn PO cần nhận hàng --</option>' +
+                        currentPOs.filter(p => p.status !== 'COMPLETED' && p.status !== 'CANCELLED').map(po => `
+                        <option value="${po.PO_ID}">${po.PO_ID} — ${po.SupplierID}</option>
+                    `).join('');
+                    if (currentVal) poSelect.value = currentVal;
+                }
+
+
+            }
+
+
+
+            window.switchTab = function (tabId) {
+                ['po-list', 'receive'].forEach(t => {
+                    const btn = document.getElementById(`tab-${t}`);
+                    const content = document.getElementById(`tab-content-${t}`);
+                    if (btn) btn.className = `pb-3 text-sm ${t === tabId ? 'tab-active' : 'tab-inactive'}`;
+                    if (content) content.classList.toggle('hidden', t !== tabId);
+                });
+            };
+
+            window.goStep = function (step) {
+                if (step === 2) {
+                    const poId = document.getElementById('po-select-receive').value;
+                    if (!poId) { alert('Vui lòng chọn PO!'); return; }
+                    const po = window.MockData.PURCHASE_ORDERS.find(p => p.PO_ID === poId);
+                    const items = po.itemsDetails || [];
+
+                    // Add product selector if not present
+                    const content2 = document.getElementById('step-content-2');
+                    if (!document.getElementById('input-product-container')) {
+                        const selector = `
+                        <div id="input-product-container" class="col-span-2 mb-4">
+                            <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wider">Chọn sản phẩm nhận từ PO</label>
+                            <select id="input-product-id" class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20">
+                                ${items.map(it => {
+                            const p = products.find(x => x.ProductID === it.ProductID) || {};
+                            return `<option value="${it.ProductID}">${p.ProductName || it.ProductID} (Số lượng trong PO: ${it.OrderedQty})</option>`;
+                        }).join('')}
+                            </select>
+                        </div>`;
+                        content2.querySelector('.grid').insertAdjacentHTML('afterbegin', selector);
+                    }
+                }
+                if (step === 4) {
+                    const prodId = document.getElementById('input-product-id').value;
+                    const p = products.find(x => x.ProductID === prodId) || {};
+                    document.getElementById('summary-lot').textContent = document.getElementById('input-lot').value || '—';
+                    document.getElementById('summary-expiry').textContent = document.getElementById('input-expiry').value || '—';
+                    document.getElementById('summary-qty').textContent = (document.getElementById('input-qty').value || '0') + ' ' + (p.BaseUnit || 'đv');
+                    const zone = document.getElementById('input-zone').value.split(' ')[0];
+                    const row = document.getElementById('input-row').value || '?';
+                    const bin = document.getElementById('input-bin').value || '?';
+                    document.getElementById('summary-location').textContent = `${zone}-${row}-${bin}`;
+                }
+                for (let i = 1; i <= 4; i++) {
+                    const stepContent = document.getElementById(`step-content-${i}`);
+                    if (stepContent) stepContent.classList.add('hidden');
+
+                    const stepInd = document.getElementById(`step-ind-${i}`);
+                    if (stepInd) {
+                        const ind = stepInd.querySelector('div');
+                        if (ind) {
+                            ind.className = `size-8 rounded-full ${i < step ? 'step-done' : i === step ? 'step-active' : 'step-pending'} flex items-center justify-center text-sm font-bold`;
+                            ind.textContent = i < step ? '✓' : i;
+                        }
+                    }
+                }
+                const targetContent = document.getElementById(`step-content-${step}`);
+                if (targetContent) targetContent.classList.remove('hidden');
+            };
+
+            window.updateLocationPreview = function () {
+                const z = document.getElementById('input-zone').value.split(' ')[0];
+                const r = document.getElementById('input-row').value || '?';
+                const b = document.getElementById('input-bin').value || '?';
+                document.getElementById('loc-preview-text').textContent = `${z} — ${r} — ${b}`;
+
+                const currentLoc = `${z}-${r}-${b}`;
+                const occupied = window.MockData.BATCHES.some(batch => batch.location === currentLoc);
+                const warn = document.getElementById('location-occupied-warn');
+                if (warn) warn.classList.toggle('hidden', !occupied || r === '?' || b === '?');
+            };
+
+            window.updateLocationSuggestions = function () {
+                const zoneVal = document.getElementById('input-zone').value;
+                const zoneCode = zoneVal.split(' ')[0];
+                const occupiedInZone = new Set(window.MockData.BATCHES.filter(b => b.location?.startsWith(zoneCode + '-')).map(b => b.location));
+
+                const zoneConfig = {
+                    A: { rows: ['01', '02', '03'], bins: ['01', '02', '03', '04', '05'] },
+                    B: { rows: ['01', '02'], bins: ['01', '02', '03', '04'] },
+                    Q: { rows: ['01', '02'], bins: ['01', '02', '03', '04'] },
+                };
+                const cfg = zoneConfig[zoneCode] || { rows: ['01'], bins: ['01', '02'] };
+
+                const candidates = [];
+                outer: for (const row of cfg.rows) {
+                    for (const bin of cfg.bins) {
+                        const loc = `${zoneCode}-${row}-${bin}`;
+                        candidates.push({ row, bin, loc, occupied: occupiedInZone.has(loc) });
+                        if (candidates.length >= 8) break outer;
+                    }
+                }
+
+                document.getElementById('location-suggestions').innerHTML = candidates.map(c => `
+                <button type="button" onclick="pickLocation('${c.row}','${c.bin}')"
+                    class="relative p-2.5 rounded-xl border-2 text-center text-xs font-bold transition-all
+                    ${c.occupied ? 'border-red-200 bg-red-50 text-red-400 cursor-not-allowed' : 'border-primary/30 bg-primary/5 text-primary hover:bg-primary/15 hover:border-primary/60'}">
+                    <span class="material-symbols-outlined text-base block mb-0.5">${c.occupied ? 'block' : 'view_in_ar'}</span>
+                    ${c.loc}
+                </button>`).join('');
+                window.updateLocationPreview();
+            };
+
+            window.pickLocation = function (row, bin) {
+                document.getElementById('input-row').value = row;
+                document.getElementById('input-bin').value = bin;
+                window.updateLocationPreview();
+            };
+
+            window.confirmReceive = function () {
+                const lot = document.getElementById('input-lot').value.trim();
+                const expiry = document.getElementById('input-expiry').value;
+                const qty = parseInt(document.getElementById('input-qty').value) || 0;
+                const zone = document.getElementById('input-zone').value.split(' ')[0];
+                const row = document.getElementById('input-row').value || 'XX';
+                const bin = document.getElementById('input-bin').value || 'XX';
+                const location = `${zone}-${row}-${bin}`;
+                const poId = document.getElementById('po-select-receive').value;
+
+                if (!lot || !expiry || qty <= 0 || !poId) {
+                    alert('Vui lòng chọn PO và nhập đầy đủ thông tin số lô, hạn sử dụng, số lượng!');
+                    return;
+                }
+
+                const prodId = document.getElementById('input-product-id').value;
+                const product = products.find(p => p.ProductID === prodId) || products[0];
+
+                window.MockData.addBatch({
+                    ProductID: product.ProductID,
+                    Batchcode: lot,
+                    Quantity: qty,
+                    ExpDate: expiry,
+                    LocationID: location,
+                    warehouseId: 'WH-HCM',
+                    BatchStatus: 'QUARANTINE'
+                });
+
+                window.MockData.updatePOReceived(poId, qty);
+                document.getElementById('success-modal').classList.add('open');
+            };
+
+            window.closeSuccessModal = function () {
+                document.getElementById('success-modal').classList.remove('open');
+                window.goStep(1);
+                // Reset fields
+                document.getElementById('input-lot').value = '';
+                document.getElementById('input-qty').value = '';
+                document.getElementById('input-expiry').value = '';
+                // Remove product selector for next time
+                const prodContainer = document.getElementById('input-product-container');
+                if (prodContainer) prodContainer.remove();
+            };
+
+            window.startReceive = function (poId) {
+                window.switchTab('receive');
+                document.getElementById('po-select-receive').value = poId;
+                window.goStep(1);
+            };
+
+            // Render checklist
+            const checks = [
+                { id: 'chk1', label: 'Hóa đơn thương mại (Commercial Invoice)' },
+                { id: 'chk2', label: 'Phiếu đóng gói (Packing List)' },
+                { id: 'chk3', label: 'Giấy chứng nhận chất lượng (CoA)' },
+                { id: 'chk4', label: 'Phiếu giao hàng (Delivery Note)' }
+            ];
+            const checklistEl = document.getElementById('document-checklist');
+            if (checklistEl) {
+                checklistEl.innerHTML = checks.map(c => `
+                <label class="flex items-center gap-3 p-3 border border-slate-200 rounded-xl hover:bg-slate-50 cursor-pointer">
+                    <input type="checkbox" class="size-4 rounded accent-primary">
+                    <span class="text-sm font-medium text-slate-700">${c.label}</span>
+                </label>`).join('');
+            }
+
+            // Event listeners
+            ['input-zone', 'input-row', 'input-bin'].forEach(id => {
+                document.getElementById(id)?.addEventListener('input', window.updateLocationPreview);
+            });
+            document.getElementById('input-zone')?.addEventListener('change', window.updateLocationSuggestions);
+
+            // Reactivity
+            updateInboundUI();
+            window.addEventListener('pharma:statechange', updateInboundUI);
+        })();
+    </script>
