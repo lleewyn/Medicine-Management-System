@@ -276,6 +276,27 @@
     </div>
 </div>
 
+<!-- Product Select Modal for SO -->
+<div class="modal-overlay" id="product-select-modal">
+    <div class="bg-white rounded-2xl shadow-2xl p-6 max-w-lg w-full mx-4 relative overflow-hidden flex flex-col h-[80vh]">
+        <div class="flex-shrink-0 mb-4">
+            <button onclick="document.getElementById('product-select-modal').classList.remove('open')" class="absolute top-6 right-6 text-slate-400 hover:text-slate-600">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+            <h3 class="text-xl font-black text-slate-900 mb-4 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">inventory_2</span> Chọn sản phẩm thêm vào Đơn
+            </h3>
+            <div class="relative">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+                <input type="text" id="modal-product-search" placeholder="Gõ tên hoặc mã SKU sản phẩm..." class="w-full pl-9 pr-4 py-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20" oninput="filterModalProducts(this.value)">
+            </div>
+        </div>
+        <div class="flex-1 overflow-y-auto pr-2 space-y-2" id="modal-product-list">
+            <!-- Rendered by JS -->
+        </div>
+    </div>
+</div>
+
 <script>
     (function () {
         const user = window.Auth.getCurrentUser();
@@ -350,12 +371,15 @@
             const sideStock = document.getElementById('so-stock-side');
             if (sideStock) {
                 sideStock.innerHTML = stockData.map(p => `
-          <div class="flex items-center gap-2 p-2 rounded-lg hover:bg-slate-50">
-            <div class="flex-1">
+          <div onclick="addToSO('${p.ProductID}', '${p.ProductName}', ${p.ImportPrice}, '${p.BaseUnit}', ${p.available})" class="flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors border border-transparent hover:bg-primary/5 hover:border-primary/20">
+            <div class="flex-1 pointer-events-none">
               <p class="text-xs font-bold text-slate-700">${p.ProductName}</p>
-              <p class="text-[10px] text-slate-400">${p.ProductID}</p>
+              <p class="text-[10px] text-slate-400">${p.ProductID} • <span class="text-primary font-bold">${p.ImportPrice.toLocaleString()}đ</span></p>
             </div>
-            <span class="text-sm font-bold ${p.available === 0 ? 'text-red-500' : p.available < 100 ? 'text-amber-500' : 'text-green-600'}">${p.available}</span>
+            <div class="text-right pointer-events-none">
+                <span class="text-sm font-bold ${p.available === 0 ? 'text-red-500' : p.available < 100 ? 'text-amber-500' : 'text-green-600'}">${p.available}</span>
+                <span class="material-symbols-outlined text-[10px] text-slate-300 align-middle block">add_circle</span>
+            </div>
           </div>`).join('');
             }
 
@@ -399,6 +423,9 @@
         let soItems = [];
         window.addToSO = function (id, name, price, unit, available) {
             window.switchSOTab('create-so');
+            if (available === 0 && !confirm(`Sản phẩm ${name} đang HÉT HÀNG. Bạn có chắc muốn thêm vào SO (để giao bù dịch vụ sau) không?`)) {
+                return;
+            }
             const existing = soItems.find(i => i.id === id);
             if (existing) { existing.qty++; }
             else { soItems.push({ id, name, price, unit, available, qty: 1 }); }
@@ -406,9 +433,44 @@
         };
 
         window.addSOItem = function () {
+            document.getElementById('modal-product-search').value = '';
+            window.filterModalProducts('');
+            document.getElementById('product-select-modal').classList.add('open');
+        };
+
+        window.filterModalProducts = function (query) {
+            query = query.toLowerCase();
             const products = window.MockData.PRODUCTS;
-            const p = products[Math.floor(Math.random() * products.length)];
-            window.addToSO(p.ProductID, p.ProductName, p.ImportPrice, p.BaseUnit, 1000);
+            const batches = window.MockData.BATCHES;
+            const stockData = products.map(p => {
+                const totalQty = batches.filter(b => b.ProductID === p.ProductID && b.BatchStatus === 'RELEASED').reduce((s, b) => s + b.Quantity, 0);
+                return { ...p, available: totalQty };
+            });
+
+            const filtered = stockData.filter(p => p.ProductName.toLowerCase().includes(query) || p.ProductID.toLowerCase().includes(query));
+            document.getElementById('modal-product-list').innerHTML = filtered.map(p => `
+                <div class="flex items-center justify-between p-3 border border-slate-100 rounded-xl hover:bg-slate-50 hover:border-primary/20 cursor-pointer transition-colors" onclick="selectModalProduct('${p.ProductID}')">
+                    <div class="pointer-events-none">
+                        <p class="text-sm font-bold text-slate-800">${p.ProductName}</p>
+                        <p class="text-xs text-slate-500 mt-0.5">${p.ProductID} • Đơn giá: <span class="font-bold text-slate-700">${p.ImportPrice.toLocaleString()} VNĐ</span></p>
+                    </div>
+                    <div class="text-right pointer-events-none">
+                        <p class="text-xs font-bold text-slate-500 uppercase">Tồn kho</p>
+                        <p class="text-lg font-black ${p.available > 0 ? 'text-green-600' : 'text-red-500'}">${p.available.toLocaleString()}</p>
+                    </div>
+                </div>
+            `).join('') || '<p class="text-center text-slate-400 py-4 text-xs">Không có kết quả trùng khớp</p>';
+        };
+
+        window.selectModalProduct = function (id) {
+            const products = window.MockData.PRODUCTS;
+            const p = products.find(x => x.ProductID === id);
+            if (p) {
+                const batches = window.MockData.BATCHES;
+                const totalQty = batches.filter(b => b.ProductID === p.ProductID && b.BatchStatus === 'RELEASED').reduce((s, b) => s + b.Quantity, 0);
+                window.addToSO(p.ProductID, p.ProductName, p.ImportPrice, p.BaseUnit, totalQty);
+                document.getElementById('product-select-modal').classList.remove('open');
+            }
         };
 
         window.removeSOItem = function (id) {
