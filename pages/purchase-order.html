@@ -321,7 +321,7 @@
             <td class="px-5 py-4">
               <div class="flex items-center gap-2">
                 <div class="size-6 rounded text-[10px] font-bold flex items-center justify-center ${colMap[po.supplierColor] || 'bg-slate-100'}">${po.supplierCode || 'SU'}</div>
-                <span class="text-sm">${po.SupplierID}</span>
+                <span class="text-sm">${window.MockData.getSupplierName(po.SupplierID)}</span>
               </div>
             </td>
             <td class="px-5 py-4 text-sm text-slate-500">${po.deliveryDate || po.expectedDate}</td>

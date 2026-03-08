@@ -137,13 +137,14 @@
         </div>
     </div>
 
-    <script src="/js/noco_bridge.js"></script>
-    <script src="/js/mock_data.js"></script>
-    <script src="/js/auth.js"></script>
+    <script src="../js/noco_bridge.js"></script>
+    <script src="../js/noco_mappers.js"></script>
+    <script src="../js/mock_data.js"></script>
+    <script src="../js/auth.js"></script>
     <script>
         // Nếu đã đăng nhập rồi thì về trang chính
         if (window.Auth.getCurrentUser()) {
-            window.location.href = '/index.html';
+            window.location.href = '../index.html';
         }
 
         // Build demo role buttons
@@ -213,8 +214,10 @@
                 }
 
                 if (user) {
-                    window.Auth.login(user);
-                    window.location.href = '/index.html#dashboard';
+                    // Cực kỳ quan trọng: Map user từ NocoDB sang Schema của UI (role, permissions...)
+                    const uiUser = window.NocoMappers.toUIUser(user);
+                    window.Auth.login(uiUser);
+                    window.location.href = '../index.html#dashboard';
                 } else {
                     errorEl.classList.remove('hidden');
                     btn.disabled = false;
@@ -225,8 +228,8 @@
                 // Fallback sang MockData khi lỗi API
                 const user = window.MockData.authenticateUser(username, password);
                 if (user) {
-                    window.Auth.login(user);
-                    window.location.href = '/index.html#dashboard';
+                    window.Auth.login(user); // Mock user already has correct schema
+                    window.location.href = '../index.html#dashboard';
                 } else {
                     errorEl.classList.remove('hidden');
                     btn.disabled = false;

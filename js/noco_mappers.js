@@ -13,9 +13,10 @@ const NocoMappers = {
         if (Array.isArray(field)) return this._flatten(field[0], preferredKey);
         if (typeof field === 'object') {
             if (preferredKey && field[preferredKey]) return field[preferredKey];
-            // Prioritize Display Names over IDs
-            return field.CategoryName || field.SupplierName || field.ProductName || field.FullName || field.Name || 
-                   field.CategoryID || field.BatchID || field.SupplierID || field.ProductID || Object.values(field)[0];
+            // Prioritize Display Names (Product, Supplier, Location) over everything else
+            return field.ProductName || field.SupplierName || field.LocationName || field.FullName || field.Name || 
+                   field.CategoryName || field.CategoryID || field.BatchID || field.SupplierID || field.ProductID || 
+                   field.LocationID || Object.values(field)[0];
         }
         return String(field);
     },
@@ -25,13 +26,29 @@ const NocoMappers = {
      * Based on actual DB Schema: BatchID, ProductID, SupplierID, Batchcode, IsConsignment, MfgDate, ExpDate, ImportPrice, BatchStatus
      */
     toUIBatch(nocoBatch) {
+        const rawStatus = String(this._flatten(nocoBatch.BatchStatus) || 'RELEASED').trim().toUpperCase();
+        
+        // Map status names (VN -> EN)
+        const statusMap = {
+            'ĐÃ DUYỆT': 'RELEASED',
+            'RELEASED': 'RELEASED',
+            'BIỆT TRỮ': 'QUARANTINE',
+            'QUARANTINE': 'QUARANTINE',
+            'CHỜ KIỂM ĐỊNH': 'QUARANTINE',
+            'ĐANG CHỜ XỬ LÝ': 'QUARANTINE',
+            'KHÓA': 'LOCKED',
+            'LOCKED': 'LOCKED',
+            'TIÊU HỦY': 'DESTROYED',
+            'DESTROYED': 'DESTROYED'
+        };
+
         const flattened = {
             ...nocoBatch,
             BatchID: this._flatten(nocoBatch.BatchID),
             ProductID: this._flatten(nocoBatch.ProductID),
             SupplierID: this._flatten(nocoBatch.SupplierID),
             Batchcode: this._flatten(nocoBatch.Batchcode),
-            BatchStatus: String(this._flatten(nocoBatch.BatchStatus) || 'RELEASED').trim().toUpperCase(),
+            BatchStatus: statusMap[rawStatus] || rawStatus,
             LocationID: this._flatten(nocoBatch.LocationID)
         };
         return {
@@ -52,8 +69,163 @@ const NocoMappers = {
             ProductID: this._flatten(nocoProduct.ProductID),
             ProductName: this._flatten(nocoProduct.ProductName),
             CategoryID: this._flatten(nocoProduct.CategoryID),
-            unit: this._flatten(nocoProduct.UnitName) || 'Hộp', 
-            price: nocoProduct.Price || 50000 
+            BaseUnit: this._flatten(nocoProduct.UnitName) || 'Hộp',
+            UnitName: this._flatten(nocoProduct.UnitName) || 'Hộp',
+            ImportPrice: nocoProduct.UnitPrice || nocoProduct.Price || 50000,
+            UnitPrice: nocoProduct.UnitPrice || nocoProduct.Price || 50000,
+            StorageCondition: nocoProduct.StorageCondition || 'KHO_THUONG'
+        };
+    },
+
+    /**
+     * Map Users and Roles
+     */
+    toUIUser(nocoUser) {
+        const roleMapByCode = {
+            'ROLE-01': 'SYSTEM_ADMIN',
+            'ROLE-02': 'WAREHOUSE_MANAGER',
+            'ROLE-03': 'WAREHOUSE_STAFF',
+            'ROLE-04': 'DIRECTOR',
+            'ROLE-05': 'DRIVER',
+            'ROLE-06': 'SALES_STAFF',
+            'ROLE-07': 'PROCUREMENT_STAFF',
+            'ROLE-08': 'QA_PHARMACIST',
+            'ROLE-09': 'QC_SPECIALIST',
+            'ROLE-10': 'ACCOUNTANT'
+        };
+
+        let roleCode = 'ROLE-03';
+        if (nocoUser.RoleID) {
+            if (typeof nocoUser.RoleID === 'object') {
+                roleCode = nocoUser.RoleID.RoleID || nocoUser.RoleID.id_code || 'ROLE-03';
+            } else {
+                roleCode = nocoUser.RoleID;
+            }
+        }
+
+        return {
+            ...nocoUser,
+            UserID: this._flatten(nocoUser.UserID) || nocoUser.Id,
+            FullName: this._flatten(nocoUser.FullName),
+            username: (this._flatten(nocoUser.Email) || '').split('@')[0] || `user${nocoUser.Id}`,
+            email: this._flatten(nocoUser.Email),
+            role: roleMapByCode[roleCode] || 'WAREHOUSE_STAFF',
+            avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(this._flatten(nocoUser.FullName) || 'U')}&background=7C3AED&color=fff`
+        };
+    },
+
+    /**
+     * Map Purchase Orders
+     */
+    toUIPO(nocoPO) {
+        const supplier = this._flatten(nocoPO.SupplierID);
+        const rawStatus = (this._flatten(nocoPO.Status) || 'PENDING').toUpperCase();
+        const statusMap = {
+            'CHỜ NHẬN': 'PENDING',
+            'PENDING': 'PENDING',
+            'NHẬN MỘT PHẦN': 'PARTIAL',
+            'PARTIAL': 'PARTIAL',
+            'HOÀN TẤT': 'COMPLETED',
+            'COMPLETED': 'COMPLETED',
+            'ĐÃ HỦY': 'CANCELLED',
+            'CANCELLED': 'CANCELLED'
+        };
+
+        return {
+            ...nocoPO,
+            PO_ID: this._flatten(nocoPO.PO_ID),
+            SupplierID: supplier,
+            supplierCode: supplier.split('-')[1] || supplier.substring(0, 2).toUpperCase(),
+            supplierColor: 'blue',
+            expectedDate: this._flatten(nocoPO.CreatedDate) || '',
+            Status: statusMap[rawStatus] || rawStatus,
+            total: 0,
+            received: 0,
+            totalValue: 0
+        };
+    },
+
+    /**
+     * Map Sales Orders
+     */
+    toUISO(nocoSO) {
+        const custName = this._flatten(nocoSO.CustomerID);
+        const rawStatus = (this._flatten(nocoSO.Status) || 'PICKING').toUpperCase();
+        const statusMap = {
+            'ĐANG SOẠN': 'PICKING',
+            'PICKING': 'PICKING',
+            'ĐANG GIAO': 'DELIVERING',
+            'DELIVERING': 'DELIVERING',
+            'HOÀN TẤT': 'COMPLETED',
+            'COMPLETED': 'COMPLETED',
+            'ĐÃ HỦY': 'CANCELLED',
+            'CANCELLED': 'CANCELLED'
+        };
+
+        return {
+            ...nocoSO,
+            SO_ID: this._flatten(nocoSO.SO_ID),
+            CustomerID: custName,
+            deadline: this._flatten(nocoSO.OrderDate) || 'TBD',
+            OrderDate: this._flatten(nocoSO.OrderDate),
+            DeliveryAddress: this._flatten(nocoSO.DeliveryAddress),
+            ContactPhone: this._flatten(nocoSO.ContactPhone),
+            Status: statusMap[rawStatus] || rawStatus,
+            priority: nocoSO.Priority || 'NORMAL',
+            region: this._flatten(nocoSO.DeliveryAddress).split(',').pop().trim(),
+            totalValue: 0,
+            itemsCount: 0
+        };
+    },
+
+    /**
+     * Map Goods Receipts
+     */
+    toUIGoodsReceipt(nocoGR) {
+        return {
+            ...nocoGR,
+            ReceiptID: this._flatten(nocoGR.ReceiptID),
+            ReceiptDate: this._flatten(nocoGR.ReceiptDate),
+            PO_ID: this._flatten(nocoGR.PO_ID),
+            status: 'COMPLETED'
+        };
+    },
+
+    /**
+     * Map Goods Issues
+     */
+    toUIGoodsIssue(nocoGI) {
+        return {
+            ...nocoGI,
+            IssueID: this._flatten(nocoGI.IssueID),
+            IssueDate: this._flatten(nocoGI.IssueDate),
+            SO_ID: this._flatten(nocoGI.SO_ID),
+            status: 'COMPLETED'
+        };
+    },
+
+    /**
+     * Map Customers
+     */
+    toUICustomer(nocoCust) {
+        return {
+            ...nocoCust,
+            id: this._flatten(nocoCust.CustomerID),
+            name: this._flatten(nocoCust.CustomerName),
+            taxCode: this._flatten(nocoCust.TaxCode),
+            status: this._flatten(nocoCust.Status)
+        };
+    },
+
+    /**
+     * Map Suppliers
+     */
+    toUISupplier(nocoSupp) {
+        return {
+            ...nocoSupp,
+            id: this._flatten(nocoSupp.SupplierID),
+            name: this._flatten(nocoSupp.SupplierName),
+            type: this._flatten(nocoSupp.SupplierType)
         };
     }
 };

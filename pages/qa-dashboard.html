@@ -65,6 +65,7 @@
 
         // ── Render stats + list from reactive getter ──
         function render() {
+            const products = window.MockData.PRODUCTS;
             const batches = window.MockData.BATCHES;
             const quarantine = batches.filter(b => b.BatchStatus === 'QUARANTINE');
             const released = batches.filter(b => b.BatchStatus === 'RELEASED');

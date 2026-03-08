@@ -400,14 +400,14 @@
                 document.getElementById('inbound-po-table').innerHTML = currentPOs.map(po => {
                     const st = statusMap[po.Status] || { label: po.Status, cls: '' };
                     const pct = po.total > 0 ? Math.round((po.received / po.total) * 100) : 0;
-                    const canReceive = .Status !== 'COMPLETED' && po.Status !== 'CANCELLED';
+                    const canReceive = po.Status !== 'COMPLETED' && po.Status !== 'CANCELLED';
                     return `
                     <tr class="hover:bg-slate-50 transition-colors">
                         <td class="px-5 py-4"><span class="font-bold text-primary text-sm">${po.PO_ID}</span></td>
                         <td class="px-5 py-4">
                             <div class="flex items-center gap-2">
                                 <div class="size-7 rounded text-[10px] font-bold flex items-center justify-center ${colorMap[po.supplierColor] || 'bg-slate-100 text-slate-600'}">${po.supplierCode}</div>
-                                <span class="text-sm">${po.SupplierID}</span>
+                                <span class="text-sm">${window.MockData.getSupplierName(po.SupplierID)}</span>
                             </div>
                         </td>
                         <td class="px-5 py-4 text-sm text-slate-500">${po.expectedDate}</td>
@@ -431,7 +431,7 @@
                 if (poSelect) {
                     const currentVal = poSelect.value;
                     poSelect.innerHTML = '<option value="">-- Chọn PO cần nhận hàng --</option>' +
-                        currentPOs.filter(p => p.Status !== 'COMPLETED' && po.Status !== 'CANCELLED').map(po => `
+                        currentPOs.filter(p => p.Status !== 'COMPLETED' && p.Status !== 'CANCELLED').map(po => `
                         <option value="${po.PO_ID}">${po.PO_ID} — ${po.SupplierID}</option>
                     `).join('');
                     if (currentVal) poSelect.value = currentVal;

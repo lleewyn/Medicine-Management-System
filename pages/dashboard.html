@@ -458,7 +458,7 @@
                     const productBatches = batches.filter(b => b.ProductID === p.ProductID);
                     const initialStock = productBatches.reduce((sum, b) => sum + b.Quantity, 0); // Simplified
                     const incoming = pos.filter(po => (po.itemsDetails || po.items || []).some(item => (item.ProductID === p.ProductID) && po.Status === 'COMPLETED')).reduce((sum, po) => sum + (po.itemsDetails || po.items || []).filter(item => item.ProductID === p.ProductID).reduce((s, i) => s + (i.OrderedQty || i.qty), 0), 0);
-                    const outgoing = sos.filter(so => (so.itemsDetails || so.items || []).some(item => (item.ProductID === p.ProductID) && po.Status === 'COMPLETED')).reduce((sum, so) => sum + (so.itemsDetails || so.items || []).filter(item => item.ProductID === p.ProductID).reduce((s, i) => s + (i.OrderedQty || i.qty), 0), 0);
+                    const outgoing = sos.filter(so => (so.itemsDetails || so.items || []).some(item => (item.ProductID === p.ProductID) && so.Status === 'COMPLETED')).reduce((sum, so) => sum + (so.itemsDetails || so.items || []).filter(item => item.ProductID === p.ProductID).reduce((s, i) => s + (i.OrderedQty || i.qty), 0), 0);
                     const finalStock = initialStock + incoming - outgoing;
                     const value = finalStock * (p.ImportPrice || p.UnitPrice || 0);
 

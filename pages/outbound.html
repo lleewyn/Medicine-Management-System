@@ -230,7 +230,7 @@
       // Update stats
       if (document.getElementById('so-stats-total')) {
         document.getElementById('so-stats-total').textContent = SOs.length;
-        document.getElementById('so-stats-picking').textContent = SOs.filter(s => s.Status === 'PICKING' || so.Status === 'IN_PROGRESS').length;
+        document.getElementById('so-stats-picking').textContent = SOs.filter(s => s.Status === 'PICKING' || s.Status === 'IN_PROGRESS').length;
         document.getElementById('so-stats-packing').textContent = SOs.filter(s => s.Status === 'PACKING').length;
         document.getElementById('so-stats-done').textContent = SOs.filter(s => s.Status === 'COMPLETED').length;
       }
@@ -255,12 +255,12 @@
               ${s.Status === 'PICKING' ? 'Chờ soạn hàng' : s.Status === 'IN_PROGRESS' ? 'Đang soạn hàng' : s.Status === 'PACKING' ? '<span class="text-amber-600 font-bold">Chờ phê duyệt</span>' : s.Status}
             </td>
             <td class="px-5 py-4 text-right">
-              ${s.Status === 'PICKING' || so.Status === 'IN_PROGRESS' ? `
+              ${s.Status === 'PICKING' || s.Status === 'IN_PROGRESS' ? `
                 <button onclick="startPicking('${s.SO_ID}')"
                   class="bg-primary/10 text-primary px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-primary/20 mr-2">
                   <span class="material-symbols-outlined text-xs align-middle">checklist</span> Soạn hàng
                 </button>` : ''}
-              ${canApprove && po.Status === 'PACKING' ? `
+              ${canApprove && s.Status === 'PACKING' ? `
                 <button onclick="switchOutboundTab('approval')"
                   class="bg-amber-100 text-amber-700 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-amber-200">
                   <span class="material-symbols-outlined text-xs align-middle">gavel</span> Phê duyệt
@@ -348,7 +348,7 @@
       const soSelect = document.getElementById('so-select-picking');
       if (soSelect) {
         const currentVal = soSelect.value;
-        const pickingSOs = SOs.filter(s => s.Status === 'PICKING' || so.Status === 'IN_PROGRESS');
+        const pickingSOs = SOs.filter(s => s.Status === 'PICKING' || s.Status === 'IN_PROGRESS');
         soSelect.innerHTML = '<option value="">-- Chọn SO để soạn hàng --</option>' +
           pickingSOs.map(s => `
             <option value="${s.SO_ID}">${s.SO_ID} — ${s.CustomerID}</option>
@@ -359,7 +359,7 @@
       // 6. Update active picking list if any
       if (activeSOId) {
         const so = SOs.find(s => s.SO_ID === activeSOId);
-        if (so && (.Status === 'PICKING' || so.Status === 'IN_PROGRESS')) {
+        if (so && (so.Status === 'PICKING' || so.Status === 'IN_PROGRESS')) {
           renderPickingItems(so);
         } else {
           activeSOId = '';

@@ -432,6 +432,22 @@ function initState() {
         ]
       }
     ],
+    customers: [],
+    locations: [],
+    zones: [],
+    productUnits: [],
+    purchaseOrderDetails: [],
+    salesOrderDetails: [],
+    goodsReceipts: [],
+    receiptDetails: [],
+    goodsIssues: [],
+    issueDetails: [],
+    qcRequests: [],
+    checkDetails: [],
+    recalls: [],
+    recallDetails: [],
+    roles: [],
+    permissions: [],
   };
 
   if (existing) {
@@ -455,7 +471,27 @@ let _state = initState();
 
 const MockData = {
   // Static reference data (read-only)
-  ROLES, USERS, WAREHOUSES, DASHBOARD_STATS,
+  ROLES, USERS, WAREHOUSES, 
+  
+  get DASHBOARD_STATS() {
+    const batches = _state.batches || [];
+    const pos = _state.purchaseOrders || [];
+    const val = batches.reduce((acc, b) => acc + ((b.qty || 0) * (b.ImportPrice || 0)), 0);
+    return {
+      totalInventoryValue: val.toLocaleString('vi-VN') + ' VNĐ',
+      quarantineBatches: batches.filter(b => b.BatchStatus === 'QUARANTINE').length,
+      nearExpiryBatches: batches.filter(b => {
+          if (!b.ExpDate) return false;
+          const exp = new Date(b.ExpDate);
+          const diff = (exp - new Date()) / (1000 * 60 * 60 * 24);
+          return diff < 90 && diff > 0;
+      }).length,
+      pendingPO: pos.filter(p => p.Status === 'PENDING').length,
+      todayInbound: _state.goodsReceipts?.length || 0,
+      todayOutbound: _state.goodsIssues?.length || 0,
+      temperatureAlerts: DASHBOARD_STATS.temperatureAlerts
+    };
+  },
 
   // ── Reactive getters ─────────────────────────────────────
   get PRODUCTS() { return _state.products || PRODUCTS; },
@@ -464,24 +500,61 @@ const MockData = {
   get PURCHASE_ORDERS() { return _state.purchaseOrders; },
   get SALES_ORDERS() { return _state.salesOrders; },
   get DELIVERIES() { return _state.deliveries; },
+  get CUSTOMERS() { return _state.customers; },
+  get LOCATIONS() { return _state.locations; },
+  get ZONES() { return _state.zones; },
+  get PRODUCT_UNITS() { return _state.productUnits; },
+  get PURCHASE_ORDER_DETAILS() { return _state.purchaseOrderDetails; },
+  get SALES_ORDER_DETAILS() { return _state.salesOrderDetails; },
+  get GOODS_RECEIPTS() { return _state.goodsReceipts; },
+  get RECEIPT_DETAILS() { return _state.receiptDetails; },
+  get GOODS_ISSUES() { return _state.goodsIssues; },
+  get ISSUE_DETAILS() { return _state.issueDetails; },
+  get QC_REQUESTS() { return _state.qcRequests; },
+  get CHECK_DETAILS() { return _state.checkDetails; },
+  get RECALLS() { return _state.recalls; },
+  get RECALL_DETAILS() { return _state.recallDetails; },
+  get ROLES_TABLE() { return _state.roles; },
+  get PERMISSIONS() { return _state.permissions; },
   get COMPLAINTS() { return _state.complaints || []; },
   get APPROVALS() { return _state.approvals; },
   get AUDIT_LOGS() { return _state.auditLogs || []; },
   get NOTIFICATIONS() { return _state.notifications; },
   get INVENTORY_CHECKS() { return _state.inventoryChecks || []; },
   get SUPPLIERS() { return _state.suppliers || []; },
+  getSupplierName(id) {
+    if (!id) return '—';
+    const s = (_state.suppliers || []).find(x => x.id === id || x.SupplierID === id);
+    return s ? s.name || s.SupplierName : id;
+  },
 
   // ── Auth helpers ─────────────────────────────────────────
   authenticateUser(username, password) {
     return USERS.find(u => u.username === username && u.password === password) || null;
   },
-  getUserRole(user) { return ROLES[user?.role] || null; },
+  getUserRole(user) { 
+    if (!user) return null;
+    let r = user.role;
+    if (!r && user.RoleID) {
+        // Fallback for unmapped NocoDB users
+        const roleData = user.RoleID;
+        const roleCode = typeof roleData === 'object' ? (roleData.RoleID || roleData.Id) : roleData;
+        const roleMapByCode = {
+            'ROLE-01': 'SYSTEM_ADMIN', 'ROLE-02': 'WAREHOUSE_MANAGER', 'ROLE-03': 'WAREHOUSE_STAFF',
+            'ROLE-04': 'DIRECTOR', 'ROLE-05': 'DRIVER', 'ROLE-06': 'SALES_STAFF',
+            'ROLE-07': 'PROCUREMENT_STAFF', 'ROLE-08': 'QA_PHARMACIST', 'ROLE-09': 'QC_SPECIALIST',
+            'ROLE-10': 'ACCOUNTANT'
+        };
+        r = roleMapByCode[roleCode];
+    }
+    return ROLES[r] || ROLES.WAREHOUSE_STAFF; 
+  },
   canAccessPage(user, pageId) {
-    const role = ROLES[user?.role];
+    const role = this.getUserRole(user);
     return role ? role.pages.includes(pageId) : false;
   },
   hasPermission(user, permission) {
-    const role = ROLES[user?.role];
+    const role = this.getUserRole(user);
     if (!role) return false;
     return role.permissions.includes(permission) || role.permissions.includes('write_all');
   },
@@ -957,12 +1030,35 @@ const MockData = {
         window.NocoBridge.fetchTable('Suppliers').catch(() => null),
         window.NocoBridge.fetchTable('Purchase_Orders').catch(() => null),
         window.NocoBridge.fetchTable('Sales_Orders').catch(() => null),
-        window.NocoBridge.fetchTable('Users').catch(() => null)
+        window.NocoBridge.fetchTable('Users').catch(() => null),
+        window.NocoBridge.fetchTable('Customers').catch(() => null),
+        window.NocoBridge.fetchTable('Warehouse_locations').catch(() => null),
+        window.NocoBridge.fetchTable('Zones').catch(() => null),
+        window.NocoBridge.fetchTable('Product_Units').catch(() => null),
+        window.NocoBridge.fetchTable('Purchase_Order_Details').catch(() => null),
+        window.NocoBridge.fetchTable('Sales_Order_Details').catch(() => null),
+        window.NocoBridge.fetchTable('Goods_Receipts').catch(() => null),
+        window.NocoBridge.fetchTable('Receipt_Details').catch(() => null),
+        window.NocoBridge.fetchTable('Goods_Issues').catch(() => null),
+        window.NocoBridge.fetchTable('Issue_Details').catch(() => null),
+        window.NocoBridge.fetchTable('QC_Requests').catch(() => null),
+        window.NocoBridge.fetchTable('Inventory_Checks').catch(() => null),
+        window.NocoBridge.fetchTable('Check_Details').catch(() => null),
+        window.NocoBridge.fetchTable('Recalls').catch(() => null),
+        window.NocoBridge.fetchTable('Recall_Details').catch(() => null),
+        window.NocoBridge.fetchTable('Roles').catch(() => null),
+        window.NocoBridge.fetchTable('Permissions').catch(() => null)
       ]);
 
-      const [productsRes, batchesRes, inventoryRes, suppliersRes, posRes, sosRes, usersRes] = results;
+      const [
+        productsRes, batchesRes, inventoryRes, suppliersRes, posRes, sosRes, 
+        usersRes, customersRes, locationsRes, zonesRes, unitsRes, poDetailsRes, 
+        soDetailsRes, receiptsRes, rDetailsRes, issuesRes, iDetailsRes, 
+        qcRes, checksRes, checkDetailsRes, recallsRes, recallDetailsRes, 
+        rolesRes, permsRes
+      ] = results;
 
-      // Extract values, fallback to null
+      // Extract values
       const products = productsRes.status === 'fulfilled' ? productsRes.value : null;
       const batches = batchesRes.status === 'fulfilled' ? batchesRes.value : null;
       const inventory = inventoryRes.status === 'fulfilled' ? inventoryRes.value : null;
@@ -970,35 +1066,35 @@ const MockData = {
       const pos = posRes.status === 'fulfilled' ? posRes.value : null;
       const sos = sosRes.status === 'fulfilled' ? sosRes.value : null;
       const users = usersRes.status === 'fulfilled' ? usersRes.value : null;
+      const customers = customersRes.status === 'fulfilled' ? customersRes.value : null;
+      const locations = locationsRes.status === 'fulfilled' ? locationsRes.value : null;
+      const zones = zonesRes.status === 'fulfilled' ? zonesRes.value : null;
+      const units = unitsRes.status === 'fulfilled' ? unitsRes.value : null;
+      const poDetails = poDetailsRes.status === 'fulfilled' ? poDetailsRes.value : null;
+      const soDetails = soDetailsRes.status === 'fulfilled' ? soDetailsRes.value : null;
+      const receipts = receiptsRes.status === 'fulfilled' ? receiptsRes.value : null;
+      const rDetails = rDetailsRes.status === 'fulfilled' ? rDetailsRes.value : null;
+      const issues = issuesRes.status === 'fulfilled' ? issuesRes.value : null;
+      const iDetails = iDetailsRes.status === 'fulfilled' ? iDetailsRes.value : null;
+      const qc = qcRes.status === 'fulfilled' ? qcRes.value : null;
+      const checks = checksRes.status === 'fulfilled' ? checksRes.value : null;
+      const checkDetails = checkDetailsRes.status === 'fulfilled' ? checkDetailsRes.value : null;
+      const recalls = recallsRes.status === 'fulfilled' ? recallsRes.value : null;
+      const recallDetails = recallDetailsRes.status === 'fulfilled' ? recallDetailsRes.value : null;
+      const roles = rolesRes.status === 'fulfilled' ? rolesRes.value : null;
+      const perms = permsRes.status === 'fulfilled' ? permsRes.value : null;
 
-      console.log('Syncing with NocoDB...', {
-          products: !!productsRes.value,
-          batches: !!batchesRes.value,
-          inventory: !!inventoryRes.value
-      });
-
-      // Update state if we got data (even empty array is better than stale mock if sync reached)
       if (Array.isArray(products)) {
-        console.log(`Synced ${products.length} products`);
         _state.products = products.map(p => window.NocoMappers.toUIProduct(p));
       }
 
       if (Array.isArray(batches)) {
-        console.log(`Synced ${batches.length} batches`);
-        
-        // Chuyển đổi sang UI format (flatten các link field)
         const uiBatches = batches.map(b => window.NocoMappers.toUIBatch(b));
-        
-        // Nếu có bảng Inventory, chúng ta thực hiện "JOIN" dữ liệu
         if (Array.isArray(inventory)) {
             _state.batches = uiBatches.map(b => {
-                // Đảm bảo so sánh chính xác bằng cách flatten BatchID từ bảng Inventory
                 const inv = inventory.find(i => window.NocoMappers._flatten(i.BatchID) === b.BatchID) || {};
-                
-                // Trích xuất số lượng (thử cả hoa và thường)
                 const q = typeof inv.Quantity !== 'undefined' ? inv.Quantity : 
                           (typeof inv.quantity !== 'undefined' ? inv.quantity : 0);
-                
                 return {
                     ...b,
                     Quantity: q,
@@ -1012,14 +1108,59 @@ const MockData = {
         }
       }
 
-      if (Array.isArray(suppliers)) _state.suppliers = suppliers;
-      if (Array.isArray(pos)) _state.purchaseOrders = pos;
-      if (Array.isArray(sos)) _state.salesOrders = sos;
-      if (Array.isArray(users)) _state.users = users;
+      if (Array.isArray(suppliers)) _state.suppliers = suppliers.map(s => window.NocoMappers.toUISupplier(s));
+      if (Array.isArray(pos) && Array.isArray(poDetails)) {
+          _state.purchaseOrders = pos.map(p => {
+              const base = window.NocoMappers.toUIPO(p);
+              const details = poDetails.filter(d => window.NocoMappers._flatten(d.PO_ID) === base.PO_ID);
+              base.total = details.reduce((acc, d) => acc + (d.OrderedQty || 0), 0);
+              base.received = details.reduce((acc, d) => acc + (d.ReceivedQty || 0), 0);
+              base.totalValue = details.reduce((acc, d) => acc + ((d.OrderedQty || 0) * (d.UnitPrice || 0)), 0);
+              base.itemsDetails = details;
+              return base;
+          });
+      } else if (Array.isArray(pos)) {
+          _state.purchaseOrders = pos.map(p => window.NocoMappers.toUIPO(p));
+      }
+      
+      if (Array.isArray(sos) && Array.isArray(soDetails)) {
+          _state.salesOrders = sos.map(s => {
+              const base = window.NocoMappers.toUISO(s);
+              const details = soDetails.filter(d => window.NocoMappers._flatten(d.SO_ID) === base.SO_ID);
+              base.itemsCount = details.length;
+              base.totalValue = details.reduce((acc, d) => acc + ((d.OrderedQty || 0) * (d.UnitPrice || 45000)), 0);
+              base.itemsDetails = details;
+              return base;
+          });
+      } else if (Array.isArray(sos)) {
+          _state.salesOrders = sos.map(s => window.NocoMappers.toUISO(s));
+      }
+
+      if (Array.isArray(users)) {
+          _state.users = users.map(u => window.NocoMappers.toUIUser(u));
+      }
+      if (Array.isArray(customers)) _state.customers = customers.map(c => window.NocoMappers.toUICustomer(c));
+      if (Array.isArray(locations)) _state.locations = locations;
+      if (Array.isArray(zones)) _state.zones = zones;
+      if (Array.isArray(units)) _state.productUnits = units;
+
+      if (Array.isArray(poDetails)) _state.purchaseOrderDetails = poDetails;
+      if (Array.isArray(soDetails)) _state.salesOrderDetails = soDetails;
+      if (Array.isArray(receipts)) _state.goodsReceipts = receipts.map(r => window.NocoMappers.toUIGoodsReceipt(r));
+      if (Array.isArray(rDetails)) _state.receiptDetails = rDetails;
+      if (Array.isArray(issues)) _state.goodsIssues = issues.map(i => window.NocoMappers.toUIGoodsIssue(i));
+      if (Array.isArray(iDetails)) _state.issueDetails = iDetails;
+      if (Array.isArray(qc)) _state.qcRequests = qc;
+      if (Array.isArray(checks)) _state.inventoryChecks = checks;
+      if (Array.isArray(checkDetails)) _state.checkDetails = checkDetails;
+      if (Array.isArray(recalls)) _state.recalls = recalls;
+      if (Array.isArray(recallDetails)) _state.recallDetails = recallDetails;
+      if (Array.isArray(roles)) _state.roles = roles;
+      if (Array.isArray(perms)) _state.permissions = perms;
 
       saveState(_state);
       this._emit('pharma:statechange', { source: 'nocodbSync' });
-      console.log('NocoDB Sync Complete (Batches merged with Inventory).');
+      console.log('NocoDB Sync Complete (Full Database).');
       
       const totalItems = (Array.isArray(batches) ? batches.length : 0);
       if (totalItems > 0) {

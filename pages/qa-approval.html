@@ -277,7 +277,7 @@
 <script>
   (function () {
     const user = window.Auth.getCurrentUser();
-    const products = window.MockData.PRODUCTS;
+    let products = [];
     const canRecord = window.MockData.hasPermission(user, 'write_qa_result') || window.MockData.hasPermission(user, 'write_all');
     const canApprove = window.MockData.hasPermission(user, 'approve_qa') || window.MockData.hasPermission(user, 'write_all');
 
@@ -377,14 +377,15 @@
             <span class="font-bold text-sm ${h.Result === 'ĐẠT' ? 'text-green-600' : 'text-red-500'}">${h.Result}</span>
           </td>
           <td class="px-5 py-3">
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${h.Status === 'RELEASED' ? 'bg-green-100 text-green-700' : s.Status === 'LOCKED' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}">
-              ${h.Status === 'RELEASED' ? 'Đã xuất xưởng' : s.Status === 'LOCKED' ? 'Đang biệt trữ' : 'Bị từ chối'}
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${h.Status === 'RELEASED' ? 'bg-green-100 text-green-700' : h.Status === 'LOCKED' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}">
+              ${h.Status === 'RELEASED' ? 'Đã xuất xưởng' : h.Status === 'LOCKED' ? 'Đang biệt trữ' : 'Bị từ chối'}
             </span>
           </td>
         </tr>`).join('');
     }
 
     function updateQA() {
+      products = window.MockData.PRODUCTS;
       renderPendingList();
       renderHistory();
     }
@@ -536,7 +537,7 @@
       const headers = ['Lô hàng', 'Sản phẩm', 'Ngày kiểm', 'Kiểm nghiệm viên', 'Kết quả', 'Trạng thái'];
       const data = (window.MockData.QA_HISTORY || []).map(h => [
         h.Batchcode, h.ProductName, h.QC_Date, h.UserID, h.Result,
-        .Status === 'RELEASED' ? 'Đã xuất xưởng' : 'Đang biệt trữ'
+        h.Status === 'RELEASED' ? 'Đã xuất xưởng' : 'Đang biệt trữ'
       ]);
       window.MockData.exportToCSV([{ headers, data }], `BaoCao_QA_${new Date().toISOString().slice(0, 10)}.csv`);
     };
