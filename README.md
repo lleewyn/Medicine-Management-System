@@ -13,8 +13,6 @@
 ## 🌟 Giới Thiệu
 **PharmaWMS** (Pharmaceutical Warehouse Management System) là nền tảng quản trị kho dược phẩm được thiết kế nhằm tối ưu hóa quy trình vận hành từ khâu nhập kho, kiểm định (QA/QC) đến xuất kho và phân phối. Hệ thống tuân thủ nghiêm ngặt các tiêu chuẩn **GSP (Good Storage Practice)** trong ngành dược.
 
-![Hero Dashboard](assets/readme_hero.png)
-
 ## 🚀 Tính Năng Cốt Lõi
 
 ### 📊 1. Quản Trị Hệ Thống (Dashboard)
@@ -81,6 +79,6 @@ Hệ thống được thiết kế theo mô hình **Single Page Application (SPA
 ---
 
 <div align="center">
-  <p>Phát triển bởi <b>Team PharmaWMS</b></p>
+  <p>Phát triển bởi <b>Team 3</b></p>
   <p><i>"Chính xác trong từng viên thuốc - Chuyên nghiệp trong từng quy trình"</i></p>
 </div>

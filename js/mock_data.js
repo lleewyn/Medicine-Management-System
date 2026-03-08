@@ -277,16 +277,16 @@ const COMPLAINTS = [
 
 const SALES_ORDERS = [
   {
-    SO_ID: 'SO-20231024-001', CustomerID: 'Hệ thống Nhà thuốc Pharmacity', region: 'TP.HCM',
-    OrderDate: '24/10/2023', deadline: '25/10/2023 08:00', priority: 'URGENT', Status: 'PICKING', progress: '0/2 SKU', progressPct: 0,
+    SO_ID: 'SO-20260308-001', CustomerID: 'Hệ thống Nhà thuốc Pharmacity', region: 'TP.HCM',
+    OrderDate: '08/03/2026', deadline: '09/03/2026 08:00', priority: 'URGENT', Status: 'PICKING', progress: '0/2 SKU', progressPct: 0,
     itemsDetails: [
       { ProductID: 'SKU-PFIZ-01', OrderedQty: 100, UnitPrice: 320000 },
       { ProductID: 'SKU-HAPA-02', OrderedQty: 200, UnitPrice: 45000 }
     ]
   },
   {
-    SO_ID: 'SO-20231025-002', CustomerID: 'Bệnh viện Đa khoa Tâm Anh', region: 'Hà Nội',
-    OrderDate: '25/10/2023', deadline: '26/10/2023 10:00', priority: 'URGENT', Status: 'PICKING', progress: '0/3 SKU', progressPct: 0,
+    SO_ID: 'SO-20260307-002', CustomerID: 'Bệnh viện Đa khoa Tâm Anh', region: 'Hà Nội',
+    OrderDate: '07/03/2026', deadline: '08/03/2026 10:00', priority: 'URGENT', Status: 'PACKING', progress: '2/3 SKU', progressPct: 66,
     itemsDetails: [
       { ProductID: 'SKU-PFIZ-01', OrderedQty: 50, UnitPrice: 320000 },
       { ProductID: 'SKU-INSU-05', OrderedQty: 30, UnitPrice: 750000 },
@@ -294,48 +294,63 @@ const SALES_ORDERS = [
     ]
   },
   {
-    SO_ID: 'SO-20231025-003', CustomerID: 'Chuỗi Nhà thuốc An Khang', region: 'Cần Thơ',
-    OrderDate: '25/10/2023', deadline: '27/10/2023 14:00', priority: 'NORMAL', Status: 'PICKING', progress: '0/2 SKU', progressPct: 0,
+    SO_ID: 'SO-20260307-003', CustomerID: 'Chuỗi Nhà thuốc An Khang', region: 'Cần Thơ',
+    OrderDate: '07/03/2026', deadline: '10/03/2026 14:00', priority: 'NORMAL', Status: 'PICKING', progress: '0/2 SKU', progressPct: 0,
     itemsDetails: [
       { ProductID: 'SKU-HAPA-02', OrderedQty: 500, UnitPrice: 45000 },
       { ProductID: 'SKU-VITA-04', OrderedQty: 300, UnitPrice: 120000 }
     ]
   },
   {
-    SO_ID: 'SO-20231024-005', CustomerID: 'Nhà thuốc Long Châu #12', region: 'Bình Dương',
-    OrderDate: '24/10/2023', deadline: '25/10/2023 15:00', priority: 'NORMAL', Status: 'IN_PROGRESS', progress: '1/2 SKU', progressPct: 50,
+    SO_ID: 'SO-20260306-005', CustomerID: 'Nhà thuốc Long Châu #12', region: 'Bình Dương',
+    OrderDate: '06/03/2026', deadline: '07/03/2026 15:00', priority: 'NORMAL', Status: 'DELIVERING', progress: '2/2 SKU', progressPct: 100,
     itemsDetails: [
       { ProductID: 'SKU-AZIT-03', OrderedQty: 50, UnitPrice: 85000 },
       { ProductID: 'SKU-VITA-04', OrderedQty: 100, UnitPrice: 120000 }
     ]
   },
   {
-    SO_ID: 'SO-20231023-098', CustomerID: 'Bệnh viện Chợ Rẫy', region: 'TP.HCM',
-    OrderDate: '23/10/2023', deadline: '24/10/2023 10:00', priority: 'URGENT', Status: 'PACKING', progress: 'Lấy hàng hoàn tất', progressPct: 90,
+    SO_ID: 'SO-20260305-098', CustomerID: 'Bệnh viện Chợ Rẫy', region: 'TP.HCM',
+    OrderDate: '05/03/2026', deadline: '06/03/2026 10:00', priority: 'URGENT', Status: 'DELIVERING', progress: 'Lấy hàng hoàn tất', progressPct: 100,
     itemsDetails: [
       { ProductID: 'SKU-INSU-05', OrderedQty: 20, UnitPrice: 750000 }
     ]
   },
   {
-    SO_ID: 'SO-20231023-085', CustomerID: 'Nhà thuốc An Khang Hà Nội', region: 'Hà Nội',
-    OrderDate: '23/10/2023', deadline: '26/10/2023 10:00', priority: 'NORMAL', Status: 'COMPLETED', progress: 'Hoàn thành', progressPct: 100,
+    SO_ID: 'SO-20260304-085', CustomerID: 'Nhà thuốc An Khang Hà Nội', region: 'Hà Nội',
+    OrderDate: '04/03/2026', deadline: '06/03/2026 10:00', priority: 'NORMAL', Status: 'COMPLETED', progress: 'Hoàn thành', progressPct: 100,
     itemsDetails: [
       { ProductID: 'SKU-VITA-04', OrderedQty: 50, UnitPrice: 120000 }
     ]
   },
   {
-    SO_ID: 'SO-20231026-001', CustomerID: 'Phòng khám Đa khoa Thu Cúc', region: 'Hà Nội',
-    OrderDate: '26/10/2023', deadline: '27/10/2023 09:00', priority: 'NORMAL', Status: 'PICKING', progress: '0/1 SKU', progressPct: 0,
+    SO_ID: 'SO-20260302-001', CustomerID: 'Phòng khám Đa khoa Thu Cúc', region: 'Hà Nội',
+    OrderDate: '02/03/2026', deadline: '04/03/2026 09:00', priority: 'NORMAL', Status: 'COMPLETED', progress: 'Hoàn thành', progressPct: 100,
     itemsDetails: [{ ProductID: 'SKU-HAPA-02', OrderedQty: 100, UnitPrice: 45000 }]
   },
   {
-    SO_ID: 'SO-20231026-002', CustomerID: 'Hệ thống Pharmacity Miền Bắc', region: 'Bắc Ninh',
-    OrderDate: '26/10/2023', deadline: '28/10/2023 15:00', priority: 'NORMAL', Status: 'PICKING', progress: '0/2 SKU', progressPct: 0,
+    SO_ID: 'SO-20260308-002', CustomerID: 'Hệ thống Pharmacity Miền Bắc', region: 'Bắc Ninh',
+    OrderDate: '08/03/2026', deadline: '10/03/2026 15:00', priority: 'NORMAL', Status: 'PICKING', progress: '0/2 SKU', progressPct: 0,
     itemsDetails: [
       { ProductID: 'SKU-PFIZ-01', OrderedQty: 500, UnitPrice: 320000 },
       { ProductID: 'SKU-AZIT-03', OrderedQty: 300, UnitPrice: 85000 }
     ]
   },
+  {
+    SO_ID: 'SO-20260305-004', CustomerID: 'Bệnh viện Vinmec', region: 'TP.HCM',
+    OrderDate: '05/03/2026', deadline: '07/03/2026 10:00', priority: 'URGENT', Status: 'CANCELLED', progress: 'Đã hủy', progressPct: 0,
+    itemsDetails: [
+      { ProductID: 'SKU-INSU-05', OrderedQty: 100, UnitPrice: 750000 }
+    ]
+  },
+  {
+    SO_ID: 'SO-20260309-001', CustomerID: 'Nhà thuốc Minh Châu', region: 'Đà Nẵng',
+    OrderDate: '09/03/2026', deadline: '11/03/2026 12:00', priority: 'NORMAL', Status: 'PENDING', progress: 'Chờ xử lý', progressPct: 0,
+    itemsDetails: [
+      { ProductID: 'SKU-HAPA-02', OrderedQty: 300, UnitPrice: 45000 },
+      { ProductID: 'SKU-VITA-04', OrderedQty: 150, UnitPrice: 120000 }
+    ]
+  }
 ];
 
 // ============================================================
@@ -344,12 +359,12 @@ const SALES_ORDERS = [
 
 const DELIVERIES = [
   {
-    id: 'DEL-001', SO_ID: 'SO-20231023-085', customer: 'Nhà thuốc An Khang Hà Nội',
-    driver: 'Võ Công Danh', address: '12 Lê Lợi, Hà Đông, Hà Nội', Status: 'DELIVERING',
+    id: 'DEL-001', SO_ID: 'SO-20260306-005', customer: 'Nhà thuốc Long Châu #12',
+    driver: 'Võ Công Danh', address: 'Bình Dương', Status: 'DELIVERING',
     estimatedTime: '16:00 hôm nay'
   },
   {
-    id: 'DEL-002', SO_ID: 'SO-20231023-098', customer: 'Bệnh viện Chợ Rẫy',
+    id: 'DEL-002', SO_ID: 'SO-20260305-098', customer: 'Bệnh viện Chợ Rẫy',
     driver: 'Võ Công Danh', address: '201B Nguyễn Chí Thanh, Q5, TP.HCM', Status: 'PENDING',
     estimatedTime: '09:00 ngày mai'
   },

@@ -452,7 +452,7 @@
             document.getElementById('det-so-id').textContent = so.SO_ID;
             document.getElementById('det-customer').textContent = so.CustomerID;
             document.getElementById('det-deadline').textContent = so.deadline;
-            document.getElementById('det-status').innerHTML = statusLabelMap[so.Status] || .Status;
+            document.getElementById('det-status').innerHTML = statusLabelMap[so.Status] || so.Status;
 
             let total = 0;
             document.getElementById('det-items-body').innerHTML = (so.itemsDetails || []).map(item => {
