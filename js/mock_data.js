@@ -1427,7 +1427,7 @@ const MockData = {
       
       const totalItems = (Array.isArray(batches) ? batches.length : 0);
       if (totalItems > 0) {
-          alert(`Đã đồng bộ thành công ${totalItems} lô hàng từ NocoDB!`);
+          console.log(`Đã đồng bộ thành công ${totalItems} lô hàng từ NocoDB!`);
       } else {
           console.warn('Sync hoàn tất nhưng không tìm thấy dữ liệu nào trên NocoDB.');
       }
