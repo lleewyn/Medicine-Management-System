@@ -1,4 +1,12 @@
 <!-- pages/purchase-order.html -->
+<script>
+    window.approvePO = async function (poId) {
+        if (confirm(`Bạn có chắc muốn phê duyệt đơn mua hàng ${poId} này không?`)) {
+            await window.MockData.approvePO(poId);
+            updatePO();
+        }
+    };
+</script>
 <!-- Use cases: Quản lý mua hàng → Tra cứu & đối soát PO + Khiếu nại / đổi trả NCC -->
 <style>
     .tab-active {
@@ -275,10 +283,80 @@
                 class="material-symbols-outlined text-3xl text-amber-600">mark_email_read</span></div>
         <h3 class="text-lg font-black text-slate-900 mb-2">Đã gửi khiếu nại!</h3>
         <p class="text-slate-500 text-sm mb-4">NCC sẽ phản hồi trong 3 ngày làm việc.</p>
-        <button onclick="document.getElementById('cpl-ok-modal').classList.remove('open')"
-            class="w-full bg-primary text-white py-2.5 rounded-xl font-bold text-sm">OK</button>
     </div>
 </div>
+
+<!-- PO Detail Modal -->
+<div class="modal-overlay" id="po-detail-modal">
+    <div class="bg-white rounded-2xl shadow-2xl p-0 max-w-2xl w-full mx-4 overflow-hidden">
+        <div class="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+            <div class="flex items-center gap-3">
+                <div class="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                    <span class="material-symbols-outlined">receipt_long</span>
+                </div>
+                <div>
+                    <h3 class="text-lg font-black text-slate-900" id="po-detail-id">PO-XXXXXX</h3>
+                    <p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Chi tiết đơn nhập hàng</p>
+                </div>
+            </div>
+            <button onclick="document.getElementById('po-detail-modal').classList.remove('open')" class="text-slate-400 hover:text-slate-600">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        
+        <div class="p-6 max-h-[70vh] overflow-y-auto">
+            <div class="grid grid-cols-2 gap-6 mb-6">
+                <div class="space-y-3">
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase">Nhà cung cấp</p>
+                        <p class="text-sm font-bold text-slate-900" id="po-detail-supplier">—</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase">Ngày dự kiến nhận</p>
+                        <p class="text-sm font-medium text-slate-700" id="po-detail-date">—</p>
+                    </div>
+                </div>
+                <div class="space-y-3">
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase">Trạng thái</p>
+                        <span id="po-detail-status" class="px-2 py-0.5 rounded-full text-[10px] font-bold"></span>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase">Tổng giá trị</p>
+                        <p class="text-lg font-black text-primary" id="po-detail-total-value">0 VNĐ</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border border-slate-200 rounded-xl overflow-hidden mb-4">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-50 border-b border-slate-200">
+                        <tr>
+                            <th class="px-4 py-2 font-bold text-slate-500 uppercase">Sản phẩm</th>
+                            <th class="px-4 py-2 font-bold text-slate-500 uppercase text-center">SL</th>
+                            <th class="px-4 py-2 font-bold text-slate-500 uppercase text-right">Đơn giá</th>
+                            <th class="px-4 py-2 font-bold text-slate-500 uppercase text-right">Thành tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody id="po-detail-items-body" class="divide-y divide-slate-100">
+                        <!-- Items will be injected here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="po-detail-note-container" class="hidden p-4 bg-amber-50 rounded-xl border border-amber-100">
+                <p class="text-[10px] font-bold text-amber-600 uppercase mb-1">Ghi chú PO</p>
+                <p class="text-xs text-amber-800 italic" id="po-detail-note"></p>
+            </div>
+        </div>
+
+        <div class="p-6 bg-slate-50 border-t border-slate-100">
+            <button onclick="document.getElementById('po-detail-modal').classList.remove('open')"
+                class="w-full bg-white border border-slate-200 text-slate-600 py-3 rounded-xl font-bold text-sm hover:bg-slate-50 transition-colors">Đóng</button>
+        </div>
+    </div>
+</div>
+
 
 <script>
     (function () {
@@ -298,8 +376,17 @@
         }
 
         // 2. Constants & Helpers
-        const stMap = { PENDING: { l: 'CHỜ NHẬN', c: 'bg-orange-100 text-orange-700' }, PARTIAL: { l: 'MỘT PHẦN', c: 'bg-blue-100 text-blue-700' }, COMPLETED: { l: 'HOÀN TẤT', c: 'bg-green-100 text-green-700' }, CANCELLED: { l: 'Đã Hủy', c: 'bg-slate-100 text-slate-500' } };
+        const stMap = { 
+            AWAITING_APPROVAL: { l: 'CHỜ DUYỆT', c: 'bg-amber-100 text-amber-700' },
+            'CHỜ DUYỆT': { l: 'CHỜ DUYỆT', c: 'bg-amber-100 text-amber-700' },
+            PENDING: { l: 'CHỜ NHẬN', c: 'bg-orange-100 text-orange-700' }, 
+            PARTIAL: { l: 'MỘT PHẦN', c: 'bg-blue-100 text-blue-700' }, 
+            COMPLETED: { l: 'HOÀN TẤT', c: 'bg-green-100 text-green-700' }, 
+            CANCELLED: { l: 'Đã Hủy', c: 'bg-slate-100 text-slate-500' } 
+        };
         const colMap = { blue: 'bg-blue-100 text-blue-700', green: 'bg-green-100 text-green-700', purple: 'bg-purple-100 text-purple-700', red: 'bg-red-100 text-red-700' };
+
+        const canApprove = window.MockData.hasPermission(user, 'approve_director');
 
         function updatePO() {
             const pos = window.MockData.PURCHASE_ORDERS;
@@ -314,7 +401,10 @@
             // Render List
             document.getElementById('po-table-body').innerHTML = pos.map(po => {
                 const diff = Math.min((po.received - po.total), 0);
-                const st = stMap[po.Status] || { l: po.Status, c: '' };
+                const statusKey = String(po.Status || '').trim().toUpperCase();
+                const st = stMap[statusKey] || stMap[po.Status] || { l: po.Status, c: '' };
+                const isAwaiting = statusKey === 'AWAITING_APPROVAL' || po.Status === 'Chờ duyệt';
+
                 return `
           <tr class="hover:bg-slate-50 border-t border-slate-100">
             <td class="px-5 py-4 font-bold text-primary text-sm">${po.PO_ID}</td>
@@ -327,13 +417,13 @@
             <td class="px-5 py-4 text-sm text-slate-500">${po.deliveryDate || po.expectedDate}</td>
             <td class="px-5 py-4 text-center font-medium text-sm">${po.total}</td>
             <td class="px-5 py-4 text-center font-medium text-sm ${po.received < po.total ? 'text-amber-600' : 'text-green-600'}">${po.received || 0}</td>
-            <td class="px-5 py-4 text-center text-sm font-bold ${diff < 0 ? 'text-red-600' : diff > 0 ? 'text-green-600' : 'text-slate-400'}">${diff >= 0 && po.Status !== 'PENDING' ? '+' : ''}${po.Status === 'PENDING' ? '' : diff}</td>
+            <td class="px-5 py-4 text-center text-sm font-bold ${diff < 0 ? 'text-red-600' : diff > 0 ? 'text-green-600' : 'text-slate-400'}">${diff >= 0 && po.Status !== 'PENDING' && !isAwaiting ? '+' : ''}${po.Status === 'PENDING' || isAwaiting ? '' : diff}</td>
             <td class="px-5 py-4"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${st.c}">${st.l}</span></td>
             <td class="px-5 py-4 text-right flex justify-end gap-3 items-center">
               ${diff < 0 && po.Status === 'COMPLETED' ? `<button onclick="switchPOTab('complaint')" class="text-xs font-bold text-amber-600 hover:underline">Khiếu nại</button>` : ''}
-              ${po.Status === 'PENDING' ? `<button onclick="editPO('${po.PO_ID}')" class="text-blue-500 font-bold text-xs hover:underline">Sửa</button>` : ''}
-              ${po.Status === 'PENDING' ? `<button onclick="cancelPO('${po.PO_ID}')" class="text-red-500 font-bold text-xs hover:underline">Hủy</button>` : ''}
-              <button class="text-xs font-bold text-primary hover:underline">Chi tiết</button>
+              ${po.Status === 'PENDING' || isAwaiting ? `<button onclick="editPO('${po.PO_ID}')" class="text-blue-500 font-bold text-xs hover:underline">Sửa</button>` : ''}
+              ${po.Status === 'PENDING' || isAwaiting ? `<button onclick="cancelPO('${po.PO_ID}')" class="text-red-500 font-bold text-xs hover:underline">Hủy</button>` : ''}
+              <button onclick="showPODetail('${po.PO_ID}')" class="text-xs font-bold text-primary hover:underline transition-all">Chi tiết</button>
             </td>
           </tr>`;
             }).join('') || '<tr><td colspan="8" class="p-8 text-center text-slate-400">Không có đơn hàng.</td></tr>';
@@ -521,6 +611,64 @@
             document.getElementById('cpl-ok-modal').classList.add('open');
             document.getElementById('cpl-qty').value = '';
             document.getElementById('cpl-desc').value = '';
+        };
+
+        window.showPODetail = function(poId) {
+            const po = window.MockData.PURCHASE_ORDERS.find(p => p.PO_ID === poId);
+            if (!po) return;
+
+            document.getElementById('po-detail-id').textContent = po.PO_ID;
+            document.getElementById('po-detail-supplier').textContent = window.MockData.getSupplierName(po.SupplierID);
+            document.getElementById('po-detail-date').textContent = po.expectedDate || po.deliveryDate || '—';
+            document.getElementById('po-detail-total-value').textContent = (po.totalValue || 0).toLocaleString() + ' VNĐ';
+            
+            const statusMap = {
+                AWAITING_APPROVAL: { l: 'CHỜ DUYỆT', c: 'bg-amber-100 text-amber-600' },
+                'CHỜ DUYỆT': { l: 'CHỜ DUYỆT', c: 'bg-amber-100 text-amber-600' },
+                PENDING: { l: 'CHỜ NHẬN', c: 'bg-orange-100 text-orange-600' },
+                PARTIAL: { l: 'MỘT PHẦN', c: 'bg-blue-100 text-blue-600' },
+                COMPLETED: { l: 'HOÀN TẤT', c: 'bg-green-100 text-green-600' },
+                CANCELLED: { l: 'ĐÃ HỦY', c: 'bg-slate-100 text-slate-500' }
+            };
+            const statusKey = String(po.Status || '').trim().toUpperCase();
+            const st = statusMap[statusKey] || statusMap[po.Status] || { l: po.Status, c: 'bg-slate-100' };
+            const stEl = document.getElementById('po-detail-status');
+            stEl.textContent = st.l;
+            stEl.className = `px-2 py-0.5 rounded-full text-[10px] font-bold ${st.c}`;
+
+            // Render items
+            const itemsBody = document.getElementById('po-detail-items-body');
+            const items = po.itemsDetails || [];
+            if (items.length) {
+                itemsBody.innerHTML = items.map(it => {
+                    const prod = window.MockData.PRODUCTS.find(p => p.ProductID === it.ProductID) || { ProductName: it.ProductID, ImportPrice: it.UnitPrice || 0 };
+                    const price = it.UnitPrice || prod.ImportPrice || 0;
+                    return `
+                        <tr>
+                            <td class="px-4 py-3">
+                                <p class="font-bold text-slate-900">${prod.ProductName}</p>
+                                <p class="text-[10px] text-slate-400">${it.ProductID}</p>
+                            </td>
+                            <td class="px-4 py-3 text-center font-medium">${it.OrderedQty || it.total || 0}</td>
+                            <td class="px-4 py-3 text-right text-slate-500">${price.toLocaleString()}</td>
+                            <td class="px-4 py-3 text-right font-bold text-slate-900">${((it.OrderedQty || 0) * price).toLocaleString()}</td>
+                        </tr>
+                    `;
+                }).join('');
+            } else {
+                itemsBody.innerHTML = '<tr><td colspan="4" class="px-4 py-8 text-center text-slate-400 italic">Không có chi tiết sản phẩm</td></tr>';
+            }
+
+            // Note
+            const noteContainer = document.getElementById('po-detail-note-container');
+            if (po.note) {
+                noteContainer.classList.remove('hidden');
+                document.getElementById('po-detail-note').textContent = po.note;
+            } else {
+                noteContainer.classList.add('hidden');
+            }
+
+            document.getElementById('po-detail-modal').classList.add('open');
         };
 
         // 5. Shared UI logic

@@ -13,10 +13,10 @@ const NocoMappers = {
         if (Array.isArray(field)) return this._flatten(field[0], preferredKey);
         if (typeof field === 'object') {
             if (preferredKey && field[preferredKey]) return field[preferredKey];
-            // Prioritize Display Names (Product, Supplier, Location) over everything else
-            return field.ProductName || field.SupplierName || field.LocationName || field.FullName || field.Name || 
+            // Prioritize Display Names (Product, Supplier, Customer, Location) over everything else
+            return field.ProductName || field.SupplierName || field.CustomerName || field.LocationName || field.FullName || field.Name || 
                    field.CategoryName || field.CategoryID || field.BatchID || field.SupplierID || field.ProductID || 
-                   field.LocationID || Object.values(field)[0];
+                   field.LocationID || field.PO_ID || field.SO_ID || field.DetailID || Object.values(field)[0];
         }
         return String(field);
     },
@@ -26,20 +26,18 @@ const NocoMappers = {
      * Based on actual DB Schema: BatchID, ProductID, SupplierID, Batchcode, IsConsignment, MfgDate, ExpDate, ImportPrice, BatchStatus
      */
     toUIBatch(nocoBatch) {
-        const rawStatus = String(this._flatten(nocoBatch.BatchStatus) || 'RELEASED').trim().toUpperCase();
+        const rawStatus = String(this._flatten(nocoBatch.BatchStatus) || 'Đã duyệt').trim();
         
         // Map status names (VN -> EN)
         const statusMap = {
+            'Đã duyệt': 'RELEASED',
             'ĐÃ DUYỆT': 'RELEASED',
-            'RELEASED': 'RELEASED',
-            'BIỆT TRỮ': 'QUARANTINE',
-            'QUARANTINE': 'QUARANTINE',
-            'CHỜ KIỂM ĐỊNH': 'QUARANTINE',
-            'ĐANG CHỜ XỬ LÝ': 'QUARANTINE',
-            'KHÓA': 'LOCKED',
-            'LOCKED': 'LOCKED',
-            'TIÊU HỦY': 'DESTROYED',
-            'DESTROYED': 'DESTROYED'
+            'PENDING': { label: 'CHỜ NHẬN', color: 'orange' },
+            'PARTIAL': { label: 'NHẬP MỘT PHẦN', color: 'info' },
+            'COMPLETED': { label: 'HOÀN THÀNH', color: 'success' },
+            'CANCELLED': { label: 'ĐÃ HỦY', color: 'danger' },
+            'AWAITING_APPROVAL': { label: 'CHỜ DUYỆT', color: 'warning' },
+            'ĐANG CHỜ XỬ LÝ': { label: 'CHỜ DUYỆT', color: 'warning' }
         };
 
         const flattened = {
@@ -49,7 +47,9 @@ const NocoMappers = {
             SupplierID: this._flatten(nocoBatch.SupplierID),
             Batchcode: this._flatten(nocoBatch.Batchcode),
             BatchStatus: statusMap[rawStatus] || rawStatus,
-            LocationID: this._flatten(nocoBatch.LocationID)
+            // Only overwrite LocationID if the linked object exists, otherwise keep existing
+            LocationID: nocoBatch.Warehouse_Locations ? this._flatten(nocoBatch.Warehouse_Locations, 'LocationID') : 
+                       (this._flatten(nocoBatch.LocationID) || 'Chưa gán')
         };
         return {
             ...flattened,
@@ -119,17 +119,18 @@ const NocoMappers = {
      */
     toUIPO(nocoPO) {
         const supplier = this._flatten(nocoPO.SupplierID);
-        const rawStatus = (this._flatten(nocoPO.Status) || 'PENDING').toUpperCase();
-        const statusMap = {
-            'CHỜ NHẬN': 'PENDING',
-            'PENDING': 'PENDING',
-            'NHẬN MỘT PHẦN': 'PARTIAL',
-            'PARTIAL': 'PARTIAL',
-            'HOÀN TẤT': 'COMPLETED',
-            'COMPLETED': 'COMPLETED',
-            'ĐÃ HỦY': 'CANCELLED',
-            'CANCELLED': 'CANCELLED'
+        const rawStatus = String(nocoPO.Status || '').trim();
+        const statusMap = { 
+            'chờ duyệt': 'AWAITING_APPROVAL',
+            'đã duyệt': 'PENDING',
+            'chờ nhận': 'PENDING',
+            'đang thực hiện': 'PARTIAL',
+            'nhập một phần': 'PARTIAL',
+            'hoàn thành': 'COMPLETED',
+            'đã hoàn thành': 'COMPLETED',
+            'đã hủy': 'CANCELLED'
         };
+        const mappedStatus = statusMap[rawStatus.toLowerCase()] || rawStatus.toUpperCase();
 
         return {
             ...nocoPO,
@@ -138,7 +139,7 @@ const NocoMappers = {
             supplierCode: supplier.split('-')[1] || supplier.substring(0, 2).toUpperCase(),
             supplierColor: 'blue',
             expectedDate: this._flatten(nocoPO.CreatedDate) || '',
-            Status: statusMap[rawStatus] || rawStatus,
+            Status: mappedStatus,
             total: 0,
             received: 0,
             totalValue: 0
@@ -150,17 +151,16 @@ const NocoMappers = {
      */
     toUISO(nocoSO) {
         const custName = this._flatten(nocoSO.CustomerID);
-        const rawStatus = (this._flatten(nocoSO.Status) || 'PICKING').toUpperCase();
+        const rawStatus = String(nocoSO.Status || '').trim();
         const statusMap = {
-            'ĐANG SOẠN': 'PICKING',
-            'PICKING': 'PICKING',
-            'ĐANG GIAO': 'DELIVERING',
-            'DELIVERING': 'DELIVERING',
-            'HOÀN TẤT': 'COMPLETED',
-            'COMPLETED': 'COMPLETED',
-            'ĐÃ HỦY': 'CANCELLED',
-            'CANCELLED': 'CANCELLED'
+            'Đã duyệt': 'PICKING',
+            'Mới': 'PICKING',
+            'Đang soạn hàng': 'IN_PROGRESS',
+            'Chờ phê duyệt': 'PACKING',
+            'Hoàn thành': 'COMPLETED',
+            'Đã hủy': 'CANCELLED'
         };
+        const mappedStatus = statusMap[rawStatus] || rawStatus.toUpperCase();
 
         return {
             ...nocoSO,

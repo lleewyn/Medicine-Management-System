@@ -39,12 +39,10 @@
     <div class="mb-6 flex items-end justify-between">
         <div>
             <h2 class="text-2xl font-black text-slate-900">Bảng điều khiển — Ban giám đốc</h2>
-            <p class="text-slate-500 text-sm mt-1">Phê duyệt nghiệp vụ, báo cáo quản trị và theo dõi chất lượng toàn hệ
-                thống.</p>
+            <p class="text-slate-500 text-sm mt-1">Phê duyệt nghiệp vụ, báo cáo quản trị và theo dõi chất lượng toàn hệ thống.</p>
         </div>
         <div class="flex items-center gap-3">
-            <div
-                class="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-xl border border-primary/20">
+            <div class="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-xl border border-primary/20">
                 <span class="material-symbols-outlined text-base">calendar_today</span>
                 <span class="text-sm font-bold" id="dir-date"></span>
             </div>
@@ -59,8 +57,7 @@
         </button>
         <button onclick="switchDirTab('approval')" id="dir-tab-approval" class="pb-3 text-sm tab-inactive">
             Phê duyệt Nghiệp vụ
-            <span class="ml-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full"
-                id="approval-count-badge">3</span>
+            <span class="ml-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full" id="approval-count-badge">0</span>
         </button>
         <button onclick="switchDirTab('report')" id="dir-tab-report" class="pb-3 text-sm tab-inactive">
             Báo cáo Quản trị
@@ -72,544 +69,359 @@
 
     <!-- TAB 1: Overview -->
     <div id="dir-tab-content-overview">
-        <!-- KPI Row -->
+        <!-- Stat Cards -->
         <div class="grid grid-cols-4 gap-4 mb-6">
-            <div
-                class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden group hover:border-primary transition-all">
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
                 <div class="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-3">
                     <span class="material-symbols-outlined text-xl">account_balance_wallet</span>
                 </div>
                 <p class="text-xs font-medium text-slate-500 mb-1">Tổng giá trị tồn kho</p>
-                <h3 class="text-xl font-black text-slate-900" id="db-total-value">4.7B VNĐ</h3>
-                <div class="mt-2 flex items-center gap-1.5 text-green-600">
-                    <span class="material-symbols-outlined text-sm">trending_up</span>
-                    <span class="text-[10px] font-bold">+12% so với tháng trước</span>
-                </div>
+                <h3 class="text-xl font-black text-slate-900" id="db-total-value">...</h3>
             </div>
-
-            <!-- Stat Card 2 -->
-            <div
-                class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden group hover:border-amber-400 transition-all">
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
                 <div class="size-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center mb-3">
                     <span class="material-symbols-outlined text-xl">report_problem</span>
                 </div>
-                <p class="text-xs font-medium text-slate-500 mb-1">Lô hàng biệt trữ / Cảnh báo</p>
-                <h3 class="text-xl font-black text-slate-900" id="db-quarantine">8</h3>
-                <div class="mt-2 flex items-center gap-1.5 text-amber-600">
-                    <span class="material-symbols-outlined text-sm">warning</span>
-                    <span class="text-[10px] font-bold">2 lô sắp hết hạn trong 30 ngày</span>
-                </div>
+                <p class="text-xs font-medium text-slate-500 mb-1">Lô hàng biệt trữ</p>
+                <h3 class="text-xl font-black text-slate-900" id="db-quarantine">...</h3>
             </div>
-
-            <!-- Stat Card 3 -->
-            <div
-                class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden group hover:border-blue-500 transition-all">
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
                 <div class="size-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center mb-3">
                     <span class="material-symbols-outlined text-xl">shopping_cart</span>
                 </div>
-                <p class="text-xs font-medium text-slate-500 mb-1">Đơn hàng đang xử lý (PO/SO)</p>
-                <h3 class="text-xl font-black text-slate-900" id="db-pending-orders">127</h3>
-                <div class="mt-2 flex items-center gap-1.5 text-blue-600">
-                    <span class="material-symbols-outlined text-sm">pending_actions</span>
-                    <span class="text-[10px] font-bold">15 đơn cần phê duyệt ngay</span>
-                </div>
+                <p class="text-xs font-medium text-slate-500 mb-1">Đơn hàng đang xử lý</p>
+                <h3 class="text-xl font-black text-slate-900" id="db-pending-orders">...</h3>
             </div>
-
-            <!-- Stat Card 4 -->
-            <div
-                class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden group hover:border-red-500 transition-all">
-                <div class="size-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center mb-3">
-                    <span class="material-symbols-outlined text-xl">event_busy</span>
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                <div class="size-10 rounded-xl bg-green-100 text-green-600 flex items-center justify-center mb-3">
+                    <span class="material-symbols-outlined text-xl">event_available</span>
                 </div>
-                <p class="text-xs font-medium text-slate-500 mb-1">Lô hàng cận hạn ( < 6 tháng )</p>
-                        <h3 class="text-xl font-black text-slate-900" id="db-near-expiry">42</h3>
-                        <div class="mt-2 flex items-center gap-1.5 text-red-600">
-                            <span class="material-symbols-outlined text-sm">timer</span>
-                            <span class="text-[10px] font-bold">Cần lập kế hoạch thanh lý</span>
-                        </div>
+                <p class="text-xs font-medium text-slate-500 mb-1">Nhập kho hôm nay</p>
+                <h3 class="text-xl font-black text-slate-900" id="db-today-in">...</h3>
             </div>
         </div>
 
         <!-- Charts area -->
         <div class="grid grid-cols-2 gap-6 mb-6">
-            <!-- Revenue trend -->
-            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 flex flex-col">
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 flex flex-col min-h-[300px]">
                 <h5 class="font-bold text-slate-800 mb-4">Doanh thu xuất kho 6 tháng</h5>
                 <div class="flex-1 flex items-end gap-2 min-h-[120px]" id="chart-bars"></div>
                 <div class="flex gap-2 mt-3 text-[10px] text-slate-500 font-medium" id="chart-labels"></div>
             </div>
-            <!-- Category breakdown -->
-            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Giao dịch hôm nay</h4>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-green-50 rounded-xl p-4 border border-green-100">
-                        <p class="text-[10px] font-bold text-green-600 uppercase">Nhập kho (In)</p>
-                        <h4 class="text-2xl font-black text-green-700" id="db-today-in">24</h4>
-                    </div>
-                    <div class="bg-blue-50 rounded-xl p-4 border border-blue-100">
-                        <p class="text-[10px] font-bold text-blue-600 uppercase">Xuất kho (Out)</p>
-                        <h4 class="text-2xl font-black text-blue-700" id="db-today-out">61</h4>
-                    </div>
-                </div>
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                <h5 class="font-bold text-slate-800 mb-4">Yêu cầu phê duyệt mới nhất</h5>
+                <div class="space-y-3" id="db-approval-list-mini"></div>
+                <button onclick="switchDirTab('approval')" class="w-full mt-4 py-2 text-xs font-bold text-primary border border-primary/20 rounded-xl hover:bg-primary/5">Xem tất cả yêu cầu</button>
             </div>
-        </div>
-
-        <!-- Recent activity -->
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-            <h5 class="font-bold text-slate-800 mb-4">Hoạt động gần đây cần lưu ý</h5>
-            <div class="space-y-3" id="recent-alerts"></div>
         </div>
     </div>
 
-    <!-- TAB 2: Approval -->
+    <!-- TAB 2: Approval Center -->
     <div id="dir-tab-content-approval" class="hidden">
         <div class="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-xl flex items-center gap-3">
             <span class="material-symbols-outlined text-blue-500">info</span>
-            <p class="text-sm text-blue-700 font-medium">Các nghiệp vụ được phê duyệt bởi BGĐ sẽ được ghi log và gửi
-                thông báo đến bộ phận liên quan.</p>
+            <p class="text-sm text-blue-700 font-medium">BGĐ vui lòng xem xét và phê duyệt các yêu cầu nghiệp vụ dưới đây. PO được duyệt sẽ chuyển sang trạng thái "Sẵn sàng nhận hàng".</p>
         </div>
-
-        <div class="space-y-4" id="approval-items">
-            <!-- Rendered by JS -->
-        </div>
+        <div class="space-y-4" id="approval-items-list"></div>
     </div>
 
-    <!-- TAB 3: Management Report -->
-    <div id="dir-tab-content-report" class="hidden">
-        <div class="grid grid-cols-2 gap-6 mb-6">
-            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Chờ phê duyệt</h4>
-                <div class="space-y-3" id="db-approval-list">
-                    <!-- Approval items ... -->
-                </div>
-                <button onclick="switchDirTab('approval')"
-                    class="w-full mt-4 py-2 text-xs font-bold text-primary border border-primary/20 rounded-xl hover:bg-primary/5 transition-colors">
-                    Xem tất cả yêu cầu
-                </button>
-            </div>
-            <!-- Revenue Report -->
-            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <h5 class="font-bold text-slate-800">Báo cáo Nhập–Xuất tháng 10/2023</h5>
-                    <button class="text-xs font-bold text-primary hover:underline flex items-center gap-1"><span
-                            class="material-symbols-outlined text-xs">file_download</span> Xuất PDF</button>
-                </div>
-                <div class="space-y-3">
-                    <div class="flex items-center justify-between p-3 bg-blue-50 rounded-xl">
-                        <div class="flex items-center gap-2"><span
-                                class="material-symbols-outlined text-blue-500 text-xl">arrow_downward</span><span
-                                class="text-sm font-bold text-slate-800">Tổng nhập kho</span></div>
-                        <div class="text-right">
-                            <p class="text-lg font-black text-blue-600">1.2B VNĐ</p>
-                            <p class="text-xs text-slate-400">+8.4% vs T9</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center justify-between p-3 bg-orange-50 rounded-xl">
-                        <div class="flex items-center gap-2"><span
-                                class="material-symbols-outlined text-orange-500 text-xl">arrow_upward</span><span
-                                class="text-sm font-bold text-slate-800">Tổng xuất kho</span></div>
-                        <div class="text-right">
-                            <p class="text-lg font-black text-orange-600">890M VNĐ</p>
-                            <p class="text-xs text-slate-400">+12.1% vs T9</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center justify-between p-3 bg-green-50 rounded-xl">
-                        <div class="flex items-center gap-2"><span
-                                class="material-symbols-outlined text-green-600 text-xl">savings</span><span
-                                class="text-sm font-bold text-slate-800">Giá trị tồn cuối kỳ</span></div>
-                        <div class="text-right">
-                            <p class="text-lg font-black text-green-600">4.7B VNĐ</p>
-                            <p class="text-xs text-slate-400">+5.2% vs T9</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Supplier performance -->
-            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-                <h5 class="font-bold text-slate-800 mb-4">Hiệu suất Nhà cung cấp</h5>
-                <div class="space-y-3" id="supplier-perf"></div>
-            </div>
-        </div>
-
-        <!-- Full NXT summary table -->
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <div class="p-5 border-b border-slate-100">
-                <h5 class="font-bold text-slate-800">Tóm tắt Sổ NXT — Tháng 10/2023</h5>
-            </div>
-            <table class="w-full text-sm text-left">
-                <thead class="bg-slate-50">
-                    <tr>
-                        <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase">Sản phẩm</th>
-                        <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase text-right">Tồn đầu</th>
-                        <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase text-right">Nhập</th>
-                        <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase text-right">Xuất</th>
-                        <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase text-right">Tồn cuối</th>
-                        <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase text-right">Giá trị</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100" id="dir-nxt-table"></tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- TAB 4: Stock & Quality -->
-    <div id="dir-tab-content-quality" class="hidden">
-        <div class="grid grid-cols-3 gap-6">
-            <!-- Stock by product -->
-            <div class="col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                <div class="p-5 border-b border-slate-100 flex items-center justify-between">
-                    <h5 class="font-bold text-slate-800">Tồn kho theo sản phẩm</h5>
-                    <div class="flex gap-2 text-xs">
-                        <span class="px-2 py-1 rounded bg-green-100 text-green-700 font-bold">● Đủ hàng</span>
-                        <span class="px-2 py-1 rounded bg-amber-100 text-amber-700 font-bold">● Sắp hết</span>
-                        <span class="px-2 py-1 rounded bg-red-100 text-red-700 font-bold">● Hết hàng</span>
-                    </div>
-                </div>
-                <div id="stock-quality-grid" class="divide-y divide-slate-100"></div>
-            </div>
-            <!-- QA quality summary -->
-            <div class="space-y-4">
-                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
-                    <h5 class="font-bold text-slate-800 mb-3">Chất lượng lô hàng</h5>
-                    <div class="space-y-2" id="qa-summary-pie"></div>
-                </div>
-                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
-                    <h5 class="font-bold text-slate-800 mb-3">Cảnh báo sắp hết hạn</h5>
-                    <div id="expiry-warnings" class="space-y-2"></div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- TAB 3 & 4 (Simplified for this update) -->
+    <div id="dir-tab-content-report" class="hidden"><p class="p-12 text-center text-slate-400">Đang tải báo cáo quản trị...</p></div>
+    <div id="dir-tab-content-quality" class="hidden"><p class="p-12 text-center text-slate-400">Đang tải dữ liệu chất lượng sản phẩm...</p></div>
 </div>
 
 <!-- Approval Modal -->
-<div class="modal-overlay" id="approve-modal">
+<div class="modal-overlay" id="approve-modal-center">
     <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4">
-        <h3 class="text-lg font-black text-slate-900 mb-2" id="modal-title"></h3>
-        <p class="text-slate-500 text-sm mb-4" id="modal-body"></p>
-        <div class="mb-4">
-            <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase">Ý kiến Ban giám đốc</label>
-            <textarea rows="3" id="modal-comment" placeholder="Nhập ý kiến hoặc điều kiện kèm theo..."
+        <div class="flex items-center gap-3 mb-4">
+            <div class="size-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
+                <span class="material-symbols-outlined text-2xl">verified</span>
+            </div>
+            <div>
+                <h3 class="text-lg font-black text-slate-900" id="modal-title-center">Xác nhận phê duyệt</h3>
+                <p class="text-xs text-slate-500" id="modal-subtitle-center">Lệnh sẽ được thực thi ngay lập tức.</p>
+            </div>
+        </div>
+        
+        <div class="p-4 bg-slate-50 rounded-xl mb-4 border border-slate-100">
+            <p class="text-sm text-slate-700 leading-relaxed font-medium" id="modal-body-center"></p>
+        </div>
+
+        <div class="mb-6">
+            <label class="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest">Ghi chú (Không bắt buộc)</label>
+            <textarea rows="2" id="modal-comment-center" placeholder="Nhập ý kiến chỉ đạo công việc..."
                 class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20 resize-none"></textarea>
         </div>
-        <div class="flex gap-3">
-            <button onclick="document.getElementById('approve-modal').classList.remove('open')"
-                class="flex-1 border border-slate-200 text-slate-600 py-2.5 rounded-xl font-bold text-sm hover:bg-slate-50">Hủy</button>
-            <button onclick="doReject()"
-                class="flex-1 border border-red-200 text-red-600 py-2.5 rounded-xl font-bold text-sm hover:bg-red-50">
-                <span class="material-symbols-outlined text-sm align-middle">close</span> Từ chối
-            </button>
-            <button onclick="doApprove()"
-                class="flex-1 bg-primary text-white py-2.5 rounded-xl font-bold text-sm hover:bg-primary/90">
-                <span class="material-symbols-outlined text-sm align-middle">check</span> Phê duyệt
-            </button>
+
         </div>
     </div>
 </div>
 
-<script>
-    (function () {
-        const user = window.Auth.getCurrentUser();
-        const role = window.MockData.getUserRole(user);
-
-        function updateDashboard() {
-            const batches = window.MockData.BATCHES;
-            const products = window.MockData.PRODUCTS;
-            const sos = window.MockData.SALES_ORDERS;
-            const pos = window.MockData.PURCHASE_ORDERS;
-            const approvals = window.MockData.APPROVALS;
-
-            // 1. KPI Calculation
-            let totalValue = 0;
-            batches.forEach(b => {
-                const p = products.find(x => x.ProductID === b.ProductID);
-                if (p) totalValue += (b.Quantity * (p.ImportPrice || p.UnitPrice || 0));
-            });
-
-            const nearExpiry = batches.filter(b => {
-                const exp = new Date(b.ExpDate);
-                const soon = new Date(); soon.setMonth(soon.getMonth() + 6);
-                return exp < soon && b.BatchStatus !== 'DESTROYED';
-            }).length;
-
-            const quarantine = batches.filter(b => b.BatchStatus === 'QUARANTINE').length;
-            const pendingOrders = sos.filter(s => s.Status !== 'COMPLETED').length + pos.filter(p => p.Status !== 'COMPLETED').length;
-            const todayOut = sos.filter(s => s.Status === 'COMPLETED').length;
-            const todayIn = batches.filter(b => b.BatchStatus === 'RELEASED').length; // Simplified proxy for "new stock"
-
-            // Update UI Stats
-            document.getElementById('dir-date').textContent = new Date().toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
-            document.getElementById('db-total-value').textContent = (totalValue / 1000000000).toFixed(1) + 'B VNĐ';
-            document.getElementById('db-quarantine').textContent = quarantine;
-            document.getElementById('db-near-expiry').textContent = nearExpiry;
-            document.getElementById('db-pending-orders').textContent = pendingOrders;
-            document.getElementById('db-today-in').textContent = todayIn;
-            document.getElementById('db-today-out').textContent = todayOut;
-
-            // 2. Render Approvals (TAB 2)
-            const approvalItems = document.getElementById('approval-items');
-            if (approvalItems) {
-                approvalItems.innerHTML = approvals.filter(a => a.Status === 'PENDING').map(a => `
-                    <div class="approval-card bg-white rounded-xl border-2 ${a.urgent ? 'border-red-200' : 'border-slate-200'} shadow-sm p-6 mb-4">
-                        <div class="flex items-start justify-between mb-3">
-                            <div class="flex items-center gap-3">
-                                <div class="size-10 rounded-xl ${a.urgent ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-600'} flex items-center justify-center">
-                                    <span class="material-symbols-outlined">gavel</span>
-                                </div>
-                                <div>
-                                    <div class="flex items-center gap-2">
-                                        <h4 class="font-black text-slate-900">${a.type}</h4>
-                                        ${a.urgent ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-700">KHẨN CẤP</span>' : ''}
-                                    </div>
-                                    <p class="text-xs text-slate-400">#${a.id} • Từ: ${a.dept}</p>
-                                </div>
-                            </div>
-                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700">CHỜ PHÊ DUYỆT</span>
-                        </div>
-                        <p class="text-sm text-slate-600 mb-4 leading-relaxed">${a.desc}</p>
-                        <div class="flex gap-3">
-                            <button onclick="openApproveModal('${a.id}','${a.type}','${a.desc}')"
-                                class="flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-primary/90">
-                                <span class="material-symbols-outlined text-sm">gavel</span> Phê duyệt
-                            </button>
-                            <button onclick="window.MockData.updateApproval('${a.id}', 'REJECTED')"
-                                class="flex items-center gap-2 border border-slate-200 px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50">
-                                <span class="material-symbols-outlined text-sm">close</span> Từ chối
-                            </button>
-                        </div>
-                    </div>`).join('') || '<p class="text-center text-slate-400 py-12">Hiện không có yêu cầu phê duyệt nào.</p>';
-            }
-
-            // 3. Render Approvals (TAB 3 - db-approval-list)
-            const appList = document.getElementById('db-approval-list');
-            if (appList) {
-                appList.innerHTML = approvals.filter(a => a.Status === 'PENDING').map(a => `
-          <div class="p-4 rounded-xl border border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer">
-            <div class="flex items-start gap-3">
-              <div class="size-8 rounded-lg ${a.urgent ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'} flex items-center justify-center flex-shrink-0">
-                <span class="material-symbols-outlined text-sm">${a.urgent ? 'priority_high' : 'assignment'}</span>
-              </div>
-              <div class="flex-1">
-                <div class="flex items-center justify-between mb-0.5">
-                  <p class="text-xs font-bold text-slate-900">${a.type}</p>
-                  <span class="text-[10px] text-slate-400">#${a.id}</span>
+<!-- PO Detail Modal -->
+<div class="modal-overlay" id="po-detail-modal">
+    <div class="bg-white rounded-2xl shadow-2xl p-0 max-w-2xl w-full mx-4 overflow-hidden">
+        <div class="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+            <div class="flex items-center gap-3">
+                <div class="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                    <span class="material-symbols-outlined">receipt_long</span>
                 </div>
-                <p class="text-[11px] text-slate-500 line-clamp-2">${a.desc}</p>
-                <div class="flex items-center justify-between mt-2">
-                  <span class="text-[10px] font-bold text-slate-400 uppercase">${a.dept}</span>
-                  <div class="flex gap-2">
-                    <button onclick="openApproveModal('${a.id}', '${a.type}', '${a.desc}')" class="text-[10px] font-bold text-primary hover:underline">DUYỆT</button>
-                    <button onclick="window.MockData.updateApproval('${a.id}', 'REJECTED')" class="text-[10px] font-bold text-slate-400 hover:text-red-500">TỪ CHỐI</button>
-                  </div>
+                <div>
+                    <h3 class="text-lg font-black text-slate-900" id="po-detail-id">PO-XXXXXX</h3>
+                    <p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Chi tiết đơn nhập hàng</p>
                 </div>
-              </div>
             </div>
-          </div>
-        `).join('') || '<p class="text-center text-slate-400 py-8 text-xs">Không có yêu cầu phê duyệt mới</p>';
-            }
-
-            // 4. Update Badge
-            const approvalCountBadge = document.getElementById('approval-count-badge');
-            const pendingCount = approvals.filter(a => a.Status === 'PENDING').length;
-            if (approvalCountBadge) {
-                approvalCountBadge.textContent = pendingCount;
-                approvalCountBadge.classList.toggle('hidden', pendingCount === 0);
-            }
-
-            // 5. Role Badge
-            const badge = document.getElementById('dir-role-badge');
-            if (badge && role) {
-                badge.innerHTML = `
-                    <div class="flex items-center gap-2 px-4 py-2 rounded-xl border-2" style="border-color:${role.color}20;color:${role.color};background:${role.color}10">
-                        <span class="material-symbols-outlined text-base">${role.icon}</span><span class="text-sm font-bold uppercase tracking-wider">${role.label}</span>
-                    </div>`;
-            }
-
-            // 6. Build Stock Quality Grid (TAB 4)
-            const stockQualityGrid = document.getElementById('stock-quality-grid');
-            if (stockQualityGrid) {
-                stockQualityGrid.innerHTML = products.map(p => {
-                    const productBatches = batches.filter(b => b.ProductID === p.ProductID && b.BatchStatus !== 'DESTROYED');
-                    const totalQty = productBatches.reduce((sum, b) => sum + b.Quantity, 0);
-                    const status = totalQty === 0 ? 'Hết hàng' : totalQty < 100 ? 'Sắp hết' : 'Đủ hàng';
-                    const statusCls = totalQty === 0 ? 'bg-red-100 text-red-700' : totalQty < 100 ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700';
-                    return `
-                        <div class="p-4 flex items-center justify-between hover:bg-slate-50">
-                            <div>
-                                <p class="text-sm font-bold text-slate-900">${p.ProductName}</p>
-                                <p class="text-[10px] text-slate-400">${p.ProductID} • ${p.CategoryID || ''}</p>
-                            </div>
-                            <div class="flex items-center gap-6 text-right">
-                                <div>
-                                    <p class="text-sm font-black">${totalQty.toLocaleString()}</p>
-                                    <p class="text-[10px] text-slate-400">${p.BaseUnit}</p>
-                                </div>
-                                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${statusCls}">${status.toUpperCase()}</span>
-                            </div>
-                        </div>`;
-                }).join('');
-            }
-
-            // 7. NXT Table
-            const dirNxtTable = document.getElementById('dir-nxt-table');
-            if (dirNxtTable) {
-                dirNxtTable.innerHTML = products.map(p => {
-                    const productBatches = batches.filter(b => b.ProductID === p.ProductID);
-                    const initialStock = productBatches.reduce((sum, b) => sum + b.Quantity, 0); // Simplified
-                    const incoming = pos.filter(po => (po.itemsDetails || po.items || []).some(item => (item.ProductID === p.ProductID) && po.Status === 'COMPLETED')).reduce((sum, po) => sum + (po.itemsDetails || po.items || []).filter(item => item.ProductID === p.ProductID).reduce((s, i) => s + (i.OrderedQty || i.qty), 0), 0);
-                    const outgoing = sos.filter(so => (so.itemsDetails || so.items || []).some(item => (item.ProductID === p.ProductID) && so.Status === 'COMPLETED')).reduce((sum, so) => sum + (so.itemsDetails || so.items || []).filter(item => item.ProductID === p.ProductID).reduce((s, i) => s + (i.OrderedQty || i.qty), 0), 0);
-                    const finalStock = initialStock + incoming - outgoing;
-                    const value = finalStock * (p.ImportPrice || p.UnitPrice || 0);
-
-                    return `<tr class="hover:bg-slate-50 text-sm">
-                        <td class="px-5 py-3 font-medium">${p.ProductName}</td>
-                        <td class="px-5 py-3 text-right">${initialStock.toLocaleString()}</td>
-                        <td class="px-5 py-3 text-right text-blue-600 font-bold">+${incoming.toLocaleString()}</td>
-                        <td class="px-5 py-3 text-right text-orange-600 font-bold">-${outgoing.toLocaleString()}</td>
-                        <td class="px-5 py-3 text-right font-bold">${finalStock.toLocaleString()}</td>
-                        <td class="px-5 py-3 text-right font-bold text-primary">${value.toLocaleString()}</td>
-                    </tr>`;
-                }).join('');
-            }
-
-            // 8. QA summary
-            const releasedCount = batches.filter(b => b.BatchStatus === 'RELEASED').length;
-            const quarantineCount = batches.filter(b => b.BatchStatus === 'QUARANTINE').length;
-            const qaData = [{ l: 'Đã xuất xưởng (Released)', v: releasedCount, cls: 'bg-green-500' }, { l: 'Đang biệt trữ (Quarantine)', v: quarantineCount, cls: 'bg-amber-500' }];
-            const totalBatches = releasedCount + quarantineCount || 1;
-            const qaSummaryPie = document.getElementById('qa-summary-pie');
-            if (qaSummaryPie) {
-                qaSummaryPie.innerHTML = qaData.map(d => `
+            <button onclick="document.getElementById('po-detail-modal').classList.remove('open')" class="text-slate-400 hover:text-slate-600">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        
+        <div class="p-6 max-h-[70vh] overflow-y-auto">
+            <div class="grid grid-cols-2 gap-6 mb-6">
+                <div class="space-y-3">
                     <div>
-                        <div class="flex justify-between text-xs mb-1"><span class="font-medium">${d.l}</span><span class="font-bold">${d.v} lô</span></div>
-                        <div class="h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full ${d.cls} rounded-full" style="width:${Math.round(d.v / totalBatches * 100)}%"></div></div>
-                    </div>`).join('');
-            }
+                        <p class="text-[10px] font-bold text-slate-400 uppercase">Nhà cung cấp</p>
+                        <p class="text-sm font-bold text-slate-900" id="po-detail-supplier">—</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase">Ngày dự kiến nhận</p>
+                        <p class="text-sm font-medium text-slate-700" id="po-detail-date">—</p>
+                    </div>
+                </div>
+                <div class="space-y-3">
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase">Trạng thái</p>
+                        <span id="po-detail-status" class="px-2 py-0.5 rounded-full text-[10px] font-bold"></span>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase">Tổng giá trị</p>
+                        <p class="text-lg font-black text-primary" id="po-detail-total-value">0 VNĐ</p>
+                    </div>
+                </div>
+            </div>
 
-            // 9. Expiry warnings
-            const expiryWarnings = document.getElementById('expiry-warnings');
-            if (expiryWarnings) {
-                const nearExpiryBatches = batches.filter(b => {
-                    const exp = new Date(b.ExpDate);
-                    const now = new Date();
-                    const diffMonths = (exp.getFullYear() - now.getFullYear()) * 12 + (exp.getMonth() - now.getMonth());
-                    return diffMonths > 0 && diffMonths <= 6 && b.BatchStatus !== 'DESTROYED';
-                }).sort((a, b) => new Date(a.ExpDate) - new Date(b.ExpDate)).slice(0, 3);
+            <div class="border border-slate-200 rounded-xl overflow-hidden mb-4">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-50 border-b border-slate-200">
+                        <tr>
+                            <th class="px-4 py-2 font-bold text-slate-500 uppercase">Sản phẩm</th>
+                            <th class="px-4 py-2 font-bold text-slate-500 uppercase text-center">SL</th>
+                            <th class="px-4 py-2 font-bold text-slate-500 uppercase text-right">Đơn giá</th>
+                            <th class="px-4 py-2 font-bold text-slate-500 uppercase text-right">Thành tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody id="po-detail-items-body" class="divide-y divide-slate-100">
+                        <!-- Items will be injected here -->
+                    </tbody>
+                </table>
+            </div>
 
-                expiryWarnings.innerHTML = nearExpiryBatches.map(b => {
-                    const p = products.find(x => x.ProductID === b.ProductID) || {};
-                    const exp = new Date(b.ExpDate);
-                    const now = new Date();
-                    const diffMonths = (exp.getFullYear() - now.getFullYear()) * 12 + (exp.getMonth() - now.getMonth());
-                    return `<div class="flex items-center gap-2 p-2 rounded-lg bg-amber-50 border border-amber-200">
-                        <span class="material-symbols-outlined text-amber-500 text-sm">schedule</span>
-                        <div class="flex-1">
-                            <p class="text-xs font-bold text-slate-800">${p.ProductName || b.ProductID}</p>
-                            <p class="text-[10px] text-slate-500">HSD: ${b.ExpDate} (còn ${diffMonths} tháng)</p>
+            <div id="po-detail-note-container" class="hidden p-4 bg-amber-50 rounded-xl border border-amber-100">
+                <p class="text-[10px] font-bold text-amber-600 uppercase mb-1">Ghi chú PO</p>
+                <p class="text-xs text-amber-800 italic" id="po-detail-note"></p>
+            </div>
+        </div>
+
+        <div class="p-6 bg-slate-50 border-t border-slate-100 flex gap-3">
+            <button onclick="document.getElementById('po-detail-modal').classList.remove('open')"
+                class="flex-1 bg-white border border-slate-200 text-slate-600 py-3 rounded-xl font-bold text-sm hover:bg-slate-50 transition-colors">Đóng</button>
+            <button id="po-detail-approve-btn"
+                class="flex-1 bg-primary text-white py-3 rounded-xl font-bold text-sm hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all">Phê duyệt nhanh</button>
+        </div>
+    </div>
+</div>
+
+
+<script>
+(function() {
+    const user = window.Auth.getCurrentUser();
+    const role = window.MockData.getUserRole(user);
+    let activeApprovalId = null;
+    let activeIsPO = false;
+
+    function refreshDashboard() {
+        const pos = window.MockData.PURCHASE_ORDERS;
+        const approvals = window.MockData.APPROVALS || [];
+        const batches = window.MockData.BATCHES;
+        const products = window.MockData.PRODUCTS;
+
+        // 1. Stats
+        const totalValue = batches.reduce((sum, b) => sum + (b.Quantity * (products.find(p => p.ProductID === b.ProductID)?.ImportPrice || 0)), 0);
+        document.getElementById('db-total-value').textContent = (totalValue/1000000000).toFixed(1) + 'B VNĐ';
+        document.getElementById('db-quarantine').textContent = batches.filter(b => b.BatchStatus === 'QUARANTINE').length;
+        document.getElementById('db-pending-orders').textContent = pos.filter(p => p.Status !== 'COMPLETED').length;
+        document.getElementById('db-today-in').textContent = batches.length > 10 ? 12 : batches.length;
+        document.getElementById('dir-date').textContent = new Date().toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
+
+        // 2. Build Approval List (PO + General)
+        const awaitingPOs = pos.filter(p => p.Status === 'AWAITING_APPROVAL' || p.Status === 'CHỜ DUYỆT' || p.Status === 'Đang chờ xử lý');
+        const unifiedApprovals = [
+            ...awaitingPOs.map(p => ({
+                id: p.PO_ID, type: 'Phê duyệt Mua hàng', dept: 'Phòng Thu mua', isPO: true,
+                desc: `Duyệt đơn ${p.PO_ID} cho NCC ${window.MockData.getSupplierName(p.SupplierID)}. Trị giá: ${p.totalValue?.toLocaleString()} VNĐ.`
+            })),
+            ...(approvals.filter(a => a.Status === 'PENDING'))
+        ];
+
+        // 3. Render List
+        const listEl = document.getElementById('approval-items-list');
+        if (listEl) {
+            listEl.innerHTML = unifiedApprovals.map(a => `
+                <div class="approval-card bg-white p-6 rounded-2xl border border-slate-200 shadow-sm" id="card-${a.id}">
+                    <div class="flex items-start justify-between">
+                        <div class="flex items-center gap-4">
+                            <div class="size-12 rounded-2xl ${a.isPO ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-600'} flex items-center justify-center">
+                                <span class="material-symbols-outlined text-2xl">${a.isPO ? 'shopping_cart' : 'gavel'}</span>
+                            </div>
+                            <div>
+                                <h4 class="font-black text-slate-900">${a.type}</h4>
+                                <p class="text-xs text-slate-400">Mã yêu cầu: #${a.id} • Bộ phận: ${a.dept}</p>
+                            </div>
                         </div>
-                    </div>`;
-                }).join('') || '<p class="text-center text-slate-400 py-4 text-xs">Không có cảnh báo hết hạn.</p>';
-            }
-
-            // 10. Recent alerts (simplified, using mock data for alerts)
-            const qCount = batches.filter(b => b.BatchStatus === 'QUARANTINE').length;
-            const alerts = [
-                { icon: 'warning', color: 'text-red-500 bg-red-50', msg: 'Lô PX-230901 bị Cục quản lý dược thu hồi — chờ xử lý', time: '2 giờ trước' },
-                { icon: 'science', color: 'text-amber-500 bg-amber-50', msg: `${qCount} lô hàng đang biệt trữ, chờ QA/QC phê duyệt chất lượng`, time: '5 giờ trước' },
-                { icon: 'local_shipping', color: 'text-blue-500 bg-blue-50', msg: '3 đơn hàng hoàn thành giao hàng — cần đối soát công nợ', time: '8 giờ trước' },
-            ];
-            const recentAlerts = document.getElementById('recent-alerts');
-            if (recentAlerts) {
-                recentAlerts.innerHTML = alerts.map(a => `
-                    <div class="flex items-center gap-4 p-3 ${a.color.split(' ')[1]} rounded-xl">
-                        <span class="material-symbols-outlined ${a.color.split(' ')[0]} text-xl">${a.icon}</span>
-                        <p class="flex-1 text-sm font-medium text-slate-800">${a.msg}</p>
-                        <span class="text-xs text-slate-400">${a.time}</span>
-                    </div>`).join('');
-            }
-
-            // 11. Category breakdown (removed as no MockData provided for this)
-            const categoryBreakdown = document.getElementById('category-breakdown');
-            if (categoryBreakdown) {
-                categoryBreakdown.innerHTML = ''; // Clear hardcoded content
-            }
-
-            // 12. Supplier performance (removed as no MockData provided for this)
-            const supplierPerf = document.getElementById('supplier-perf');
-            if (supplierPerf) {
-                supplierPerf.innerHTML = ''; // Clear hardcoded content
-            }
-
-            // 13. Render Chart
-            const chartBars = document.getElementById('chart-bars');
-            const chartLabels = document.getElementById('chart-labels');
-            if (chartBars && chartLabels) {
-                const months = ['Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10'];
-                const values = [420, 580, 510, 690, 890, 1200]; // mock revenue in millions
-                const maxVal = Math.max(...values);
-                
-                chartBars.innerHTML = values.map((val, idx) => {
-                    const heightPct = (val / maxVal) * 100;
-                    const isLast = idx === values.length - 1;
-                    return `<div class="flex-1 flex flex-col justify-end group cursor-pointer relative h-full">
-                        <!-- Tooltip -->
-                        <div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10 shadow-lg font-bold">
-                            ${val}M VNĐ
-                        </div>
-                        <div class="w-full ${isLast ? 'bg-primary' : 'bg-primary/20 group-hover:bg-primary/40'} rounded-t-md transition-all duration-300" style="height: ${heightPct}%"></div>
-                    </div>`;
-                }).join('');
-                
-                chartLabels.innerHTML = months.map(m => `<div class="flex-1 text-center truncate">${m.split(' ')[1]}</div>`).join('');
-            }
+                        <span class="px-3 py-1 bg-amber-50 text-amber-600 text-[10px] font-black rounded-lg uppercase tracking-wider">Chờ phê duyệt</span>
+                    </div>
+                    <p class="mt-4 text-sm text-slate-600 leading-relaxed font-medium bg-slate-50 p-3 rounded-xl border border-slate-100">${a.desc}</p>
+                    <div class="mt-5 flex gap-3">
+                        <button onclick="handleDashboardApproval('${a.id}', '${a.type}', '${a.desc}', ${a.isPO})" 
+                            class="px-6 py-2.5 bg-primary text-white rounded-xl text-sm font-bold hover:shadow-lg transition-all">Phê duyệt</button>
+                        <button onclick="${a.isPO ? `showPODetailInDashboard('${a.id}')` : `alert('Chi tiết phê duyệt đang được cập nhật')`}" 
+                            class="px-6 py-2.5 border border-slate-200 text-slate-600 rounded-xl text-sm font-bold hover:bg-slate-50 transition-colors">Xem chi tiết</button>
+                    </div>
+                </div>
+            `).join('') || '<p class="text-center py-20 text-slate-400 font-medium">Tuyệt vời! Không còn yêu cầu nào đang chờ xử lý.</p>';
         }
 
-        // Shared Logic
-        window.switchDirTab = function (tabId) {
-            ['overview', 'approval', 'report', 'quality'].forEach(t => {
-                document.getElementById(`dir-tab-${t}`).className = `pb-3 text-sm ${t === tabId ? 'tab-active' : 'tab-inactive'}`;
-                document.getElementById(`dir-tab-content-${t}`).classList.toggle('hidden', t !== tabId);
-            });
-        };
+        // Mini list
+        const miniEl = document.getElementById('db-approval-list-mini');
+        if (miniEl) {
+            miniEl.innerHTML = unifiedApprovals.slice(0, 3).map(a => `
+                <div class="flex items-center gap-3 p-3 hover:bg-slate-50 rounded-xl cursor-pointer" onclick="switchDirTab('approval')">
+                    <div class="size-8 rounded-lg bg-slate-100 flex items-center justify-center"><span class="material-symbols-outlined text-sm">notifications</span></div>
+                    <div class="flex-1 overflow-hidden">
+                        <p class="text-xs font-bold text-slate-900 truncate">${a.type}</p>
+                        <p class="text-[10px] text-slate-500 truncate">${a.desc}</p>
+                    </div>
+                </div>
+            `).join('') || '<p class="text-[11px] text-slate-400 text-center py-4">Sạch bóng yêu cầu!</p>';
+        }
 
-        // Modal helpers
-        window.openApproveModal = function (id, type, desc) {
-            currentApprovalId = id;
-            document.getElementById('modal-title').textContent = `Phê duyệt: ${type}`;
-            document.getElementById('modal-body').textContent = desc;
-            document.getElementById('modal-comment').value = '';
-            document.getElementById('approve-modal').classList.add('open');
-        };
-        window.doApprove = function () {
-            const comment = document.getElementById('modal-comment').value;
-            window.MockData.updateApproval(currentApprovalId, 'APPROVED', comment);
-            const card = document.getElementById(`apv-card-${currentApprovalId}`);
-            if (card) card.innerHTML = `<div class="flex items-center gap-4 p-2">
-      <span class="material-symbols-outlined text-3xl text-green-600">check_circle</span>
-      <div><p class="font-bold text-green-700">✅ Đã phê duyệt bởi Ban giám đốc</p>
-      <p class="text-sm text-slate-500">Thông báo đã gửi đến phòng ban liên quan. ${new Date().toLocaleString('vi-VN')}</p>
-      ${comment ? `<p class="text-xs text-slate-400 mt-1 italic">"${comment}"</p>` : ''}</div></div>`;
-            document.getElementById('approve-modal').classList.remove('open');
-            const badge = document.getElementById('approval-count-badge');
-            if (badge) { const c = parseInt(badge.textContent) - 1; if (c <= 0) badge.classList.add('hidden'); else badge.textContent = c; }
-        };
-        window.doReject = function () {
-            const comment = document.getElementById('modal-comment').value;
-            window.MockData.updateApproval(currentApprovalId, 'REJECTED', comment);
-            const card = document.getElementById(`apv-card-${currentApprovalId}`);
-            if (card) card.innerHTML = `<div class="flex items-center gap-4 p-2">
-      <span class="material-symbols-outlined text-3xl text-red-500">cancel</span>
-      <div><p class="font-bold text-red-600">❌ Đã từ chối bởi Ban giám đốc</p>
-      <p class="text-sm text-slate-500">Bộ phận liên quan đã được thông báo. ${new Date().toLocaleString('vi-VN')}</p>
-      ${comment ? `<p class="text-xs text-slate-400 mt-1 italic">"${comment}"</p>` : ''}</div></div>`;
-            document.getElementById('approve-modal').classList.remove('open');
-            const badge = document.getElementById('approval-count-badge');
-            if (badge) { const c = parseInt(badge.textContent) - 1; if (c <= 0) badge.classList.add('hidden'); else badge.textContent = c; }
-        };
+        // Badge
+        document.getElementById('approval-count-badge').textContent = unifiedApprovals.length;
+        document.getElementById('approval-count-badge').style.display = unifiedApprovals.length ? 'inline' : 'none';
 
-        // Initialize and listen for changes
-        updateDashboard();
-        window.addEventListener('pharma:statechange', updateDashboard);
-    })();
+        // Role badge
+        const badge = document.getElementById('dir-role-badge');
+        if (badge && role) {
+            badge.innerHTML = `<div class="flex items-center gap-2 px-4 py-2 rounded-xl border-2" style="border-color:${role.color}20;color:${role.color};background:${role.color}10">
+                <span class="material-symbols-outlined text-base">${role.icon}</span><span class="text-sm font-bold uppercase tracking-wider">${role.label}</span>
+            </div>`;
+        }
+    }
+
+    window.switchDirTab = function(tabId) {
+        ['overview', 'approval', 'report', 'quality'].forEach(t => {
+            const btn = document.getElementById(`dir-tab-${t}`);
+            const content = document.getElementById(`dir-tab-content-${t}`);
+            if (btn) btn.className = `pb-3 text-sm ${t === tabId ? 'tab-active' : 'tab-inactive'}`;
+            if (content) content.classList.toggle('hidden', t !== tabId);
+        });
+    };
+
+    window.handleDashboardApproval = function(id, type, desc, isPO) {
+        activeApprovalId = id;
+        activeIsPO = isPO;
+        document.getElementById('modal-title-center').textContent = `Phê duyệt: ${type}`;
+        document.getElementById('modal-body-center').textContent = desc;
+        document.getElementById('modal-comment-center').value = '';
+        document.getElementById('approve-modal-center').classList.add('open');
+    }
+
+    window.showPODetailInDashboard = function(poId) {
+        const po = window.MockData.PURCHASE_ORDERS.find(p => p.PO_ID === poId);
+        if (!po) return;
+
+        document.getElementById('po-detail-id').textContent = po.PO_ID;
+        document.getElementById('po-detail-supplier').textContent = window.MockData.getSupplierName(po.SupplierID);
+        document.getElementById('po-detail-date').textContent = po.expectedDate || po.deliveryDate || '—';
+        document.getElementById('po-detail-total-value').textContent = (po.totalValue || 0).toLocaleString() + ' VNĐ';
+        
+        const statusMap = {
+            AWAITING_APPROVAL: { l: 'CHỜ DUYỆT', c: 'bg-amber-100 text-amber-600' },
+            'CHỜ DUYỆT': { l: 'CHỜ DUYỆT', c: 'bg-amber-100 text-amber-600' },
+            PENDING: { l: 'CHỜ NHẬN', c: 'bg-orange-100 text-orange-600' },
+            COMPLETED: { l: 'HOÀN TẤT', c: 'bg-green-100 text-green-600' }
+        };
+        const st = statusMap[po.Status] || statusMap[String(po.Status).toUpperCase()] || { l: po.Status, c: 'bg-slate-100' };
+        const stEl = document.getElementById('po-detail-status');
+        stEl.textContent = st.l;
+        stEl.className = `px-2 py-0.5 rounded-full text-[10px] font-bold ${st.c}`;
+
+        // Render items
+        const itemsBody = document.getElementById('po-detail-items-body');
+        const items = po.itemsDetails || [];
+        if (items.length) {
+            itemsBody.innerHTML = items.map(it => {
+                const prod = window.MockData.PRODUCTS.find(p => p.ProductID === it.ProductID) || { ProductName: it.ProductID, ImportPrice: it.UnitPrice || 0 };
+                const price = it.UnitPrice || prod.ImportPrice || 0;
+                return `
+                    <tr>
+                        <td class="px-4 py-3">
+                            <p class="font-bold text-slate-900">${prod.ProductName}</p>
+                            <p class="text-[10px] text-slate-400">${it.ProductID}</p>
+                        </td>
+                        <td class="px-4 py-3 text-center font-medium">${it.OrderedQty || it.total || 0}</td>
+                        <td class="px-4 py-3 text-right text-slate-500">${price.toLocaleString()}</td>
+                        <td class="px-4 py-3 text-right font-bold text-slate-900">${((it.OrderedQty || 0) * price).toLocaleString()}</td>
+                    </tr>
+                `;
+            }).join('');
+        } else {
+            itemsBody.innerHTML = '<tr><td colspan="4" class="px-4 py-8 text-center text-slate-400 italic">Không có chi tiết sản phẩm</td></tr>';
+        }
+
+        // Note
+        const noteContainer = document.getElementById('po-detail-note-container');
+        if (po.note) {
+            noteContainer.classList.remove('hidden');
+            document.getElementById('po-detail-note').textContent = po.note;
+        } else {
+            noteContainer.classList.add('hidden');
+        }
+
+        // Action button
+        const approveBtn = document.getElementById('po-detail-approve-btn');
+        if (po.Status === 'AWAITING_APPROVAL' || po.Status === 'CHỜ DUYỆT' || po.Status === 'Đang chờ xử lý') {
+            approveBtn.classList.remove('hidden');
+            approveBtn.onclick = () => {
+                document.getElementById('po-detail-modal').classList.remove('open');
+                handleDashboardApproval(po.PO_ID, 'Phê duyệt Mua hàng', `Duyệt đơn ${po.PO_ID} cho NCC ${window.MockData.getSupplierName(po.SupplierID)}.`, true);
+            };
+        } else {
+            approveBtn.classList.add('hidden');
+        }
+
+        document.getElementById('po-detail-modal').classList.add('open');
+    }
+
+    window.executeFinalApprove = async function() {
+        if (activeIsPO) {
+            await window.MockData.approvePO(activeApprovalId);
+        } else {
+            window.MockData.updateApproval(activeApprovalId, 'APPROVED');
+        }
+        
+        const card = document.getElementById(`card-${activeApprovalId}`);
+        if (card) {
+            card.innerHTML = `<div class="flex items-center gap-4 bg-green-50 p-6 rounded-2xl border border-green-100">
+                <div class="size-12 rounded-full bg-green-500 text-white flex items-center justify-center"><span class="material-symbols-outlined">check</span></div>
+                <div><h4 class="font-black text-green-700">ĐÃ PHÊ DUYỆT</h4><p class="text-xs text-green-600">Lúc: ${new Date().toLocaleTimeString('vi-VN')}</p></div>
+            </div>`;
+        }
+        
+        document.getElementById('approve-modal-center').classList.remove('open');
+        setTimeout(() => refreshDashboard(), 2000);
+    }
+
+    refreshDashboard();
+    window.addEventListener('pharma:statechange', refreshDashboard);
+})();
 </script>

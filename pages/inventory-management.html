@@ -204,6 +204,8 @@
         const statusMap = {
             RELEASED: { label: 'Xuất xưởng', cls: 'bg-emerald-50 text-emerald-600 border border-emerald-100' },
             QUARANTINE: { label: 'Biệt trữ', cls: 'bg-amber-50 text-amber-600 border border-amber-100' },
+            TESTING: { label: 'Đang kiểm nghiệm', cls: 'bg-blue-50 text-blue-600 border border-blue-100' },
+            EXPIRED: { label: 'Hết hạn', cls: 'bg-red-50 text-red-600 border border-red-100' },
             LOCKED: { label: 'Đã khóa', cls: 'bg-rose-50 text-rose-600 border border-rose-100' },
             PENDING: { label: 'Chờ duyệt', cls: 'bg-indigo-50 text-indigo-600 border border-indigo-100' },
             DESTROYED: { label: 'Tiêu hủy', cls: 'bg-slate-50 text-slate-500 border border-slate-200' },
@@ -224,9 +226,9 @@
             document.getElementById('inv-count-label').textContent = `${filtered.length} lô`;
 
             document.getElementById('inv-table-body').innerHTML = filtered.map(b => {
-                const product = products.find(p => p.ProductID === b.ProductID) || {};
+                const product = products.find(p => p.ProductID === b.ProductID) || { ProductName: b.ProductID };
                 const statusKey = String(b.BatchStatus || '').trim().toUpperCase();
-                const st = statusMap[statusKey] || { label: b.BatchStatus, cls: 'bg-slate-100 text-slate-600' };
+                const st = statusMap[statusKey] || { label: b.BatchStatus || 'N/A', cls: 'bg-slate-100 text-slate-600' };
                 // Expiry warning
                 const expiryDate = new Date(b.ExpDate);
                 const daysLeft = Math.ceil((expiryDate - Date.now()) / 86400000);

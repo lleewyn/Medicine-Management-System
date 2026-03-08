@@ -193,10 +193,14 @@
 
                 <div class="grid grid-cols-2 gap-4 mb-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wider">Số lô
-                            (LOT
-                            Number)</label>
-                        <input type="text" id="input-lot" placeholder="VD: PF-240101"
+                        <div class="flex justify-between items-end mb-1.5">
+                            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">Số lô (LOT Number)</label>
+                            <button onclick="suggestLotNumber()" class="text-[10px] text-primary hover:underline font-bold flex items-center gap-0.5">
+                                <span class="material-symbols-outlined text-xs">auto_awesome</span> Gợi ý mã
+                            </button>
+                        </div>
+                        <input type="text" id="input-lot" placeholder="VD: LOT-2603-01"
+                            title="Định dạng gợi ý: LOT-[NămMM]-[Số thứ tự]"
                             class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20">
                     </div>
                     <div>
@@ -375,6 +379,7 @@
             const user = window.Auth.getCurrentUser();
             const role = window.MockData.getUserRole(user);
             const canWrite = window.MockData.hasPermission(user, 'write_inbound');
+            const canApprove = window.MockData.hasPermission(user, 'approve_director');
             const POs = window.MockData.PURCHASE_ORDERS;
             const products = window.MockData.PRODUCTS;
 
@@ -394,13 +399,27 @@
                     PARTIAL: { label: 'NHẬP MỘT PHẦN', cls: 'bg-blue-100 text-blue-700' },
                     COMPLETED: { label: 'HOÀN THÀNH', cls: 'bg-green-100 text-green-700' },
                     CANCELLED: { label: 'ĐÃ HỦY', cls: 'bg-slate-100 text-slate-500' },
+                    AWAITING_APPROVAL: { label: 'CHỜ DUYỆT', cls: 'bg-amber-100 text-amber-700' },
+                    'CHỜ DUYỆT': { label: 'CHỜ DUYỆT', cls: 'bg-amber-100 text-amber-700' },
+                    'Đã duyệt': { label: 'CHỜ NHẬN', cls: 'bg-orange-100 text-orange-700' },
+                    'Đang chờ xử lý': { label: 'CHỜ DUYỆT', cls: 'bg-amber-100 text-amber-700' },
                 };
                 const colorMap = { blue: 'bg-blue-100 text-blue-700', green: 'bg-green-100 text-green-700', purple: 'bg-purple-100 text-purple-700', red: 'bg-red-100 text-red-700' };
 
                 document.getElementById('inbound-po-table').innerHTML = currentPOs.map(po => {
-                    const st = statusMap[po.Status] || { label: po.Status, cls: '' };
-                    const pct = po.total > 0 ? Math.round((po.received / po.total) * 100) : 0;
-                    const canReceive = po.Status !== 'COMPLETED' && po.Status !== 'CANCELLED';
+                    const statusKey = String(po.Status || '').trim().toUpperCase();
+                    const st = statusMap[statusKey] || { label: po.Status, cls: '' };
+                    
+                    let pct = po.total > 0 ? Math.round((po.received / po.total) * 100) : 0;
+                    let receivedDisp = po.received;
+                    
+                    // Nếu đã hoàn thành, ép hiển thị 100% cho đẹp và đúng logic nghiệp vụ
+                    if (statusKey === 'COMPLETED' || statusKey === 'ĐÃ HOÀN THÀNH' || st.label === 'HOÀN THÀNH') {
+                        pct = 100;
+                        receivedDisp = po.total;
+                    }
+                    
+                    const canReceive = po.Status !== 'COMPLETED' && po.Status !== 'CANCELLED' && po.Status !== 'HOÀN THÀNH';
                     return `
                     <tr class="hover:bg-slate-50 transition-colors">
                         <td class="px-5 py-4"><span class="font-bold text-primary text-sm">${po.PO_ID}</span></td>
@@ -413,13 +432,13 @@
                         <td class="px-5 py-4 text-sm text-slate-500">${po.expectedDate}</td>
                         <td class="px-5 py-4">
                             <div class="w-28">
-                                <div class="flex justify-between text-[10px] text-slate-500 mb-1"><span>${pct}%</span><span>${po.received}/${po.total}</span></div>
+                                <div class="flex justify-between text-[10px] text-slate-500 mb-1"><span>${pct}%</span><span>${receivedDisp}/${po.total}</span></div>
                                 <div class="h-1.5 bg-slate-100 rounded-full"><div class="h-full bg-primary rounded-full" style="width:${pct}%"></div></div>
                             </div>
                         </td>
                         <td class="px-5 py-4"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${st.cls}">${st.label}</span></td>
-                        <td class="px-5 py-4 text-right">
-                            ${canReceive && canWrite ? `<button onclick="startReceive('${po.PO_ID}')" class="bg-primary/10 text-primary px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-primary/20 transition-colors">
+                        <td class="px-5 py-4 text-right flex justify-end gap-2 text-sm">
+                            ${canReceive && canWrite && statusKey !== 'AWAITING_APPROVAL' ? `<button onclick="startReceive('${po.PO_ID}')" class="bg-primary/10 text-primary px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-primary/20 transition-colors">
                                 <span class="material-symbols-outlined text-xs align-middle">login</span> Nhận hàng
                             </button>` : '<span class="text-slate-300 text-xs">—</span>'}
                         </td>
@@ -450,7 +469,6 @@
                     if (content) content.classList.toggle('hidden', t !== tabId);
                 });
             };
-
             window.goStep = function (step) {
                 if (step === 2) {
                     const poId = document.getElementById('po-select-receive').value;
@@ -458,21 +476,24 @@
                     const po = window.MockData.PURCHASE_ORDERS.find(p => p.PO_ID === poId);
                     const items = po.itemsDetails || [];
 
-                    // Add product selector if not present
-                    const content2 = document.getElementById('step-content-2');
-                    if (!document.getElementById('input-product-container')) {
-                        const selector = `
+                    // Ensure product selector exists and is up to date
+                    let container = document.getElementById('input-product-container');
+                    if (!container) {
+                        const html = `
                         <div id="input-product-container" class="col-span-2 mb-4">
                             <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wider">Chọn sản phẩm nhận từ PO</label>
                             <select id="input-product-id" class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20">
-                                ${items.map(it => {
-                            const p = products.find(x => x.ProductID === it.ProductID) || {};
-                            return `<option value="${it.ProductID}">${p.ProductName || it.ProductID} (Số lượng trong PO: ${it.OrderedQty})</option>`;
-                        }).join('')}
                             </select>
                         </div>`;
-                        content2.querySelector('.grid').insertAdjacentHTML('afterbegin', selector);
+                        document.getElementById('step-content-2').querySelector('.grid').insertAdjacentHTML('afterbegin', html);
+                        container = document.getElementById('input-product-container');
                     }
+
+                    const select = document.getElementById('input-product-id');
+                    select.innerHTML = items.map(it => {
+                        const p = products.find(x => x.ProductID === it.ProductID) || { ProductName: it.ProductID };
+                        return `<option value="${it.ProductID}">${p.ProductName} (Số lượng trong PO: ${it.OrderedQty})</option>`;
+                    }).join('') || '<option value="">-- PO này không có chi tiết sản phẩm --</option>';
                 }
                 if (step === 4) {
                     const prodId = document.getElementById('input-product-id').value;
@@ -551,6 +572,15 @@
                 window.updateLocationPreview();
             };
 
+            window.suggestLotNumber = function() {
+                const now = new Date();
+                const yy = now.getFullYear().toString().slice(-2);
+                const mm = (now.getMonth() + 1).toString().padStart(2, '0');
+                const rand = Math.floor(Math.random() * 90 + 10).toString();
+                document.getElementById('input-lot').value = `LOT-${yy}${mm}-${rand}`;
+                if (window.MockData) window.MockData.addNotification('Đã gợi ý mã số lô dựa trên thời gian thực (LOT-YYMM-XX)', 'info');
+            };
+
             window.confirmReceive = function () {
                 const lot = document.getElementById('input-lot').value.trim();
                 const expiry = document.getElementById('input-expiry').value;
@@ -593,6 +623,13 @@
                 // Remove product selector for next time
                 const prodContainer = document.getElementById('input-product-container');
                 if (prodContainer) prodContainer.remove();
+            };
+
+            window.approvePO = async function (poId) {
+                if (confirm(`Bạn có chắc chắn muốn phê duyệt đơn hàng ${poId} không?`)) {
+                    await window.MockData.approvePO(poId);
+                    updateInboundUI();
+                }
             };
 
             window.startReceive = function (poId) {

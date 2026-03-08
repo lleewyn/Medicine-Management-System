@@ -222,6 +222,7 @@
     const canCreate = window.MockData.hasPermission(user, 'write_orders') || window.MockData.hasPermission(user, 'write_all');
 
     let activeSOId = '';
+    let pickingSessionData = {}; // Track what was picked for each SO
 
     function updateOutbound() {
       const SOs = window.MockData.SALES_ORDERS || [];
@@ -242,7 +243,7 @@
           <tr class="hover:bg-slate-50 transition-colors">
             <td class="px-5 py-4 font-bold text-primary text-sm">${s.SO_ID}</td>
             <td class="px-5 py-4">
-              <p class="text-sm font-bold">${s.CustomerID}</p>
+              <p class="text-sm font-bold">${window.MockData.getCustomerName(s.CustomerID)}</p>
               <p class="text-xs text-slate-400">${s.region || ''}</p>
             </td>
             <td class="px-5 py-4 text-sm ${s.priority === 'URGENT' ? 'text-red-600 font-bold' : 'text-slate-500'}">${s.deadline}</td>
@@ -301,7 +302,7 @@
                     ${so.priority === 'URGENT' ? 'KHẨN CẤP' : 'BÌNH THƯỜNG'}
                   </span>
                 </div>
-                <p class="text-sm font-medium text-slate-700">${so.CustomerID}</p>
+                <p class="text-sm font-medium text-slate-700">${window.MockData.getCustomerName(so.CustomerID)}</p>
                 <p class="text-xs text-slate-400">Hạn giao: ${so.deadline} • ${so.region || ''}</p>
               </div>
               <span class="px-3 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700">CHỜ PHÊ DUYỆT</span>
@@ -312,10 +313,15 @@
               <div class="space-y-2">
                 ${(so.itemsDetails || so.items || []).map(it => {
             const p = window.MockData.PRODUCTS.find(x => x.ProductID === it.ProductID) || {};
+            // Try to find if we have picking info for this SO
+            const picked = (pickingSessionData[so.SO_ID] || []).find(ps => ps.ProductID === it.ProductID);
             return `
                   <div class="flex justify-between text-xs">
                     <span class="text-slate-600">${p.ProductName || it.ProductID}</span>
-                    <span class="font-bold">${it.OrderedQty || it.qty} ${p.BaseUnit || ''}</span>
+                    <div class="text-right">
+                      <p class="font-bold">${it.OrderedQty || it.qty} ${p.BaseUnit || ''}</p>
+                      ${picked ? `<p class="text-[9px] text-green-600">Lô: ${picked.Batchcode}</p>` : ''}
+                    </div>
                   </div>`;
           }).join('')}
               </div>
@@ -351,7 +357,7 @@
         const pickingSOs = SOs.filter(s => s.Status === 'PICKING' || s.Status === 'IN_PROGRESS');
         soSelect.innerHTML = '<option value="">-- Chọn SO để soạn hàng --</option>' +
           pickingSOs.map(s => `
-            <option value="${s.SO_ID}">${s.SO_ID} — ${s.CustomerID}</option>
+            <option value="${s.SO_ID}">${s.SO_ID} — ${window.MockData.getCustomerName(s.CustomerID)}</option>
           `).join('');
         if (currentVal) soSelect.value = currentVal;
       }
@@ -406,9 +412,33 @@
       const container = document.getElementById('picking-list');
       if (!container) return;
 
+      if (!pickingSessionData[so.SO_ID]) pickingSessionData[so.SO_ID] = [];
+
       container.innerHTML = items.map((it, idx) => {
         const prod = window.MockData.PRODUCTS.find(p => p.ProductID === it.ProductID) || {};
-        const suggestedBatches = window.MockData.BATCHES.filter(b => b.ProductID === it.ProductID && b.BatchStatus === 'RELEASED' && b.Quantity >= (it.OrderedQty || it.qty));
+        const qNeeded = it.OrderedQty || it.qty;
+        
+        // Find suitable batches (Released and has enough quantity)
+        const suggestedBatches = window.MockData.BATCHES.filter(b => 
+            b.ProductID === it.ProductID && 
+            b.BatchStatus === 'RELEASED' && 
+            (b.Quantity || b.qty) >= qNeeded
+        );
+        
+        const selectedBatch = suggestedBatches[0] || {};
+        
+        // Auto-store picking info if not exists
+        if (!pickingSessionData[so.SO_ID].find(p => p.ProductID === it.ProductID)) {
+            if (selectedBatch.BatchID) {
+                pickingSessionData[so.SO_ID].push({
+                    ProductID: it.ProductID,
+                    BatchID: selectedBatch.BatchID,
+                    Batchcode: selectedBatch.Batchcode,
+                    batchInternalId: selectedBatch.id || selectedBatch.Id,
+                    ActualQty: qNeeded
+                });
+            }
+        }
 
         return `
           <div class="p-4 flex items-center gap-4 cursor-pointer transition-colors hover:bg-slate-50" id="pick-row-${idx}" 
@@ -421,12 +451,12 @@
             <div class="flex-1 pointer-events-none">
               <p class="text-sm font-bold" id="pick-name-${idx}">${prod.ProductName || it.ProductID}</p>
               <p class="text-xs text-slate-400">
-                ${suggestedBatches.length > 0 ? `Lô: <strong>${suggestedBatches[0].Batchcode}</strong> • Vị trí: <strong>${suggestedBatches[0].LocationID}</strong>` : '<span class="text-red-500">Không có lô hàng phù hợp</span>'}
+                ${selectedBatch.Batchcode ? `Lô tốt nhất: <strong>${selectedBatch.Batchcode}</strong> • Vị trí: <strong>${selectedBatch.LocationID}</strong>` : '<span class="text-red-500 font-bold">KHÔNG CÒN HÀNG TRONG KHO</span>'}
               </p>
             </div>
             <div class="text-right pointer-events-none">
-              <p class="font-bold text-slate-900">${it.OrderedQty || it.qty} ${prod.BaseUnit || ''}</p>
-              <p class="text-xs text-slate-400">SKU: ${it.ProductID}</p>
+              <p class="font-bold text-slate-900">${qNeeded} ${prod.BaseUnit || ''}</p>
+              <p class="text-xs text-slate-400">Tồn: ${selectedBatch.Quantity || selectedBatch.qty || 0}</p>
             </div>
           </div>`;
       }).join('') || '<p class="p-8 text-center text-slate-400 text-sm">Đơn hàng không có mục nào.</p>';
@@ -464,7 +494,7 @@
       document.getElementById('picking-progress-label').textContent = `${done} / ${all.length} đã lấy`;
     };
 
-    window.submitPicking = function () {
+    window.submitPicking = async function () {
       if (!activeSOId) return;
       const allPickChecks = document.querySelectorAll('input[id^="pick-chk-"]');
       const checksDone = [...allPickChecks].filter(c => c.checked).length;
@@ -478,34 +508,55 @@
         if (!confirm('Bạn chưa hoàn tất tất cả các mục soạn hàng hoặc kiểm tra trước xuất. Bạn có muốn gửi đơn hàng này để chờ phê duyệt không?')) {
           return;
         }
-        window.MockData.updateSOStatus(activeSOId, 'IN_PROGRESS');
+        await window.MockData.updateSOStatus(activeSOId, 'IN_PROGRESS');
       } else {
-        window.MockData.updateSOStatus(activeSOId, 'PACKING');
+        await window.MockData.updateSOStatus(activeSOId, 'PACKING');
       }
 
       document.getElementById('picking-submitted-modal').classList.add('open');
       updateOutbound();
     };
 
-    window.approveOutbound = function (soId, btn) {
-      window.MockData.updateSOStatus(soId, 'COMPLETED');
-      updateOutbound();
-      const card = btn.closest('.bg-white');
-      if (card) {
-        card.innerHTML = `
-          <div class="flex items-center gap-4 p-2">
-            <span class="material-symbols-outlined text-3xl text-green-600">check_circle</span>
-            <div>
-              <p class="font-bold text-green-700">✅ Đã phê duyệt xuất kho — ${soId}</p>
-              <p class="text-sm text-slate-500 mt-0.5">Hàng có thể xuất ra xe ngay bây giờ. ${new Date().toLocaleString('vi-VN')}</p>
-            </div>
-          </div>`;
+    window.approveOutbound = async function (soId, btn) {
+      const items = pickingSessionData[soId] || [];
+      if (items.length === 0) {
+          // If no picking data in session, try to find default batches (fallback)
+          const so = window.MockData.SALES_ORDERS.find(s => s.SO_ID === soId);
+          if (so) {
+              (so.itemsDetails || so.items || []).forEach(it => {
+                  const b = window.MockData.BATCHES.find(bx => bx.ProductID === it.ProductID && bx.BatchStatus === 'RELEASED');
+                  if (b) items.push({ ProductID: it.ProductID, BatchID: b.BatchID, batchInternalId: b.id || b.Id, ActualQty: it.OrderedQty || it.qty });
+              });
+          }
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="material-symbols-outlined animate-spin">sync</span> Đang xử lý...';
+
+      try {
+          await window.MockData.addGoodsIssue(soId, items);
+          
+          const card = btn.closest('.bg-white');
+          if (card) {
+            card.innerHTML = `
+              <div class="flex items-center gap-4 p-2">
+                <span class="material-symbols-outlined text-3xl text-green-600">check_circle</span>
+                <div>
+                  <p class="font-bold text-green-700">✅ Đã phê duyệt và xuất kho thành công — ${soId}</p>
+                  <p class="text-sm text-slate-500 mt-0.5">Số lượng tồn kho đã được cập nhật trên hệ thống. ${new Date().toLocaleString('vi-VN')}</p>
+                </div>
+              </div>`;
+          }
+          updateOutbound();
+      } catch (e) {
+          alert('Có lỗi xảy ra khi phê duyệt xuất kho: ' + e.message);
+          btn.disabled = false;
+          btn.innerHTML = '<span class="material-symbols-outlined text-sm">check</span> Phê duyệt Xuất kho';
       }
     };
 
-    window.rejectOutbound = function (soId, btn) {
-      window.MockData.updateSOStatus(soId, 'PICKING');
-      updateOutbound();
+    window.rejectOutbound = async function (soId, btn) {
+      await window.MockData.updateSOStatus(soId, 'PICKING');
       const card = btn.closest('.bg-white');
       if (card) {
         card.innerHTML = `
@@ -517,6 +568,7 @@
             </div>
           </div>`;
       }
+      updateOutbound();
     };
 
     window.switchOutboundTab = function (tabId) {

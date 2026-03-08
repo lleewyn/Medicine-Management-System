@@ -277,7 +277,7 @@ const COMPLAINTS = [
 
 const SALES_ORDERS = [
   {
-    SO_ID: 'SO-20260308-001', CustomerID: 'Hệ thống Nhà thuốc Pharmacity', region: 'TP.HCM',
+    SO_ID: 'SO-24-001', CustomerID: 'Hệ thống Nhà thuốc Pharmacity', region: 'TP.HCM',
     OrderDate: '08/03/2026', deadline: '09/03/2026 08:00', priority: 'URGENT', Status: 'PICKING', progress: '0/2 SKU', progressPct: 0,
     itemsDetails: [
       { ProductID: 'SKU-PFIZ-01', OrderedQty: 100, UnitPrice: 320000 },
@@ -285,7 +285,7 @@ const SALES_ORDERS = [
     ]
   },
   {
-    SO_ID: 'SO-20260307-002', CustomerID: 'Bệnh viện Đa khoa Tâm Anh', region: 'Hà Nội',
+    SO_ID: 'SO-24-002', CustomerID: 'Bệnh viện Đa khoa Tâm Anh', region: 'Hà Nội',
     OrderDate: '07/03/2026', deadline: '08/03/2026 10:00', priority: 'URGENT', Status: 'PACKING', progress: '2/3 SKU', progressPct: 66,
     itemsDetails: [
       { ProductID: 'SKU-PFIZ-01', OrderedQty: 50, UnitPrice: 320000 },
@@ -294,7 +294,7 @@ const SALES_ORDERS = [
     ]
   },
   {
-    SO_ID: 'SO-20260307-003', CustomerID: 'Chuỗi Nhà thuốc An Khang', region: 'Cần Thơ',
+    SO_ID: 'SO-24-003', CustomerID: 'Chuỗi Nhà thuốc An Khang', region: 'Cần Thơ',
     OrderDate: '07/03/2026', deadline: '10/03/2026 14:00', priority: 'NORMAL', Status: 'PICKING', progress: '0/2 SKU', progressPct: 0,
     itemsDetails: [
       { ProductID: 'SKU-HAPA-02', OrderedQty: 500, UnitPrice: 45000 },
@@ -302,7 +302,7 @@ const SALES_ORDERS = [
     ]
   },
   {
-    SO_ID: 'SO-20260306-005', CustomerID: 'Nhà thuốc Long Châu #12', region: 'Bình Dương',
+    SO_ID: 'SO-24-004', CustomerID: 'Nhà thuốc Long Châu #12', region: 'Bình Dương',
     OrderDate: '06/03/2026', deadline: '07/03/2026 15:00', priority: 'NORMAL', Status: 'DELIVERING', progress: '2/2 SKU', progressPct: 100,
     itemsDetails: [
       { ProductID: 'SKU-AZIT-03', OrderedQty: 50, UnitPrice: 85000 },
@@ -310,26 +310,26 @@ const SALES_ORDERS = [
     ]
   },
   {
-    SO_ID: 'SO-20260305-098', CustomerID: 'Bệnh viện Chợ Rẫy', region: 'TP.HCM',
+    SO_ID: 'SO-24-005', CustomerID: 'Bệnh viện Chợ Rẫy', region: 'TP.HCM',
     OrderDate: '05/03/2026', deadline: '06/03/2026 10:00', priority: 'URGENT', Status: 'DELIVERING', progress: 'Lấy hàng hoàn tất', progressPct: 100,
     itemsDetails: [
       { ProductID: 'SKU-INSU-05', OrderedQty: 20, UnitPrice: 750000 }
     ]
   },
   {
-    SO_ID: 'SO-20260304-085', CustomerID: 'Nhà thuốc An Khang Hà Nội', region: 'Hà Nội',
+    SO_ID: 'SO-24-006', CustomerID: 'Nhà thuốc An Khang Hà Nội', region: 'Hà Nội',
     OrderDate: '04/03/2026', deadline: '06/03/2026 10:00', priority: 'NORMAL', Status: 'COMPLETED', progress: 'Hoàn thành', progressPct: 100,
     itemsDetails: [
       { ProductID: 'SKU-VITA-04', OrderedQty: 50, UnitPrice: 120000 }
     ]
   },
   {
-    SO_ID: 'SO-20260302-001', CustomerID: 'Phòng khám Đa khoa Thu Cúc', region: 'Hà Nội',
+    SO_ID: 'SO-24-007', CustomerID: 'Phòng khám Đa khoa Thu Cúc', region: 'Hà Nội',
     OrderDate: '02/03/2026', deadline: '04/03/2026 09:00', priority: 'NORMAL', Status: 'COMPLETED', progress: 'Hoàn thành', progressPct: 100,
     itemsDetails: [{ ProductID: 'SKU-HAPA-02', OrderedQty: 100, UnitPrice: 45000 }]
   },
   {
-    SO_ID: 'SO-20260308-002', CustomerID: 'Hệ thống Pharmacity Miền Bắc', region: 'Bắc Ninh',
+    SO_ID: 'SO-24-008', CustomerID: 'Hệ thống Pharmacity Miền Bắc', region: 'Bắc Ninh',
     OrderDate: '08/03/2026', deadline: '10/03/2026 15:00', priority: 'NORMAL', Status: 'PICKING', progress: '0/2 SKU', progressPct: 0,
     itemsDetails: [
       { ProductID: 'SKU-PFIZ-01', OrderedQty: 500, UnitPrice: 320000 },
@@ -337,14 +337,14 @@ const SALES_ORDERS = [
     ]
   },
   {
-    SO_ID: 'SO-20260305-004', CustomerID: 'Bệnh viện Vinmec', region: 'TP.HCM',
+    SO_ID: 'SO-24-009', CustomerID: 'Bệnh viện Vinmec', region: 'TP.HCM',
     OrderDate: '05/03/2026', deadline: '07/03/2026 10:00', priority: 'URGENT', Status: 'CANCELLED', progress: 'Đã hủy', progressPct: 0,
     itemsDetails: [
       { ProductID: 'SKU-INSU-05', OrderedQty: 100, UnitPrice: 750000 }
     ]
   },
   {
-    SO_ID: 'SO-20260309-001', CustomerID: 'Nhà thuốc Minh Châu', region: 'Đà Nẵng',
+    SO_ID: 'SO-24-010', CustomerID: 'Nhà thuốc Minh Châu', region: 'Đà Nẵng',
     OrderDate: '09/03/2026', deadline: '11/03/2026 12:00', priority: 'NORMAL', Status: 'PENDING', progress: 'Chờ xử lý', progressPct: 0,
     itemsDetails: [
       { ProductID: 'SKU-HAPA-02', OrderedQty: 300, UnitPrice: 45000 },
@@ -359,12 +359,12 @@ const SALES_ORDERS = [
 
 const DELIVERIES = [
   {
-    id: 'DEL-001', SO_ID: 'SO-20260306-005', customer: 'Nhà thuốc Long Châu #12',
+    id: 'DEL-001', SO_ID: 'SO-24-004', customer: 'Nhà thuốc Long Châu #12',
     driver: 'Võ Công Danh', address: 'Bình Dương', Status: 'DELIVERING',
     estimatedTime: '16:00 hôm nay'
   },
   {
-    id: 'DEL-002', SO_ID: 'SO-20260305-098', customer: 'Bệnh viện Chợ Rẫy',
+    id: 'DEL-002', SO_ID: 'SO-24-005', customer: 'Bệnh viện Chợ Rẫy',
     driver: 'Võ Công Danh', address: '201B Nguyễn Chí Thanh, Q5, TP.HCM', Status: 'PENDING',
     estimatedTime: '09:00 ngày mai'
   },
@@ -542,6 +542,11 @@ const MockData = {
     const s = (_state.suppliers || []).find(x => x.id === id || x.SupplierID === id);
     return s ? s.name || s.SupplierName : id;
   },
+  getCustomerName(id) {
+    if (!id) return '—';
+    const c = (_state.customers || []).find(x => x.id === id || x.CustomerID === id);
+    return c ? c.name || c.CustomerName : id;
+  },
 
   // ── Auth helpers ─────────────────────────────────────────
   authenticateUser(username, password) {
@@ -699,14 +704,103 @@ const MockData = {
     so.Status = newStatus;
     saveState(_state);
     this._emit('so:updated', { soId, newStatus });
+    this._emit('pharma:statechange');
 
     // NocoDB Sync
     if (window.NocoBridge && window.NocoBridge.API_TOKEN !== 'YOUR_API_TOKEN_HERE') {
       try {
         await window.NocoBridge.updateRow('Sales_Orders', so.id || soId, { Status: newStatus });
+        console.log(`NocoDB: Updated SO ${soId} status to ${newStatus}`);
       } catch (e) { console.error('NocoDB sync failed:', e); }
     }
     return true;
+  },
+
+  /** Ghi nhận Xuất kho (vào NocoDB và local state) */
+  async addGoodsIssue(soId, items) {
+    const SO = _state.salesOrders.find(s => s.SO_ID === soId);
+    if (!SO) return null;
+
+    const IssueID = `GI-${new Date().getFullYear()}${String(Date.now()).slice(-4)}`;
+    const issueDate = new Date().toISOString().split('T')[0];
+
+    // Find internal ID for SO link
+    const soInternalId = SO.id || SO.Id;
+
+    const newIssue = {
+        IssueID,
+        IssueDate: issueDate,
+        SO_ID: SO.SO_ID,
+        Sales_Orders_id: soInternalId,
+        status: 'COMPLETED'
+    };
+
+    // 1. Local state Goods Issue
+    if (!_state.goodsIssues) _state.goodsIssues = [];
+    _state.goodsIssues.push(newIssue);
+    
+    let issueIdInNoco = null;
+    if (window.NocoBridge && window.NocoBridge.API_TOKEN !== 'YOUR_API_TOKEN_HERE') {
+        try {
+            const created = await window.NocoBridge.createRow('Goods_Issues', {
+                IssueID: newIssue.IssueID,
+                IssueDate: newIssue.IssueDate,
+                Sales_Orders_id: soInternalId
+            });
+            if (created) {
+                issueIdInNoco = created.Id || created.id;
+                newIssue.id = issueIdInNoco;
+            }
+        } catch (e) { console.error('NocoDB create Goods_Issue failed:', e); }
+    }
+
+    // 2. Create Issue Details and Update Inventory
+    if (!_state.issueDetails) _state.issueDetails = [];
+    
+    for (const item of items) {
+        const detail = {
+            DetailID: `GID-${String(Date.now()).slice(-6)}-${Math.floor(Math.random()*100)}`,
+            IssueID: IssueID,
+            Goods_Issues_id: issueIdInNoco,
+            Batches_id: item.batchInternalId || item.BatchID,
+            ShippedQty: item.ActualQty,
+            ActualQty: item.ActualQty,
+            ProductID: item.ProductID
+        };
+        _state.issueDetails.push(detail);
+
+        // a. Create detail in NocoDB
+        if (window.NocoBridge && window.NocoBridge.API_TOKEN !== 'YOUR_API_TOKEN_HERE' && issueIdInNoco) {
+            try {
+                await window.NocoBridge.createRow('Issue_Details', {
+                    DetailID: detail.DetailID,
+                    Goods_Issues_id: issueIdInNoco,
+                    Batches_id: detail.Batches_id,
+                    ShippedQty: detail.ShippedQty,
+                    ActualQty: detail.ActualQty
+                });
+                
+                // b. Update Inventory/Batch Quantity locally
+                const batch = _state.batches.find(b => b.BatchID === item.BatchID || b.id === item.batchInternalId);
+                if (batch) {
+                    batch.Quantity = (batch.Quantity || 0) - item.ActualQty;
+                    batch.qty = batch.Quantity;
+                    
+                    await window.NocoBridge.updateRow('Batches', batch.id || batch.BatchID, { 
+                        Quantity: batch.Quantity 
+                    });
+                }
+            } catch (e) { console.error('NocoDB Update failed for item:', item.ProductID, e); }
+        }
+    }
+
+    // 3. Update SO Status
+    await this.updateSOStatus(soId, 'COMPLETED');
+    
+    saveState(_state);
+    this.addAuditLog('Xuất kho', `Đã xuất kho cho đơn hàng ${soId}. IssueID: ${IssueID}`, 'success');
+    this._emit('pharma:statechange');
+    return newIssue;
   },
 
   /** Thêm SO mới */
@@ -796,6 +890,25 @@ const MockData = {
     this.addAuditLog('Hủy PO', `Đã hủy đơn mua hàng ${poId}`, 'warn');
     this.addNotification(`Đã hủy đơn mua hàng ${poId}`, 'warning');
     this._emit('po:updated', { poId });
+    return true;
+  },
+
+  async approvePO(poId) {
+    const po = _state.purchaseOrders.find(x => x.PO_ID === poId);
+    if (!po) return false;
+    po.Status = 'PENDING';
+    saveState(_state);
+    this.addAuditLog('Duyệt PO', `Đã phê duyệt đơn mua hàng ${poId}`, 'info');
+    this.addNotification(`Đơn mua hàng ${poId} đã được phê duyệt`, 'success');
+    this._emit('po:updated', { poId });
+    this._emit('pharma:statechange');
+
+    // NocoDB Sync
+    if (window.NocoBridge && window.NocoBridge.API_TOKEN !== 'YOUR_API_TOKEN_HERE') {
+      try {
+        await window.NocoBridge.updateRow('Purchase_Orders', po.id || poId, { Status: 'Đã duyệt' });
+      } catch (e) { console.error('NocoDB sync failed:', e); }
+    }
     return true;
   },
 
@@ -1107,14 +1220,21 @@ const MockData = {
         const uiBatches = batches.map(b => window.NocoMappers.toUIBatch(b));
         if (Array.isArray(inventory)) {
             _state.batches = uiBatches.map(b => {
-                const inv = inventory.find(i => window.NocoMappers._flatten(i.BatchID) === b.BatchID) || {};
+                // Find inventory record by matching BatchID inside the Batches object
+                const inv = inventory.find(i => {
+                    const mappedBatchID = window.NocoMappers._flatten(i.Batches, 'BatchID') || 
+                                        (i.Batches ? i.Batches.BatchID : null);
+                    return mappedBatchID === b.BatchID;
+                }) || {};
+                
                 const q = typeof inv.Quantity !== 'undefined' ? inv.Quantity : 
                           (typeof inv.quantity !== 'undefined' ? inv.quantity : 0);
+                
                 return {
                     ...b,
                     Quantity: q,
                     qty: q,
-                    LocationID: window.NocoMappers._flatten(inv.LocationID) || 'Chưa gán',
+                    LocationID: window.NocoMappers._flatten(inv.Warehouse_Locations, 'LocationID') || 'Chưa gán',
                     ReservedQty: inv.ReservedQty || 0
                 };
             });
@@ -1124,31 +1244,107 @@ const MockData = {
       }
 
       if (Array.isArray(suppliers)) _state.suppliers = suppliers.map(s => window.NocoMappers.toUISupplier(s));
-      if (Array.isArray(pos) && Array.isArray(poDetails)) {
+      if (Array.isArray(pos)) {
           _state.purchaseOrders = pos.map(p => {
               const base = window.NocoMappers.toUIPO(p);
-              const details = poDetails.filter(d => window.NocoMappers._flatten(d.PO_ID) === base.PO_ID);
-              base.total = details.reduce((acc, d) => acc + (d.OrderedQty || 0), 0);
-              base.received = details.reduce((acc, d) => acc + (d.ReceivedQty || 0), 0);
-              base.totalValue = details.reduce((acc, d) => acc + ((d.OrderedQty || 0) * (d.UnitPrice || 0)), 0);
-              base.itemsDetails = details;
-              return base;
-          });
-      } else if (Array.isArray(pos)) {
-          _state.purchaseOrders = pos.map(p => window.NocoMappers.toUIPO(p));
-      }
+              
+              // 1. Get PO Details to find metadata
+              const poDetailsForThisPO = (Array.isArray(poDetails) ? poDetails : [])
+                .filter(d => window.NocoMappers._flatten(d.PO_ID) === base.PO_ID);
+              
+              base.total = poDetailsForThisPO.reduce((acc, d) => acc + (d.OrderedQty || 0), 0);
+              base.totalItems = poDetailsForThisPO.length;
+              base.totalValue = poDetailsForThisPO.reduce((acc, d) => acc + ((d.OrderedQty || 0) * (d.UnitPrice || 0)), 0);
+
+              // 2. Get Goods Receipts for this PO
+              const receiptsForPo = (Array.isArray(receipts) ? receipts : [])
+                .filter(r => window.NocoMappers._flatten(r.PO_ID) === base.PO_ID);
+              const receiptIds = receiptsForPo.map(r => r.ReceiptID || r.Id);
+
+              // 3. Calculate fulfillment per product line
+              let fullyReceivedCount = 0;
+              let totalRealReceived = 0;
+
+              base.itemsDetails = poDetailsForThisPO.map(detail => {
+                  const pid = window.NocoMappers._flatten(detail.ProductID);
+                  
+                  // Find all receipt details for this specific product linked to this PO's receipts
+                  const receivedQtyForThisItem = (Array.isArray(rDetails) ? rDetails : [])
+                      .filter(rd => {
+                          const rid = window.NocoMappers._flatten(rd.ReceiptID);
+                          // In our DB, we link RD to Product via BatchID -> ProductID 
+                          // (or sometimes directly if your schema allows)
+                          // Looking at your Receipt_Details, it has BatchID.
+                          const b = (Array.isArray(batches) ? batches : []).find(b => b.BatchID === window.NocoMappers._flatten(rd.BatchID));
+                          const rdPid = b ? b.ProductID : window.NocoMappers._flatten(rd.ProductID);
+                          return receiptIds.includes(rid) && rdPid === pid;
+                      })
+                      .reduce((acc, rd) => acc + (rd.ActualQty || 0), 0);
+
+                  totalRealReceived += receivedQtyForThisItem;
+                  if (receivedQtyForThisItem >= (detail.OrderedQty || 0)) {
+                      fullyReceivedCount++;
+                  }
+
+                  return {
+                      ...detail,
+                      ProductID: pid,
+                      PO_ID: window.NocoMappers._flatten(detail.PO_ID),
+                      _actualReceived: receivedQtyForThisItem // For internal tracking
+                  };
+              });
+
+              base.received = totalRealReceived;
+
+              // 4. Robust Status Logic: Only COMPLETED if ALL lines are fulfilled
+              if (base.received <= 0) {
+                  // Keep initial mapped status
+              } else if (fullyReceivedCount === base.totalItems) {
+                  base.Status = 'COMPLETED';
+              } else {
+                  base.Status = 'PARTIAL';
+              }
+                return base;
+            });
+        }
       
-      if (Array.isArray(sos) && Array.isArray(soDetails)) {
+      if (Array.isArray(sos)) {
           _state.salesOrders = sos.map(s => {
               const base = window.NocoMappers.toUISO(s);
-              const details = soDetails.filter(d => window.NocoMappers._flatten(d.SO_ID) === base.SO_ID);
-              base.itemsCount = details.length;
-              base.totalValue = details.reduce((acc, d) => acc + ((d.OrderedQty || 0) * (d.UnitPrice || 45000)), 0);
-              base.itemsDetails = details;
+              
+              const soDetailsForThisSO = (Array.isArray(soDetails) ? soDetails : [])
+                .filter(d => window.NocoMappers._flatten(d.SO_ID) === base.SO_ID);
+              
+              base.total = soDetailsForThisSO.reduce((acc, d) => acc + (d.OrderedQty || 0), 0);
+              base.totalItems = soDetailsForThisSO.length;
+              base.itemsDetails = soDetailsForThisSO.map(d => ({
+                  ...d,
+                  ProductID: window.NocoMappers._flatten(d.ProductID),
+                  SO_ID: window.NocoMappers._flatten(d.SO_ID)
+              }));
+
+              const issuesForSo = (Array.isArray(issues) ? issues : [])
+                .filter(i => window.NocoMappers._flatten(i.SO_ID) === base.SO_ID);
+              
+              const issueIds = issuesForSo.map(i => i.IssueID || i.Id);
+              
+              const issuedFromDetails = (Array.isArray(iDetails) ? iDetails : [])
+                .filter(id => issueIds.includes(window.NocoMappers._flatten(id.IssueID)))
+                .reduce((acc, id) => acc + (id.ActualQty || 0), 0);
+
+              base.issued = issuedFromDetails;
+              base.progressPct = base.total > 0 ? Math.round((base.issued / base.total) * 100) : 0;
+              base.progress = `${base.issued}/${base.total} đơn vị`;
+
+              if (base.issued <= 0) {
+              } else if (base.issued < base.total) {
+                  base.Status = 'IN_PROGRESS';
+              } else {
+                  base.Status = 'COMPLETED';
+              }
+
               return base;
           });
-      } else if (Array.isArray(sos)) {
-          _state.salesOrders = sos.map(s => window.NocoMappers.toUISO(s));
       }
 
       if (Array.isArray(users)) {

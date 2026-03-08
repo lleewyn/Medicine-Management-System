@@ -1,5 +1,4 @@
 <div align="center">
-  <img src="https://img.icons8.com/fluency/96/medical-services.png" alt="PharmaWMS Logo" width="80" height="80" />
   <h1>💊 PharmaWMS</h1>
   <p><b>Hệ Thống Quản Lý Kho Dược Chuẩn GSP - Hiện Đại, Chuyên Nghiệp, Chính Xác</b></p>
 
