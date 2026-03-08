@@ -397,6 +397,39 @@
         document.getElementById('approval-count-badge').textContent = unifiedApprovals.length;
         document.getElementById('approval-count-badge').style.display = unifiedApprovals.length ? 'inline' : 'none';
 
+        // 5. Render mini chart (Doanh thu 6 tháng - Mockup data)
+        const chartBars = document.getElementById('chart-bars');
+        const chartLabels = document.getElementById('chart-labels');
+        if (chartBars && chartLabels) {
+            const chartData = [
+                { lbl: 'Tháng 10', val: 120 },
+                { lbl: 'Tháng 11', val: 168 },
+                { lbl: 'Tháng 12', val: 245 },
+                { lbl: 'Tháng 1', val: 290 },
+                { lbl: 'Tháng 2', val: 185 },
+                { lbl: 'Tháng Nay', val: 210 }
+            ];
+            const maxVal = Math.max(...chartData.map(d => d.val));
+            
+            chartBars.innerHTML = chartData.map(d => {
+                const h = Math.max(10, (d.val / maxVal) * 100);
+                const isCurrent = d.lbl === 'Tháng Nay';
+                return `
+                <div class="flex-1 flex flex-col justify-end group relative cursor-pointer h-full">
+                    <div class="absolute -top-7 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] font-bold py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity z-10 whitespace-nowrap shadow-lg">
+                        ${d.val} Triệu
+                    </div>
+                    <div class="w-full rounded-t-lg transition-all duration-500 ease-out ${isCurrent ? 'bg-primary' : 'bg-primary/20 group-hover:bg-primary/50'}" style="height: ${h}%"></div>
+                </div>`;
+            }).join('');
+            
+            chartLabels.innerHTML = chartData.map(d => `
+                <div class="flex-1 text-center truncate ${d.lbl === 'Tháng Nay' ? 'text-primary font-bold' : ''}">
+                    ${d.lbl}
+                </div>
+            `).join('');
+        }
+
         // 4. Report & Quality
         const sos = window.MockData.SALES_ORDERS || [];
         let totalOut = 0;
