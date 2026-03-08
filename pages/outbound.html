@@ -253,7 +253,14 @@
               </span>
             </td>
             <td class="px-5 py-4 text-sm font-medium text-slate-600">
-              ${s.Status === 'PICKING' ? 'Chờ soạn hàng' : s.Status === 'IN_PROGRESS' ? 'Đang soạn hàng' : s.Status === 'PACKING' ? '<span class="text-amber-600 font-bold">Chờ phê duyệt</span>' : s.Status}
+              ${s.Status === 'PICKING' ? 'Chờ soạn hàng' : 
+                s.Status === 'IN_PROGRESS' ? 'Đang soạn hàng' : 
+                s.Status === 'PACKING' ? '<span class="text-amber-600 font-bold">Chờ phê duyệt</span>' : 
+                s.Status === 'DELIVERING' ? 'Đang giao hàng' : 
+                s.Status === 'COMPLETED' ? '<span class="text-green-600 font-bold">Đã hoàn thành</span>' : 
+                s.Status === 'CANCELLED' ? '<span class="text-red-500 line-through">Đã hủy</span>' : 
+                s.Status === 'PENDING' ? 'Chờ xử lý' : 
+                s.Status}
             </td>
             <td class="px-5 py-4 text-right">
               ${s.Status === 'PICKING' || s.Status === 'IN_PROGRESS' ? `
