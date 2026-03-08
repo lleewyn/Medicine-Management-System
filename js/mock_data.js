@@ -818,6 +818,7 @@ const MockData = {
     this.addAuditLog('Cập nhật SO', `Đã cập nhật đơn hàng ${soId}`, 'info');
     this.addNotification(`Đã cập nhật thông tin đơn hàng ${soId}`, 'info');
     this._emit('so:updated', { soId });
+    this._emit('pharma:statechange');
     return so;
   },
 
@@ -829,6 +830,15 @@ const MockData = {
     this.addAuditLog('Hủy SO', `Đã hủy đơn hàng ${soId}`, 'warn');
     this.addNotification(`Đã hủy đơn hàng ${soId}`, 'warning');
     this._emit('so:updated', { soId });
+    this._emit('pharma:statechange');
+    
+    // Remote NocoDB sync
+    if (window.NocoBridge && window.NocoBridge.API_TOKEN !== 'YOUR_API_TOKEN_HERE') {
+      try {
+        window.NocoBridge.updateRow('Sales_Orders', so.id || soId, { Status: 'CANCELLED' });
+      } catch (e) { console.error(e); }
+    }
+    
     return true;
   },
 
@@ -848,6 +858,7 @@ const MockData = {
     _state.salesOrders.unshift(so);
     saveState(_state);
     this._emit('so:added', { so });
+    this._emit('pharma:statechange');
     this.addAuditLog('Lập SO', `Đã tạo đơn hàng ${SO_ID} cho khách ${CustomerID}`, 'info');
     this.addNotification(`Đơn hàng ${SO_ID} đã được tạo — chờ kho soạn hàng`, 'info');
 

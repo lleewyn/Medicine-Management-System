@@ -589,7 +589,7 @@
             document.getElementById('so-cancel-edit-btn').classList.add('hidden');
         };
 
-        window.submitSO = function () {
+        window.submitSO = async function () {
             const customer = document.getElementById('so-customer').value;
             if (!customer || !soItems.length) { alert('Vui lòng nhập tên khách hàng và thêm sản phẩm!'); return; }
 
@@ -601,16 +601,21 @@
                 itemsDetails: soItems.map(i => ({ ProductID: i.id, OrderedQty: i.qty, UnitPrice: i.price }))
             };
 
+            const btnText = document.getElementById('so-submit-text');
+            const originalText = btnText.textContent;
+            btnText.textContent = 'Đang xử lý...';
+
             if (editingSOId) {
                 window.MockData.updateSO(editingSOId, data);
                 document.getElementById('new-so-id').textContent = editingSOId;
                 document.getElementById('so-success-modal').querySelector('h3').textContent = 'Đã cập nhật đơn hàng!';
             } else {
-                const newSO = window.MockData.addSO(data);
+                const newSO = await window.MockData.addSO(data);
                 document.getElementById('new-so-id').textContent = newSO.SO_ID;
                 document.getElementById('so-success-modal').querySelector('h3').textContent = 'Đơn hàng đã được lập!';
             }
 
+            btnText.textContent = originalText;
             document.getElementById('so-success-modal').classList.add('open');
             resetSOForm();
         };
