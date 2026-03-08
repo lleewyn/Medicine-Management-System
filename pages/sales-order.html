@@ -97,11 +97,13 @@
                         <span class="material-symbols-outlined text-primary">store</span> Thông tin Khách hàng
                     </h4>
                     <div class="grid grid-cols-2 gap-4">
-                        <div class="col-span-2">
-                            <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase">Tên khách hàng / Đại
-                                lý</label>
-                            <input type="text" id="so-customer" placeholder="VD: Hệ thống Nhà thuốc Pharmacity"
+                        <div class="col-span-2 relative">
+                            <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase">Tên khách hàng / Đại lý</label>
+                            <input type="text" id="so-customer" list="customers-list" autocomplete="off" placeholder="VD: Hệ thống Nhà thuốc Pharmacity (hoặc gõ tên mới)"
                                 class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20">
+                            <datalist id="customers-list">
+                                <!-- Rendered by JS -->
+                            </datalist>
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase">Số điện thoại</label>
@@ -384,6 +386,13 @@
             }
         }
 
+        function populateCustomers() {
+            const datalist = document.getElementById('customers-list');
+            if (datalist && window.MockData.CUSTOMERS) {
+                datalist.innerHTML = window.MockData.CUSTOMERS.map(c => `<option value="${c.name || c.CustomerName}"></option>`).join('');
+            }
+        }
+
         let editingSOId = null;
 
         // 2. SO Items Management
@@ -559,8 +568,12 @@
         window.filterStock = () => updateStockAndList();
 
         // Init & Listeners
+        populateCustomers();
         updateStockAndList();
-        window.addEventListener('pharma:statechange', updateStockAndList);
+        window.addEventListener('pharma:statechange', () => {
+            updateStockAndList();
+            populateCustomers();
+        });
 
         // Set default deadline
         const d = new Date();

@@ -833,7 +833,8 @@ const MockData = {
   },
 
   async addSO({ CustomerID, region, priority, deadline, itemsDetails }) {
-    const SO_ID = `SO-${new Date().getFullYear()}${String(Date.now()).slice(-4)}-${Math.floor(Math.random() * 900 + 100)}`;
+    const startNum = 100 + _state.salesOrders.length;
+    const SO_ID = `SO-24-${String(startNum).padStart(3, '0')}`;
     const so = {
       SO_ID, CustomerID, region,
       priority: priority || 'NORMAL',
@@ -850,12 +851,63 @@ const MockData = {
     this.addAuditLog('Lập SO', `Đã tạo đơn hàng ${SO_ID} cho khách ${CustomerID}`, 'info');
     this.addNotification(`Đơn hàng ${SO_ID} đã được tạo — chờ kho soạn hàng`, 'info');
 
-    // NocoDB Sync
+    // NocoDB Sync with proper relations
     if (window.NocoBridge && window.NocoBridge.API_TOKEN !== 'YOUR_API_TOKEN_HERE') {
       try {
-        const created = await window.NocoBridge.createRow('Sales_Orders', so);
-        if (created && created.id) so.id = created.id;
-      } catch (e) { console.error('NocoDB sync failed:', e); }
+        let nocoCustId = null;
+        let cName = (CustomerID || '').trim();
+        
+        // Find existing customer id
+        const matchedCust = this.CUSTOMERS.find(c => (c.name || c.CustomerName || '').toLowerCase() === cName.toLowerCase());
+        
+        if (matchedCust && (matchedCust.id || matchedCust.Id)) {
+            nocoCustId = matchedCust.id || matchedCust.Id;
+        } else {
+            // Create new customer if not exists
+            const rngId = `CUST-${Math.floor(Math.random() * 900) + 100}`;
+            const newCust = await window.NocoBridge.createRow('Customers', {
+                CustomerName: cName,
+                CustomerID: rngId,
+                Status: 'Active'
+            });
+            if (newCust && newCust.Id) {
+                nocoCustId = newCust.Id;
+                this.CUSTOMERS.push({ id: newCust.Id, name: cName, CustomerID: rngId }); // update local cache
+            }
+        }
+
+        // 1. Create SO Header
+        const payloadSO = {
+            SO_ID,
+            OrderDate: new Date().toISOString().split('T')[0],
+            DeliveryAddress: region || '',
+            Priority: priority || 'NORMAL',
+            Status: 'Mới',
+            Customers_id: nocoCustId
+        };
+        
+        // Default to IT User ID 9 or find Admin User
+        const adminUser = this.USERS.find(u => u.role === 'SYSTEM_ADMIN' || u.role === 'SALES_STAFF');
+        if (adminUser) payloadSO.Users_id = adminUser.id || adminUser.Id;
+
+        const createdSO = await window.NocoBridge.createRow('Sales_Orders', payloadSO);
+        if (createdSO && createdSO.Id) {
+            so.id = createdSO.Id;
+            
+            // 2. Create SO Details (Items)
+            for (const item of itemsDetails) {
+                const prod = this.PRODUCTS.find(p => p.ProductID === item.ProductID);
+                if (prod && (prod.id || prod.Id)) {
+                    await window.NocoBridge.createRow('Sales_Order_Details', {
+                        Sales_Orders_id: so.id,
+                        Products_id: prod.id || prod.Id,
+                        OrderedQty: item.OrderedQty || item.qty,
+                        UnitPrice: item.UnitPrice || item.price || 0
+                    });
+                }
+            }
+        }
+      } catch (e) { console.error('NocoDB SO sync failed:', e); }
     }
     return so;
   },
