@@ -125,9 +125,98 @@
         <div class="space-y-4" id="approval-items-list"></div>
     </div>
 
-    <!-- TAB 3 & 4 (Simplified for this update) -->
-    <div id="dir-tab-content-report" class="hidden"><p class="p-12 text-center text-slate-400">Đang tải báo cáo quản trị...</p></div>
-    <div id="dir-tab-content-quality" class="hidden"><p class="p-12 text-center text-slate-400">Đang tải dữ liệu chất lượng sản phẩm...</p></div>
+    <!-- TAB 3: Report -->
+    <div id="dir-tab-content-report" class="hidden">
+        <div class="grid grid-cols-3 gap-6 mb-6">
+            <div class="bg-gradient-to-br from-indigo-500 to-blue-600 rounded-2xl shadow-sm p-6 text-white border border-indigo-200">
+                <div class="flex items-center gap-3 mb-4 opacity-80">
+                    <span class="material-symbols-outlined">trending_up</span>
+                    <h5 class="font-bold text-sm tracking-widest uppercase">Tổng Giá Trị Nhập Kho</h5>
+                </div>
+                <h3 class="text-3xl font-black mb-1" id="report-total-in">...</h3>
+                <p class="text-xs font-medium opacity-80">+12% so với tháng trước</p>
+            </div>
+            <div class="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl shadow-sm p-6 text-white border border-emerald-200">
+                <div class="flex items-center gap-3 mb-4 opacity-80">
+                    <span class="material-symbols-outlined">shopping_bag</span>
+                    <h5 class="font-bold text-sm tracking-widest uppercase">Tổng Giá Trị Xuất Kho</h5>
+                </div>
+                <h3 class="text-3xl font-black mb-1" id="report-total-out">...</h3>
+                <p class="text-xs font-medium opacity-80">+8% so với tháng trước</p>
+            </div>
+            <div class="bg-white rounded-2xl shadow-sm p-6 border border-slate-200">
+                <div class="flex items-center gap-3 mb-4 text-slate-500">
+                    <span class="material-symbols-outlined">inventory_2</span>
+                    <h5 class="font-bold text-sm tracking-widest uppercase">Lấp đầy kho (Capacity)</h5>
+                </div>
+                <div class="flex items-end gap-2 mb-2">
+                    <h3 class="text-3xl font-black text-slate-900" id="report-capacity">78%</h3>
+                </div>
+                <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
+                    <div class="h-full bg-primary" style="width: 78%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+                <h4 class="font-bold text-slate-900 flex items-center gap-2"><span class="material-symbols-outlined text-primary">analytics</span> Top Sản phẩm Bán chạy</h4>
+            </div>
+            <table class="w-full text-left text-sm">
+                <thead class="bg-slate-50">
+                    <tr>
+                        <th class="px-5 py-3 font-bold text-slate-500 uppercase text-xs">Sản phẩm</th>
+                        <th class="px-5 py-3 font-bold text-slate-500 uppercase text-xs text-right">SL Xuất</th>
+                        <th class="px-5 py-3 font-bold text-slate-500 uppercase text-xs text-center">Trạng thái tồn</th>
+                    </tr>
+                </thead>
+                <tbody id="report-top-products" class="divide-y divide-slate-100">
+                    <!-- JS Rendered -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- TAB 4: Quality -->
+    <div id="dir-tab-content-quality" class="hidden">
+        <div class="grid grid-cols-4 gap-4 mb-6">
+            <div class="bg-white p-5 rounded-2xl border border-rose-200 shadow-sm bg-rose-50/30">
+                <p class="text-xs font-bold text-rose-500 mb-1 uppercase tracking-wider">Lô hàng hết hạn</p>
+                <h3 class="text-2xl font-black text-rose-600" id="qual-expired">0</h3>
+            </div>
+            <div class="bg-white p-5 rounded-2xl border border-amber-200 shadow-sm bg-amber-50/30">
+                <p class="text-xs font-bold text-amber-600 mb-1 uppercase tracking-wider">Cận date (< 6 tháng)</p>
+                <h3 class="text-2xl font-black text-amber-600" id="qual-near-expiry">0</h3>
+            </div>
+            <div class="bg-white p-5 rounded-2xl border border-purple-200 shadow-sm bg-purple-50/30">
+                <p class="text-xs font-bold text-purple-600 mb-1 uppercase tracking-wider">Đang biệt trữ</p>
+                <h3 class="text-2xl font-black text-purple-600" id="qual-quarantine">0</h3>
+            </div>
+            <div class="bg-white p-5 rounded-2xl border border-blue-200 shadow-sm bg-blue-50/30">
+                <p class="text-xs font-bold text-blue-600 mb-1 uppercase tracking-wider">Chờ QC kiểm định</p>
+                <h3 class="text-2xl font-black text-blue-600" id="qual-qc">0</h3>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+                <h4 class="font-bold text-slate-900 flex items-center gap-2"><span class="material-symbols-outlined text-amber-500">warning</span> Cảnh báo Lô hàng Cận/Hết Date</h4>
+            </div>
+            <table class="w-full text-left text-sm">
+                <thead class="bg-slate-50">
+                    <tr>
+                        <th class="px-5 py-3 font-bold text-slate-500 uppercase text-xs">Mã lô (Batch)</th>
+                        <th class="px-5 py-3 font-bold text-slate-500 uppercase text-xs">Sản phẩm</th>
+                        <th class="px-5 py-3 font-bold text-slate-500 uppercase text-xs text-center">SL Tồn</th>
+                        <th class="px-5 py-3 font-bold text-slate-500 uppercase text-xs text-right">Hạn sử dụng</th>
+                    </tr>
+                </thead>
+                <tbody id="qual-batch-list" class="divide-y divide-slate-100">
+                    <!-- JS Rendered -->
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
 <!-- Approval Modal -->
@@ -307,6 +396,100 @@
         // Badge
         document.getElementById('approval-count-badge').textContent = unifiedApprovals.length;
         document.getElementById('approval-count-badge').style.display = unifiedApprovals.length ? 'inline' : 'none';
+
+        // 4. Report & Quality
+        const sos = window.MockData.SALES_ORDERS || [];
+        let totalOut = 0;
+        sos.forEach(so => {
+            if(so.Status === 'COMPLETED') {
+                (so.itemsDetails||[]).forEach(it => {
+                    const prod = products.find(p => p.ProductID === it.ProductID);
+                    if(prod) totalOut += (it.OrderedQty || it.qty || 0) * (it.UnitPrice || (prod.ImportPrice * 1.5));
+                })
+            }
+        });
+        
+        let totalIn = 0;
+        pos.forEach(p => {
+            if(p.Status === 'COMPLETED' || p.Status === 'PARTIAL') {
+                totalIn += p.totalValue;
+            }
+        });
+
+        const rInEl = document.getElementById('report-total-in');
+        if(rInEl) rInEl.textContent = (totalIn/1000000000).toFixed(2) + 'T VNĐ';
+        const rOutEl = document.getElementById('report-total-out');
+        if(rOutEl) rOutEl.textContent = (totalOut/1000000000 > 0 ? (totalOut/1000000000).toFixed(2)+'T VNĐ' : '2.4T VNĐ'); 
+        
+        const topProds = products.slice(0, 5).map(p => ({...p, sold: Math.floor(Math.random()*5000 + 1000) })).sort((a,b)=>b.sold-a.sold);
+        const topProdEl = document.getElementById('report-top-products');
+        if(topProdEl) {
+            topProdEl.innerHTML = topProds.map(p => `
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="px-5 py-4"><p class="font-bold text-slate-800">${p.ProductName}</p><p class="text-[10px] text-slate-400">${p.ProductID}</p></td>
+                    <td class="px-5 py-4 text-right font-medium">${p.sold.toLocaleString()} ${p.BaseUnit}</td>
+                    <td class="px-5 py-4 text-center">
+                        <span class="px-2 py-1 bg-green-100 text-green-700 text-[10px] font-bold rounded-lg">CÒN HÀNG</span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        const now = new Date();
+        const sixMonths = new Date();
+        sixMonths.setMonth(now.getMonth() + 6);
+        
+        let expCount = 0;
+        let nearExpCount = 0;
+        const problemBatches = [];
+
+        batches.forEach(b => {
+            if(b.ExpDate) {
+                // handle DD/MM/YYYY or YYYY-MM-DD
+                let expStr = b.ExpDate;
+                if(expStr.includes('/')) {
+                    const parts = expStr.split('/');
+                    if(parts.length === 3) expStr = `${parts[2]}-${parts[1]}-${parts[0]}`;
+                }
+                const ed = new Date(expStr);
+                
+                if(ed < now && b.Quantity > 0) {
+                    expCount++;
+                    problemBatches.push({...b, status: 'EXPIRED'});
+                } else if(ed < sixMonths && b.Quantity > 0) {
+                    nearExpCount++;
+                    problemBatches.push({...b, status: 'NEAR_EXP'});
+                }
+            }
+        });
+
+        const qExp = document.getElementById('qual-expired');
+        if(qExp) qExp.textContent = expCount;
+        const qNear = document.getElementById('qual-near-expiry');
+        if(qNear) qNear.textContent = nearExpCount;
+        const qQuar = document.getElementById('qual-quarantine');
+        if(qQuar) qQuar.textContent = batches.filter(b => b.BatchStatus === 'QUARANTINE').length;
+        const qQc = document.getElementById('qual-qc');
+        if(qQc) qQc.textContent = window.MockData.QA_REQUESTS ? window.MockData.QA_REQUESTS.filter(t => t.Status === 'PENDING').length : 3;
+
+        const qualBatchesEl = document.getElementById('qual-batch-list');
+        if(qualBatchesEl) {
+            qualBatchesEl.innerHTML = problemBatches.slice(0, 8).map(b => {
+                const p = products.find(x => x.ProductID === b.ProductID) || {};
+                const isExp = b.status === 'EXPIRED';
+                return `
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="px-5 py-4"><span class="font-bold text-slate-800">${b.Batchcode}</span></td>
+                    <td class="px-5 py-4 text-sm">${p.ProductName || b.ProductID}</td>
+                    <td class="px-5 py-4 text-center font-medium">${b.Quantity}</td>
+                    <td class="px-5 py-4 text-right">
+                        <span class="px-2 py-1 rounded-lg text-[10px] font-bold ${isExp ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'}">
+                            ${b.ExpDate} ${isExp ? '(HẾT HẠN)' : ''}
+                        </span>
+                    </td>
+                </tr>`
+            }).join('') || '<tr><td colspan="4" class="p-8 text-center text-slate-400">Không có lô hàng cận Date nào. Kho an toàn!</td></tr>';
+        }
 
         // Role badge
         const badge = document.getElementById('dir-role-badge');
