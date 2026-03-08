@@ -110,9 +110,9 @@
             <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase">Mã SO</th>
             <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase">Khách hàng</th>
             <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase">Hạn giao</th>
-            <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase">Ưu tiên</th>
-            <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase">Trạng thái</th>
-            <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase text-right">Thao tác</th>
+            <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase text-center w-28">Ưu tiên</th>
+            <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase text-center w-40">Trạng thái</th>
+            <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase text-right w-36">Thao tác</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-100" id="so-table-body"></tbody>
@@ -247,20 +247,20 @@
               <p class="text-xs text-slate-400">${s.region || ''}</p>
             </td>
             <td class="px-5 py-4 text-sm ${s.priority === 'URGENT' ? 'text-red-600 font-bold' : 'text-slate-500'}">${s.deadline}</td>
-            <td class="px-5 py-4">
-              <span class="px-2 py-1 rounded-full text-[10px] font-bold ${s.priority === 'URGENT' ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-600'}">
+            <td class="px-5 py-4 text-center">
+              <span class="inline-flex items-center justify-center px-2 py-1 rounded-full text-[10px] font-bold ${s.priority === 'URGENT' ? 'bg-rose-50 text-rose-600 border border-rose-200' : 'bg-slate-50 text-slate-500 border border-slate-200'}">
                 ${s.priority === 'URGENT' ? 'KHẨN CẤP' : 'BÌNH THƯỜNG'}
               </span>
             </td>
-            <td class="px-5 py-4 text-sm font-medium text-slate-600">
-              ${s.Status === 'PICKING' ? 'Chờ soạn hàng' : 
-                s.Status === 'IN_PROGRESS' ? 'Đang soạn hàng' : 
-                s.Status === 'PACKING' ? '<span class="text-amber-600 font-bold">Chờ phê duyệt</span>' : 
-                s.Status === 'DELIVERING' ? 'Đang giao hàng' : 
-                s.Status === 'COMPLETED' ? '<span class="text-green-600 font-bold">Đã hoàn thành</span>' : 
-                s.Status === 'CANCELLED' ? '<span class="text-red-500 line-through">Đã hủy</span>' : 
-                s.Status === 'PENDING' ? 'Chờ xử lý' : 
-                s.Status}
+            <td class="px-5 py-4 text-center">
+              ${s.Status === 'PICKING' ? '<span class="inline-flex px-3 py-1.5 bg-blue-50 border border-blue-200 text-blue-700 rounded-full text-xs font-bold shadow-sm justify-center min-w-[120px]">Chờ soạn hàng</span>' : 
+                s.Status === 'IN_PROGRESS' ? '<span class="inline-flex px-3 py-1.5 bg-purple-50 border border-purple-200 text-purple-700 rounded-full text-xs font-bold shadow-sm justify-center min-w-[120px]">Đang soạn hàng</span>' : 
+                s.Status === 'PACKING' ? '<span class="inline-flex px-3 py-1.5 bg-amber-50 border border-amber-200 text-amber-700 rounded-full text-xs font-bold shadow-sm justify-center min-w-[120px]">Chờ phê duyệt</span>' : 
+                s.Status === 'DELIVERING' ? '<span class="inline-flex px-3 py-1.5 bg-indigo-50 border border-indigo-200 text-indigo-700 rounded-full text-xs font-bold shadow-sm justify-center min-w-[120px]">Đang giao hàng</span>' : 
+                s.Status === 'COMPLETED' ? '<span class="inline-flex px-3 py-1.5 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-full text-xs font-bold shadow-sm justify-center min-w-[120px]">Đã hoàn thành</span>' : 
+                s.Status === 'CANCELLED' ? '<span class="inline-flex px-3 py-1.5 bg-rose-50 border border-rose-200 text-rose-500 rounded-full text-xs font-bold shadow-sm justify-center line-through min-w-[120px]">Đã hủy</span>' : 
+                s.Status === 'PENDING' ? '<span class="inline-flex px-3 py-1.5 bg-slate-50 border border-slate-200 text-slate-500 rounded-full text-xs font-bold shadow-sm justify-center min-w-[120px]">Chờ xử lý</span>' : 
+                `<span class="inline-flex px-3 py-1.5 bg-gray-50 border border-gray-200 text-gray-700 rounded-full text-xs font-bold shadow-sm justify-center min-w-[120px]">${s.Status}</span>`}
             </td>
             <td class="px-5 py-4 text-right">
               ${s.Status === 'PICKING' || s.Status === 'IN_PROGRESS' ? `
