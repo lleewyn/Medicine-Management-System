@@ -57,16 +57,32 @@ const NocoMappers = {
             SupplierID: this._flatten(nocoBatch.SupplierID),
             Batchcode: this._flatten(nocoBatch.Batchcode),
             BatchStatus: statusMap[rawStatus] || rawStatus,
-            // Only overwrite LocationID if the linked object exists, otherwise keep existing
             LocationID: nocoBatch.Warehouse_Locations ? this._flatten(nocoBatch.Warehouse_Locations, 'LocationID') : 
                        (this._flatten(nocoBatch.LocationID) || 'Chưa gán')
         };
         return {
             ...flattened,
-            id: flattened.BatchID,
+            nocoId: nocoBatch.Id || nocoBatch.id, // Keep original NocoDB Internal ID
+            id: flattened.BatchID, // UI uses human BatchID
             Quantity: nocoBatch.Quantity || nocoBatch.quantity || 0,
             qty: nocoBatch.Quantity || nocoBatch.quantity || 0,
         };
+    },
+
+    /**
+     * Map UI Status back to NocoDB Status Label
+     */
+    fromUIStatus(uiStatus) {
+        const reverseMap = {
+            'RELEASED': 'Đã duyệt',
+            'QUARANTINE': 'Biệt trữ',
+            'PENDING_PUTAWAY': 'Chờ cất hàng',
+            'LOCKED': 'Đã khóa',
+            'DESTROYED': 'Đã tiêu hủy',
+            'CANCELLED': 'Đã hủy',
+            'COMPLETED': 'Hoàn tất'
+        };
+        return reverseMap[uiStatus] || uiStatus;
     },
 
     /**

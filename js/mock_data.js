@@ -590,7 +590,7 @@ const MockData = {
     return role.permissions.includes(permission) || role.permissions.includes('write_all');
   },
   getAllUsers() { return _state.users || USERS; },
-  addUser(userData) {
+  async addUser(userData) {
     if (!_state.users) _state.users = JSON.parse(JSON.stringify(USERS));
     const newUser = {
       UserID: 'U' + (Math.random() * 1000).toFixed(0).padStart(3, '0'),
@@ -602,9 +602,28 @@ const MockData = {
     saveState(_state);
     this.addAuditLog('Thêm người dùng', `Đã tạo tài khoản cho ${newUser.username}`, 'info');
     this._emit('user:added', { user: newUser });
+
+    // NocoDB Sync
+    if (window.NocoBridge && window.NocoBridge.API_TOKEN !== 'YOUR_API_TOKEN_HERE') {
+      try {
+        const roleNameToId = {
+            'SYSTEM_ADMIN': 'ROLE-01', 'WAREHOUSE_MANAGER': 'ROLE-02', 'WAREHOUSE_STAFF': 'ROLE-03',
+            'DIRECTOR': 'ROLE-04', 'DRIVER': 'ROLE-05', 'SALES_STAFF': 'ROLE-06',
+            'PROCUREMENT_STAFF': 'ROLE-07', 'QA_PHARMACIST': 'ROLE-08', 'QC_SPECIALIST': 'ROLE-09',
+            'ACCOUNTANT': 'ROLE-10'
+        };
+        await window.NocoBridge.createRow('Users', {
+            UserID: newUser.UserID,
+            FullName: newUser.FullName,
+            Email: newUser.username + '@pharmawms.com', // Fake email for NocoDB compatibility
+            RoleID: roleNameToId[newUser.role] || 'ROLE-03'
+        });
+      } catch (e) { console.error('NocoDB user sync failed:', e); }
+    }
+
     return newUser;
   },
-  updateUserRole(userId, newRole) {
+  async updateUserRole(userId, newRole) {
     if (!_state.users) _state.users = JSON.parse(JSON.stringify(USERS));
     const user = _state.users.find(u => u.UserID === userId);
     if (!user) return false;
@@ -613,14 +632,34 @@ const MockData = {
     saveState(_state);
     this.addAuditLog('Thay đổi quyền', `Người dùng ${user.username}: ${oldRole} → ${newRole}`, 'warn');
     this._emit('user:updated', { userId, newRole });
+
+    // NocoDB Sync
+    if (window.NocoBridge && window.NocoBridge.API_TOKEN !== 'YOUR_API_TOKEN_HERE') {
+      try {
+        const roleNameToId = {
+            'SYSTEM_ADMIN': 'ROLE-01', 'WAREHOUSE_MANAGER': 'ROLE-02', 'WAREHOUSE_STAFF': 'ROLE-03',
+            'DIRECTOR': 'ROLE-04', 'DRIVER': 'ROLE-05', 'SALES_STAFF': 'ROLE-06',
+            'PROCUREMENT_STAFF': 'ROLE-07', 'QA_PHARMACIST': 'ROLE-08', 'QC_SPECIALIST': 'ROLE-09',
+            'ACCOUNTANT': 'ROLE-10'
+        };
+        await window.NocoBridge.updateRow('Users', user.id || user.Id || userId, {
+            RoleID: roleNameToId[newRole] || 'ROLE-03'
+        });
+      } catch (e) { console.error('NocoDB user update failed:', e); }
+    }
+
     return true;
   },
-  deleteUser(userId) {
+  async deleteUser(userId) {
     if (!_state.users) _state.users = JSON.parse(JSON.stringify(USERS));
+    const user = _state.users.find(u => u.UserID === userId);
     _state.users = _state.users.filter(u => u.UserID !== userId);
     saveState(_state);
     this.addAuditLog('Xóa người dùng', `Đã xóa ID ${userId}`, 'error');
     this._emit('user:deleted', { userId });
+
+    // NocoDB Delete Sync (not implemented in Bridge yet, but using updateRow as placeholder if needed or skipping)
+    // For now, users are usually just deactivated or we could add deleteRow to Bridge
     return true;
   },
 
@@ -644,7 +683,8 @@ const MockData = {
     // NocoDB Sync
     if (window.NocoBridge && window.NocoBridge.API_TOKEN !== 'YOUR_API_TOKEN_HERE') {
       try {
-        await window.NocoBridge.updateRow('Batches', b.id || batchId, { BatchStatus: newStatus, Quantity: b.Quantity });
+        const dbStatus = window.NocoMappers ? window.NocoMappers.fromUIStatus(newStatus) : newStatus;
+        await window.NocoBridge.updateRow('Batches', b.nocoId || b.id || batchId, { BatchStatus: dbStatus, Quantity: b.Quantity });
       } catch (e) { console.error('NocoDB sync failed:', e); }
     }
     return true;
@@ -666,11 +706,9 @@ const MockData = {
     // NocoDB Sync
     if (window.NocoBridge && window.NocoBridge.API_TOKEN !== 'YOUR_API_TOKEN_HERE') {
       try {
-        // Cập nhật cả bảng Batches (trạng thái) và Inventory (vị trí/số lượng)
-        await window.NocoBridge.updateRow('Batches', b.id || batchId, { BatchStatus: 'RELEASED' });
-        // NOTE: Trong NocoDB thực tế, Inventory thường được map qua BatchID. 
-        // Nếu BatchID là ID của Inventory record thì update trực tiếp.
-        await window.NocoBridge.updateRow('Inventory', b.id || batchId, { LocationID: newLocation, BatchStatus: 'RELEASED' }).catch(() => {});
+        const dbStatus = window.NocoMappers ? window.NocoMappers.fromUIStatus('RELEASED') : 'RELEASED';
+        await window.NocoBridge.updateRow('Batches', b.nocoId || b.id || batchId, { BatchStatus: dbStatus, LocationID: newLocation });
+        await window.NocoBridge.updateRow('Inventory', b.nocoId || b.id || batchId, { LocationID: newLocation, BatchStatus: dbStatus }).catch(() => {});
       } catch (e) { console.error('NocoDB sync failed:', e); }
     }
     return true;
@@ -711,7 +749,7 @@ const MockData = {
     // NocoDB Sync
     if (window.NocoBridge && window.NocoBridge.API_TOKEN !== 'YOUR_API_TOKEN_HERE') {
       try {
-        await window.NocoBridge.updateRow('Batches', b.id || batchId, { LocationID: location });
+        await window.NocoBridge.updateRow('Batches', b.nocoId || b.id || batchId, { LocationID: location });
       } catch (e) { console.error('NocoDB sync failed:', e); }
     }
     return true;
@@ -840,8 +878,8 @@ const MockData = {
     return newIssue;
   },
 
-  /** Thêm SO mới */
-  updateSO(soId, data) {
+  /** Cập nhật SO */
+  async updateSO(soId, data) {
     const so = _state.salesOrders.find(x => x.SO_ID === soId);
     if (!so) return false;
     if (data.CustomerID) so.CustomerID = data.CustomerID;
@@ -856,10 +894,21 @@ const MockData = {
     this.addNotification(`Đã cập nhật thông tin đơn hàng ${soId}`, 'info');
     this._emit('so:updated', { soId });
     this._emit('pharma:statechange');
+
+    // NocoDB Sync
+    if (window.NocoBridge && window.NocoBridge.API_TOKEN !== 'YOUR_API_TOKEN_HERE') {
+      try {
+        await window.NocoBridge.updateRow('Sales_Orders', so.id || soId, { 
+            Priority: so.priority,
+            DeliveryAddress: so.DeliveryAddress || ''
+        });
+      } catch (e) { console.error('NocoDB SO update failed:', e); }
+    }
+
     return so;
   },
 
-  cancelSO(soId) {
+  async cancelSO(soId) {
     const so = _state.salesOrders.find(x => x.SO_ID === soId);
     if (!so || so.Status !== 'PICKING') return false;
     so.Status = 'CANCELLED';
@@ -961,15 +1010,23 @@ const MockData = {
   },
 
   // ── PO mutations ─────────────────────────────────────────
-  updatePOStatus(poId, newStatus) {
+  async updatePOStatus(poId, newStatus) {
     const po = _state.purchaseOrders.find(x => x.PO_ID === poId);
     if (!po) return false;
     po.Status = newStatus;
     saveState(_state);
+
+    // NocoDB Sync
+    if (window.NocoBridge && window.NocoBridge.API_TOKEN !== 'YOUR_API_TOKEN_HERE') {
+      try {
+        await window.NocoBridge.updateRow('Purchase_Orders', po.id || poId, { Status: newStatus });
+      } catch (e) { console.error('NocoDB PO status sync failed:', e); }
+    }
+
     return true;
   },
 
-  updatePO(poId, data) {
+  async updatePO(poId, data) {
     const po = _state.purchaseOrders.find(x => x.PO_ID === poId);
     if (!po) return false;
     if (data.expectedDate) po.expectedDate = data.expectedDate;
@@ -979,10 +1036,21 @@ const MockData = {
     this.addAuditLog('Cập nhật PO', `Đã cập nhật đơn mua hàng ${poId}`, 'info');
     this.addNotification(`Đã cập nhật thông tin đơn mua ${poId}`, 'info');
     this._emit('po:updated', { poId });
+
+    // NocoDB Sync
+    if (window.NocoBridge && window.NocoBridge.API_TOKEN !== 'YOUR_API_TOKEN_HERE') {
+      try {
+        await window.NocoBridge.updateRow('Purchase_Orders', po.id || poId, { 
+            Note: po.note,
+            SupplierID: po.SupplierID
+        });
+      } catch (e) { console.error('NocoDB PO update failed:', e); }
+    }
+
     return po;
   },
 
-  cancelPO(poId) {
+  async cancelPO(poId) {
     const po = _state.purchaseOrders.find(x => x.PO_ID === poId);
     if (!po || po.Status !== 'PENDING') return false;
     po.Status = 'CANCELLED';
@@ -990,6 +1058,14 @@ const MockData = {
     this.addAuditLog('Hủy PO', `Đã hủy đơn mua hàng ${poId}`, 'warn');
     this.addNotification(`Đã hủy đơn mua hàng ${poId}`, 'warning');
     this._emit('po:updated', { poId });
+
+    // NocoDB Sync
+    if (window.NocoBridge && window.NocoBridge.API_TOKEN !== 'YOUR_API_TOKEN_HERE') {
+      try {
+        await window.NocoBridge.updateRow('Purchase_Orders', po.id || poId, { Status: 'Đã hủy' });
+      } catch (e) { console.error('NocoDB PO cancel failed:', e); }
+    }
+
     return true;
   },
 
@@ -1067,7 +1143,7 @@ const MockData = {
   },
 
   /** Thêm khiếu nại mới */
-  addComplaint({ PO_ID, type, item, qty, desc, request }) {
+  async addComplaint({ PO_ID, type, item, qty, desc, request }) {
     if (!_state.complaints) _state.complaints = [];
     const id = `CPL-${new Date().getFullYear()}-${Math.floor(Math.random() * 900 + 100)}`;
     // Find PO to get supplier
@@ -1085,11 +1161,30 @@ const MockData = {
     saveState(_state);
     this._emit('complaint:added', { complaint });
     this.addNotification(`Đã gửi khiếu nại ${id} cho đơn ${PO_ID}`, 'warning');
+
+    // NocoDB Sync
+    if (window.NocoBridge && window.NocoBridge.API_TOKEN !== 'YOUR_API_TOKEN_HERE') {
+      try {
+        const payload = {
+            PO_ID: PO_ID,
+            ProductID: item,
+            Quantity: parseInt(qty) || 0,
+            Description: desc,
+            ResolutionRequest: request,
+            Status: 'Mới gửi'
+        };
+        // Link with internal PO ID if possible
+        if (po && (po.id || po.Id)) payload.Purchase_Orders_id = po.id || po.Id;
+        
+        await window.NocoBridge.createRow('QC_Requests', payload);
+      } catch (e) { console.error('NocoDB complaint sync failed:', e); }
+    }
+
     return complaint;
   },
 
   // ── Approval mutations ───────────────────────────────────
-  updateApproval(apvId, decision, comment) {
+  async updateApproval(apvId, decision, comment) {
     const a = _state.approvals.find(x => x.id === apvId);
     if (!a) return false;
     a.Status = decision; // 'APPROVED' | 'REJECTED'
@@ -1100,6 +1195,23 @@ const MockData = {
     this._emit('approval:updated', { apvId, decision });
     const msg = decision === 'APPROVED' ? `✅ Đã phê duyệt: ${a.type}` : `❌ Đã từ chối: ${a.type}`;
     this.addNotification(msg, decision === 'APPROVED' ? 'success' : 'error');
+
+    // NocoDB Sync
+    if (window.NocoBridge && window.NocoBridge.API_TOKEN !== 'YOUR_API_TOKEN_HERE') {
+      try {
+        // Find which table to update based on type
+        // This is a generic approval, but often it's a PO or QC result
+        if (a.isPO) {
+            await window.MockData.approvePO(apvId);
+        } else {
+            // Update the record in NocoDB directly if it has an internal ID
+            const nInternalId = a.id || a.Id || apvId;
+            // Assuming approvals are mapped to 'QC_Requests' or similar for generic ones
+            // For now, most dashboard approvals are POs which are handled above
+        }
+      } catch (e) { console.error('NocoDB approval sync failed:', e); }
+    }
+
     return a;
   },
 
@@ -1159,7 +1271,7 @@ const MockData = {
   },
 
   // ── Stock Check mutations ──────────────────────────────
-  addStockCheck(checkData) {
+  async addStockCheck(checkData) {
     if (!_state.stockChecks) _state.stockChecks = [];
     const CheckID = `SC-${new Date().getFullYear()}${(Date.now() % 10000).toString().padStart(4, '0')}`;
     const newCheck = {
@@ -1172,33 +1284,78 @@ const MockData = {
     saveState(_state);
     this._emit('stockCheck:added', { check: newCheck });
     this.addAuditLog('Kiểm kê', `Tạo phiếu kiểm kê mới ${CheckID}`, 'info');
+
+    // NocoDB Sync
+    if (window.NocoBridge && window.NocoBridge.API_TOKEN !== 'YOUR_API_TOKEN_HERE') {
+      try {
+        const created = await window.NocoBridge.createRow('Inventory_Checks', {
+            CheckID: newCheck.CheckID,
+            CheckDate: newCheck.CheckDate,
+            Status: 'PENDING'
+        });
+        if (created && created.Id) {
+            newCheck.id = created.Id;
+            // Sync details
+            if (newCheck.items) {
+                for (const item of newCheck.items) {
+                    await window.NocoBridge.createRow('Check_Details', {
+                        Inventory_Checks_id: created.Id,
+                        ProductID: item.ProductID,
+                        Batchcode: item.Batchcode,
+                        BookQuantity: item.BookQuantity,
+                        ActualQuantity: item.ActualQuantity || 0
+                    });
+                }
+            }
+        }
+      } catch (e) { console.error('NocoDB stock check sync failed:', e); }
+    }
+
     return newCheck;
   },
 
-  updateStockCheckStatus(CheckID, status) {
+  async updateStockCheckStatus(CheckID, status) {
     const check = _state.stockChecks.find(c => c.CheckID === CheckID);
     if (!check) return false;
     check.Status = status;
 
     if (status === 'COMPLETED') {
       let changed = false;
-      check.items.forEach(item => {
+      const updates = [];
+      for (const item of check.items) {
         if (item.ActualQuantity !== item.BookQuantity) {
           const batch = _state.batches.find(b => b.ProductID === item.ProductID && b.Batchcode === item.Batchcode);
           if (batch) {
             batch.Quantity = item.ActualQuantity;
             changed = true;
+            updates.push({ id: batch.id || batch.BatchID, qty: item.ActualQuantity });
           }
         }
-      });
+      }
+      
       if (changed) {
         this.addAuditLog('Điều chỉnh tồn kho', `Đã điều chỉnh tồn kho theo phiếu kiểm kê ${CheckID}`, 'warn');
         this._emit('pharma:statechange');
+        
+        // Sync Batch updates to NocoDB
+        if (window.NocoBridge && window.NocoBridge.API_TOKEN !== 'YOUR_API_TOKEN_HERE') {
+            for (const up of updates) {
+                await window.NocoBridge.updateRow('Batches', up.id, { Quantity: up.qty }).catch(() => {});
+            }
+        }
       }
     }
 
     saveState(_state);
     this._emit('stockCheck:updated', { CheckID, status });
+
+    // Sync Status to NocoDB
+    if (window.NocoBridge && window.NocoBridge.API_TOKEN !== 'YOUR_API_TOKEN_HERE') {
+      try {
+        await window.NocoBridge.updateRow('Inventory_Checks', check.id || CheckID, { Status: status });
+      } catch (e) { console.error('NocoDB status update failed:', e); }
+    }
+
     return true;
   },
 
