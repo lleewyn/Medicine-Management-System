@@ -28,7 +28,7 @@
 <div class="p-8 max-w-[1400px] mx-auto">
   <div class="mb-6 flex items-end justify-between">
     <div>
-      <h2 class="text-2xl font-black text-slate-900">Phân quyền Truy cập</h2>
+      <h2 class="text-2xl font-bold text-slate-900">Phân quyền Truy cập</h2>
       <p class="text-slate-500 text-sm mt-1">Quản lý người dùng, gán vai trò và kiểm soát quyền hạn toàn hệ thống.</p>
     </div>
     <div class="flex gap-3">
@@ -132,7 +132,7 @@
 <!-- Add User Modal -->
 <div class="modal-overlay" id="add-user-modal">
   <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4">
-    <h3 class="text-lg font-black text-slate-900 mb-5">Thêm người dùng mới</h3>
+    <h3 class="text-lg font-bold text-slate-900 mb-5">Thêm người dùng mới</h3>
     <div class="space-y-4">
       <div class="grid grid-cols-2 gap-3">
         <div>
@@ -186,7 +186,7 @@
 <!-- Edit Role Modal -->
 <div class="modal-overlay" id="edit-role-modal">
   <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4">
-    <h3 class="text-lg font-black text-slate-900 mb-2">Thay đổi Vai trò</h3>
+    <h3 class="text-lg font-bold text-slate-900 mb-2">Thay đổi Vai trò</h3>
     <p class="text-slate-500 text-sm mb-5">Người dùng: <strong id="edit-modal-name"></strong></p>
     <div class="mb-4">
       <label class="block text-xs font-bold text-slate-600 mb-2 uppercase">Vai trò mới</label>
@@ -267,6 +267,8 @@
       const featureMap = {
         'Nhập kho': 'write_inbound',
         'Xuất kho': 'write_outbound',
+        'Phê duyệt xuất kho': 'approve_outbound',
+        'Duyệt PO': 'approve_po',
         'Quản lý tồn': 'read_inventory',
         'Kiểm nghiệm QC': 'write_qa_result',
         'Phê duyệt QA': 'approve_qa',
@@ -274,19 +276,38 @@
         'Lập PO': 'write_po',
         'Kế toán': 'write_accounting',
         'Giao hàng': 'confirm_delivery',
-        'Phê duyệt BGĐ': 'approve_director',
+        'Duyệt Thu hồi/Kiểm kê': 'approve_director',
         'Phân quyền': 'manage_users'
       };
 
       const roleKeys = Object.keys(roles);
       const matrixHeader = document.getElementById('role-matrix-header');
+      
+      const shortLabels = {
+        SYSTEM_ADMIN: 'IT',
+        WAREHOUSE_MANAGER: 'Thủ kho',
+        WAREHOUSE_STAFF: 'N.Viên',
+        QC_SPECIALIST: 'QC',
+        QA_PHARMACIST: 'QA',
+        SALES_STAFF: 'Sales',
+        PROCUREMENT_STAFF: 'Mua',
+        ACCOUNTANT: 'Kế toán',
+        DIRECTOR: 'G.Đốc',
+        DRIVER: 'Tài xế'
+      };
+
       matrixHeader.innerHTML = '<th class="px-4 py-3 text-left text-slate-600 font-bold sticky left-0 bg-slate-50">Chức năng</th>' +
-        roleKeys.map(rk => `<th class="px-3 py-3"><span class="text-[10px] font-bold" style="color:${roles[rk].color}">${roles[rk].label.split(' ')[0]}</span></th>`).join('');
+        roleKeys.map(rk => `<th class="px-3 py-3"><span class="text-[10px] font-bold" style="color:${roles[rk].color}">${shortLabels[rk] || roles[rk].label.split(' ')[0]}</span></th>`).join('');
 
       document.getElementById('role-matrix-body').innerHTML = Object.entries(featureMap).map(([label, perm]) => `
         <tr class="border-t border-slate-100 hover:bg-slate-50">
           <td class="px-4 py-2.5 text-left font-medium text-slate-700 text-[11px] sticky left-0 bg-white">${label}</td>
-          ${roleKeys.map(rk => `<td class="px-3 py-2.5 text-center">${(roles[rk].permissions.includes(perm) || roles[rk].permissions.includes('read_all') || roles[rk].permissions.includes('write_all')) ? '✅' : '❌'}</td>`).join('')}
+          ${roleKeys.map(rk => {
+            const hasPerm = roles[rk].permissions.includes(perm) || roles[rk].permissions.includes('write_all');
+            const isReadRow = label.includes('Quản lý tồn') || label.includes('Báo cáo');
+            const hasReadPerm = roles[rk].permissions.includes('read_all') && isReadRow;
+            return `<td class="px-3 py-2.5 text-center">${(hasPerm || hasReadPerm) ? '✅' : '❌'}</td>`;
+          }).join('')}
         </tr>`).join('');
 
       // 4. System Logs

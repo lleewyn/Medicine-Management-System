@@ -249,8 +249,8 @@
         <div class="flex justify-between items-center px-2">
             <p class="text-sm text-slate-500">Trạng thái: <span id="det-status" class="font-bold"></span></p>
             <div class="text-right">
-                <p class="text-xs text-slate-400">Tổng cộng</p>
-                <p class="text-xl font-black text-primary" id="det-total-value">0 VNĐ</p>
+            <p class="text-[10px] font-bold text-slate-400 uppercase">Tổng cộng</p>
+            <p class="text-xl font-bold text-primary" id="det-total-value">0 VNĐ</p>
             </div>
         </div>
     </div>
@@ -358,7 +358,7 @@
                 <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${labelCls} ml-2 whitespace-nowrap">${statusLabel}</span>
               </div>
               <div class="flex items-end justify-between mb-2">
-                <span class="text-3xl font-black text-slate-900">${p.available.toLocaleString()}</span>
+                <span class="text-3xl font-bold text-slate-900">${p.available.toLocaleString()}</span>
                 <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">${p.BaseUnit || 'ĐV'}</span>
               </div>
               <div class="h-1.5 bg-slate-100 rounded-full overflow-hidden mb-3">
@@ -369,7 +369,7 @@
                 <span class="text-slate-900">${(parseFloat(p.ImportPrice) || 0).toLocaleString()} VNĐ</span>
               </div>
               <button onclick="addToSO('${p.ProductID}', '${p.ProductName}', ${p.ImportPrice}, '${p.BaseUnit}', ${p.available})"
-                class="mt-4 w-full py-3 bg-primary text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-primary/90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/10 active:scale-95 ${p.available === 0 ? 'opacity-40 cursor-not-allowed' : ''}" ${p.available === 0 ? 'disabled' : ''}>
+                class="mt-4 w-full py-3 bg-primary text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-primary/90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-200 active:scale-95 ${p.available === 0 ? 'opacity-40 cursor-not-allowed' : ''}" ${p.available === 0 ? 'disabled' : ''}>
                 <span class="material-symbols-outlined text-sm">add_shopping_cart</span> Thêm vào SO
               </button>
             </div>`;
@@ -406,9 +406,9 @@
                     const st = stSO[statusKey] || { l: so.Status, c: 'bg-slate-100 text-slate-400' };
                     return `
           <tr class="hover:bg-slate-50 border-t border-slate-100 transition-colors">
-            <td class="px-5 py-5 font-black text-primary text-sm">${so.SO_ID}</td>
+            <td class="px-5 py-5 font-bold text-primary text-sm">${so.SO_ID}</td>
             <td class="px-5 py-5">
-              <p class="text-sm font-black text-slate-700">${so.CustomerID}</p>
+              <p class="text-sm font-bold text-slate-700">${so.CustomerID}</p>
               <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">${so.region || '—'}</p>
             </td>
             <td class="px-5 py-5 text-xs font-medium ${so.priority === 'URGENT' ? 'text-red-600 font-black' : 'text-slate-500'} font-mono">${so.deadline}</td>

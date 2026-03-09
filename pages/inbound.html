@@ -429,8 +429,10 @@
                     CANCELLED: { label: 'Đã hủy', cls: 'bg-rose-50 border border-rose-200 text-rose-500 line-through' },
                     AWAITING_APPROVAL: { label: 'Chờ duyệt', cls: 'bg-amber-50 border border-amber-200 text-amber-700' },
                     'CHỜ DUYỆT': { label: 'Chờ duyệt', cls: 'bg-amber-50 border border-amber-200 text-amber-700' },
-                    'Đã duyệt': { label: 'Chờ nhận hàng', cls: 'bg-blue-50 border border-blue-200 text-blue-700' },
-                    'Đang chờ xử lý': { label: 'Chờ duyệt', cls: 'bg-amber-50 border border-amber-200 text-amber-700' },
+                    'PENDING_APPROVAL': { label: 'Chờ duyệt', cls: 'bg-amber-50 border border-amber-200 text-amber-700' },
+                    'ĐÃ DUYỆT': { label: 'Chờ nhận hàng', cls: 'bg-blue-50 border border-blue-200 text-blue-700' },
+                    'ĐANG CHỜ XỬ LÝ': { label: 'Chờ duyệt', cls: 'bg-amber-50 border border-amber-200 text-amber-700' },
+                    'PENDING': { label: 'Chờ nhận hàng', cls: 'bg-blue-50 border border-blue-200 text-blue-700' },
                 };
                 const colorMap = { blue: 'bg-blue-100 text-blue-700', green: 'bg-green-100 text-green-700', purple: 'bg-purple-100 text-purple-700', red: 'bg-red-100 text-red-700' };
 
@@ -468,9 +470,13 @@
                             <span class="inline-flex items-center justify-center px-3 py-1.5 rounded-full text-xs font-bold shadow-sm min-w-[120px] ${st.cls}">${st.label}</span>
                         </td>
                         <td class="px-5 py-4 text-right flex justify-end gap-2 text-sm">
-                            ${canReceive && canWrite && statusKey !== 'AWAITING_APPROVAL' ? `<button onclick="startReceive('${po.PO_ID}')" class="bg-primary/10 text-primary px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-primary/20 transition-colors">
+                            ${(statusKey === 'AWAITING_APPROVAL' || statusKey === 'CHỜ DUYỆT' || statusKey === 'PENDING_APPROVAL' || st.label === 'Chờ duyệt') && window.MockData.hasPermission(user, 'approve_po') ? 
+                                `<button onclick="approvePOInbound('${po.PO_ID}')" class="bg-amber-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-amber-600 transition-colors">
+                                    <span class="material-symbols-outlined text-xs align-middle">check_circle</span> Duyệt PO
+                                </button>` : ''}
+                            ${canReceive && canWrite && !['AWAITING_APPROVAL', 'CHỜ DUYỆT', 'PENDING_APPROVAL'].includes(statusKey) && st.label !== 'Chờ duyệt' ? `<button onclick="startReceive('${po.PO_ID}')" class="bg-primary/10 text-primary px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-primary/20 transition-colors">
                                 <span class="material-symbols-outlined text-xs align-middle">login</span> Nhận hàng
-                            </button>` : '<span class="text-slate-300 text-xs">—</span>'}
+                            </button>` : ''}
                         </td>
                     </tr>`;
                 }).join('');
@@ -559,6 +565,16 @@
                     updateInboundUI();
                 } catch (e) {
                     alert('Lỗi: ' + e.message);
+                }
+            };
+            window.approvePOInbound = async function(poId) {
+                if(confirm(`Bạn có chắc muốn phê duyệt đơn hàng ${poId}?`)) {
+                    try {
+                        await window.MockData.approvePO(poId);
+                        updateInboundUI();
+                    } catch(e) {
+                        alert('Lỗi: ' + e.message);
+                    }
                 }
             };
             window.goStep = function (step) {

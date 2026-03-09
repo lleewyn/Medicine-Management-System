@@ -38,8 +38,8 @@
 <div class="p-8 max-w-[1400px] mx-auto">
     <div class="mb-6 flex items-end justify-between">
         <div>
-            <h2 class="text-2xl font-black text-slate-900">Bảng điều khiển — Ban giám đốc</h2>
-            <p class="text-slate-500 text-sm mt-1">Phê duyệt nghiệp vụ, báo cáo quản trị và theo dõi chất lượng toàn hệ thống.</p>
+            <h2 class="text-2xl font-bold text-slate-900" id="db-title">Bảng điều khiển</h2>
+            <p class="text-slate-500 text-sm mt-1" id="db-subtitle">Theo dõi hoạt động và phê duyệt nghiệp vụ hệ thống.</p>
         </div>
         <div class="flex items-center gap-3">
             <div class="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-xl border border-primary/20">
@@ -82,7 +82,7 @@
                     </span>
                 </div>
                 <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Giá trị tồn kho</p>
-                <h3 class="text-2xl font-black text-slate-900" id="db-total-value">...</h3>
+                <h3 class="text-2xl font-bold text-slate-900" id="db-total-value">...</h3>
 
             </div>
 
@@ -96,7 +96,7 @@
                     </span>
                 </div>
                 <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Lô hàng biệt trữ</p>
-                <h3 class="text-2xl font-black text-slate-900" id="db-quarantine">...</h3>
+                <h3 class="text-2xl font-bold text-slate-900" id="db-quarantine">...</h3>
 
             </div>
 
@@ -110,7 +110,7 @@
                     </span>
                 </div>
                 <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Đơn hàng đang xử lý</p>
-                <h3 class="text-2xl font-black text-slate-900" id="db-pending-orders">...</h3>
+                <h3 class="text-2xl font-bold text-slate-900" id="db-pending-orders">...</h3>
 
             </div>
 
@@ -124,7 +124,7 @@
                     </span>
                 </div>
                 <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Nhập kho hôm nay</p>
-                <h3 class="text-2xl font-black text-slate-900" id="db-today-in">...</h3>
+                <h3 class="text-2xl font-bold text-slate-900" id="db-today-in">...</h3>
 
             </div>
         </div>
@@ -250,7 +250,7 @@
     <div id="dir-tab-content-approval" class="hidden">
         <div class="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-xl flex items-center gap-3">
             <span class="material-symbols-outlined text-blue-500">info</span>
-            <p class="text-sm text-blue-700 font-medium">BGĐ vui lòng xem xét và phê duyệt các yêu cầu nghiệp vụ dưới đây. PO được duyệt sẽ chuyển sang trạng thái "Sẵn sàng nhận hàng".</p>
+            <p class="text-sm text-blue-700 font-medium" id="approval-instruction-text">Vui lòng xem xét và phê duyệt các yêu cầu nghiệp vụ dưới đây theo đúng thẩm quyền.</p>
         </div>
         <div class="space-y-4" id="approval-items-list"></div>
     </div>
@@ -470,11 +470,34 @@
 
         const todayStr = new Date().toISOString().split('T')[0];
 
-        // 1. Stats
-        // Inventory Value
+        // Header dynamic update
+        const titleEl = document.getElementById('db-title');
+        const subtitleEl = document.getElementById('db-subtitle');
+        if (titleEl && role) {
+            titleEl.textContent = `Bảng điều khiển — ${role.label}`;
+            if (role.label.includes('Giám đốc')) {
+                subtitleEl.textContent = 'Phê duyệt nghiệp vụ, báo cáo quản trị và theo dõi chất lượng toàn hệ thống.';
+            } else if (role.label.includes('Thủ kho')) {
+                subtitleEl.textContent = 'Quản lý kho bãi, phê duyệt đơn hàng và điều phối nhân sự.';
+            }
+        }
+
+        const instructionEl = document.getElementById('approval-instruction-text');
+        if (instructionEl && role) {
+            if (role.label.includes('Giám đốc')) {
+                instructionEl.innerHTML = `<strong>Ban Giám Đốc</strong> vui lòng xem xét và phê duyệt các yêu cầu quản trị (Thu hồi, Điều chỉnh tồn).`;
+            } else if (role.label.includes('Thủ kho')) {
+                instructionEl.innerHTML = `<strong>Thủ kho</strong> vui lòng duyệt các Đơn mua hàng (PO) để chuyển sang trạng thái "Sẵn sàng nhận hàng".`;
+            } else {
+                instructionEl.innerHTML = `Hệ thống ghi nhận bạn có quyền quản trị toàn bộ các yêu cầu phê duyệt dưới đây.`;
+            }
+        }
+
+        // Inventory Value - Sync with Accounting logic
         const totalValue = batches.reduce((sum, b) => {
-            const p = products.find(prod => prod.ProductID === b.ProductID);
-            return sum + ((b.Quantity || 0) * (p?.ImportPrice || 0));
+            const pid = window.NocoMappers ? window.NocoMappers._flatten(b.ProductID) : b.ProductID;
+            const p = products.find(prod => prod.ProductID === pid);
+            return sum + (parseFloat(b.Quantity || b.qty || 0) * parseFloat(p?.ImportPrice || p?.UnitPrice || 0));
         }, 0);
         
         const totalValueEl = document.getElementById('db-total-value');
@@ -482,7 +505,7 @@
             if (totalValue >= 1000000000) {
                 totalValueEl.textContent = (totalValue / 1000000000).toFixed(2) + 'B VNĐ';
             } else {
-                totalValueEl.textContent = (totalValue / 1000000).toFixed(1) + 'M VNĐ';
+                totalValueEl.textContent = (totalValue / 1000000).toFixed(0) + 'M VNĐ';
             }
         }
 
@@ -509,16 +532,35 @@
         const dateEl = document.getElementById('dir-date');
         if (dateEl) dateEl.textContent = new Date().toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
 
-        // 2. Build Approval List (PO + General)
-        const awaitingPOs = pos.filter(p => ['AWAITING_APPROVAL', 'CHỜ DUYỆT', 'PENDING_APPROVAL'].includes(p.Status?.toUpperCase()) || p.Status === 'Đang chờ xử lý');
-        const unifiedApprovals = [
-            ...awaitingPOs.map(p => ({
-                id: p.PO_ID, type: 'Phê duyệt Mua hàng', dept: 'Phòng Thu mua', isPO: true,
-                desc: `Duyệt đơn ${p.PO_ID} cho NCC ${window.MockData.getSupplierName(p.SupplierID)}. Trị giá: ${p.totalValue?.toLocaleString()} VNĐ.`,
-                status: 'PENDING'
-            })),
-            ...(approvals.filter(a => a.Status === 'PENDING' && !String(a.type || '').includes('Xuất kho')))
-        ];
+        // 2. Build Approval List (PO + General) - Filtered by permissions
+        const canApprovePO = role?.permissions?.includes('approve_po'); // Strict delegation
+        const canApproveDirector = role?.permissions?.includes('approve_director') || role?.permissions?.includes('write_all');
+
+        const unifiedApprovals = [];
+        
+        if (canApprovePO) {
+            const awaitingPOs = pos.filter(p => ['AWAITING_APPROVAL', 'CHỜ DUYỆT', 'PENDING_APPROVAL'].includes(p.Status?.toUpperCase()) || p.Status === 'Đang chờ xử lý');
+            awaitingPOs.forEach(p => {
+                unifiedApprovals.push({
+                    id: p.PO_ID, type: 'Phê duyệt Mua hàng', dept: 'Phòng Thu mua', isPO: true,
+                    desc: `Duyệt đơn ${p.PO_ID} cho NCC ${window.MockData.getSupplierName(p.SupplierID)}. Trị giá: ${p.totalValue?.toLocaleString()} VNĐ.`,
+                    status: 'PENDING'
+                });
+            });
+        }
+
+        if (canApproveDirector) {
+            approvals.filter(a => a.Status === 'PENDING' && !String(a.type || '').includes('Xuất kho')).forEach(a => {
+                unifiedApprovals.push({
+                    id: a.id,
+                    type: a.type,
+                    desc: a.desc,
+                    dept: a.dept || 'Hệ thống',
+                    isPO: false,
+                    raw: a
+                });
+            });
+        }
 
         // 3. Render Approval List
         const listEl = document.getElementById('approval-items-list');

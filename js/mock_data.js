@@ -29,8 +29,8 @@ const ROLES = {
     icon: 'warehouse',
     pages: ['dashboard', 'inventory-management', 'inbound', 'outbound',
       'qa-reports', 'purchase-order', 'sales-order'],
-    permissions: ['read_all', 'write_inventory', 'write_inbound', 'write_outbound',
-      'approve_outbound', 'write_orders', 'export_report']
+    permissions: ['read_inventory', 'read_po', 'read_so', 'write_inventory', 'write_inbound', 'write_outbound',
+      'approve_outbound', 'approve_po', 'write_orders', 'export_report']
   },
 
   // ── Nhân viên kho ─────────────────────────────────────────
@@ -85,7 +85,7 @@ const ROLES = {
     color: '#CA8A04',
     icon: 'account_balance',
     pages: ['accounting', 'qa-reports', 'purchase-order', 'sales-order'],
-    permissions: ['read_all', 'write_accounting', 'export_report']
+    permissions: ['read_inventory', 'read_po', 'read_so', 'write_accounting', 'export_report']
   },
 
   // ── Ban giám đốc ───────────────────────────────────────────
@@ -94,7 +94,7 @@ const ROLES = {
     color: '#DC2626',
     icon: 'supervisor_account',
     pages: ['dashboard', 'qa-reports', 'accounting'],
-    permissions: ['read_all', 'approve_director', 'export_report']
+    permissions: ['read_inventory', 'read_po', 'read_so', 'approve_director', 'export_report']
   },
 
   // ── Tài xế ─────────────────────────────────────────────────
@@ -229,8 +229,8 @@ const PURCHASE_ORDERS = [
     PO_ID: 'PO-2023-0891', SupplierID: 'Pfizer Vietnam Ltd.', supplierCode: 'PF', supplierColor: 'blue',
     expectedDate: '25/10/2023', items: 2, received: 7, total: 12, Status: 'PARTIAL', urgency: 'NORMAL',
     itemsDetails: [
-      { ProductID: 'SKU-PFIZ-01', OrderedQty: 10 },
-      { ProductID: 'SKU-INSU-05', OrderedQty: 2 }
+      { ProductID: 'SKU-PFIZ-01', OrderedQty: 10, received: 7 },
+      { ProductID: 'SKU-INSU-05', OrderedQty: 2, received: 0 }
     ]
   },
   {
@@ -244,7 +244,7 @@ const PURCHASE_ORDERS = [
     PO_ID: 'PO-2023-0885', SupplierID: 'AstraZeneca VN', supplierCode: 'AZ', supplierColor: 'purple',
     expectedDate: '22/10/2023', items: 1, received: 8, total: 8, Status: 'COMPLETED', urgency: 'NORMAL',
     itemsDetails: [
-      { ProductID: 'SKU-AZIT-03', OrderedQty: 8 }
+      { ProductID: 'SKU-AZIT-03', OrderedQty: 8, received: 8 }
     ]
   },
   {
@@ -1352,9 +1352,9 @@ const MockData = {
               const poDetailsForThisPO = (Array.isArray(poDetails) ? poDetails : [])
                 .filter(d => window.NocoMappers._flatten(d.PO_ID) === base.PO_ID);
               
-              base.total = poDetailsForThisPO.reduce((acc, d) => acc + (d.OrderedQty || 0), 0);
+              base.total = poDetailsForThisPO.reduce((acc, d) => acc + parseFloat(d.OrderedQty || 0), 0);
               base.totalItems = poDetailsForThisPO.length;
-              base.totalValue = poDetailsForThisPO.reduce((acc, d) => acc + ((d.OrderedQty || 0) * (d.UnitPrice || 0)), 0);
+              base.totalValue = poDetailsForThisPO.reduce((acc, d) => acc + (parseFloat(d.OrderedQty || 0) * parseFloat(d.UnitPrice || 0)), 0);
 
               // 2. Get Goods Receipts for this PO
               const receiptsForPo = (Array.isArray(receipts) ? receipts : [])
@@ -1379,7 +1379,7 @@ const MockData = {
                           const rdPid = b ? b.ProductID : window.NocoMappers._flatten(rd.ProductID);
                           return receiptIds.includes(rid) && rdPid === pid;
                       })
-                      .reduce((acc, rd) => acc + (rd.ActualQty || 0), 0);
+                      .reduce((acc, rd) => acc + parseFloat(rd.ActualQty || rd.qty || 0), 0);
 
                   totalRealReceived += receivedQtyForThisItem;
                   if (receivedQtyForThisItem >= (detail.OrderedQty || 0)) {
@@ -1394,14 +1394,24 @@ const MockData = {
                   };
               });
 
-              base.received = totalRealReceived;
+              // 4. Robust Received Logic: Fallback to PO's own column if no receipts found
+              const nocoReceived = parseFloat(p.ReceivedQty || p.received || p.received_qty || 0);
+              base.received = (totalRealReceived > 0) ? totalRealReceived : nocoReceived;
 
-              // 4. Robust Status Logic: Only COMPLETED if ALL lines are fulfilled
-              if (base.received <= 0) {
-                  // Keep initial mapped status
-              } else if (fullyReceivedCount === base.totalItems) {
+              // 5. Status Sync: Use a very broad check for 'Completed'
+              const rawStat = String(window.NocoMappers._flatten(p.Status || p.status) || '').toUpperCase().trim();
+              const isCompleted = ['HOÀN TẤT', 'DONE', 'COMPLETED', 'ĐÃ HOÀN THÀNH', 'HOÀN THÀNH'].includes(rawStat) || base.Status === 'COMPLETED';
+              
+              if (fullyReceivedCount === base.totalItems && base.totalItems > 0) {
                   base.Status = 'COMPLETED';
-              } else {
+                  base.received = base.total; 
+              } else if (isCompleted) {
+                  base.Status = 'COMPLETED';
+                  // Force received = total for completed orders to fix UI logic mismatch
+                  if (base.received < base.total) {
+                      base.received = base.total;
+                  }
+              } else if (base.received > 0 && base.received < base.total) {
                   base.Status = 'PARTIAL';
               }
                 return base;
@@ -1415,7 +1425,7 @@ const MockData = {
               const soDetailsForThisSO = (Array.isArray(soDetails) ? soDetails : [])
                 .filter(d => window.NocoMappers._flatten(d.SO_ID) === base.SO_ID);
               
-              base.total = soDetailsForThisSO.reduce((acc, d) => acc + (d.OrderedQty || 0), 0);
+              base.total = soDetailsForThisSO.reduce((acc, d) => acc + parseFloat(d.OrderedQty || d.qty || 0), 0);
               base.totalItems = soDetailsForThisSO.length;
               base.itemsDetails = soDetailsForThisSO.map(d => ({
                   ...d,
@@ -1430,11 +1440,11 @@ const MockData = {
               
               const issuedFromDetails = (Array.isArray(iDetails) ? iDetails : [])
                 .filter(id => issueIds.includes(window.NocoMappers._flatten(id.IssueID)))
-                .reduce((acc, id) => acc + (id.ActualQty || 0), 0);
+                .reduce((acc, id) => acc + parseFloat(id.ActualQty || id.qty || 0), 0);
 
               base.issued = issuedFromDetails;
               base.progressPct = base.total > 0 ? Math.round((base.issued / base.total) * 100) : 0;
-              base.progress = `${base.issued}/${base.total} đơn vị`;
+              base.progress = `${base.issued.toLocaleString()}/${base.total.toLocaleString()} đơn vị`;
 
               if (base.issued <= 0) {
               } else if (base.issued < base.total) {

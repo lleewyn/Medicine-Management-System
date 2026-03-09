@@ -136,6 +136,8 @@ const NocoMappers = {
             'chờ nhận': 'PENDING',
             'đang thực hiện': 'PARTIAL',
             'nhập một phần': 'PARTIAL',
+            'hoàn tất': 'COMPLETED',
+            'đã hoàn tất': 'COMPLETED',
             'hoàn thành': 'COMPLETED',
             'đã hoàn thành': 'COMPLETED',
             'đã hủy': 'CANCELLED'
@@ -151,7 +153,7 @@ const NocoMappers = {
             expectedDate: this._flatten(nocoPO.CreatedDate) || '',
             Status: mappedStatus,
             total: 0,
-            received: 0,
+            received: parseFloat(nocoPO.ReceivedQty || nocoPO.received || 0),
             totalValue: 0
         };
     },
