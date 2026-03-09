@@ -728,8 +728,12 @@ const MockData = {
     // NocoDB Sync
     if (window.NocoBridge && window.NocoBridge.API_TOKEN !== 'YOUR_API_TOKEN_HERE') {
       try {
-        const created = await window.NocoBridge.createRow('Batches', newBatch);
-        if (created && created.id) newBatch.id = created.id; // Map internal NocoDB ID
+        const payload = { ...newBatch };
+        if (window.NocoMappers) {
+            payload.BatchStatus = window.NocoMappers.fromUIStatus('QUARANTINE');
+        }
+        const created = await window.NocoBridge.createRow('Batches', payload);
+        if (created && (created.id || created.Id)) newBatch.nocoId = created.id || created.Id; 
       } catch (e) { console.error('NocoDB sync failed:', e); }
     }
     return newBatch;

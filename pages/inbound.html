@@ -314,14 +314,14 @@
                         Quay lại</button>
                     <button onclick="goStep(4)"
                         class="bg-primary text-white px-6 py-2.5 rounded-lg font-bold hover:bg-primary/90 transition-colors text-sm flex items-center gap-2">
-                        Tiếp theo: Xác nhận lưu kho <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                        Tiếp theo: Xác nhận nhập kho <span class="material-symbols-outlined text-sm">arrow_forward</span>
                     </button>
                 </div>
             </div>
 
             <!-- Step 4: Confirm -->
             <div id="step-content-4" class="hidden bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-                <h3 class="font-black text-lg text-slate-900 mb-1">Bước 4: Xác nhận lưu kho</h3>
+                <h3 class="font-black text-lg text-slate-900 mb-1">Bước 4: Xác nhận nhập kho</h3>
                 <p class="text-slate-500 text-sm mb-6">Kiểm tra thông tin lần cuối trước khi xác nhận.</p>
 
                 <div class="bg-slate-50 rounded-xl p-5 space-y-3 mb-6" id="confirm-summary">
@@ -335,9 +335,7 @@
                             kê:</span><span class="font-bold text-primary" id="summary-location">—</span></div>
                     <div class="flex justify-between text-sm"><span class="text-slate-500 font-medium">Trạng
                             thái:</span><span
-                            class="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700">QUARANTINE
-                            —
-                            Chờ QA duyệt</span></div>
+                            class="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700">Biệt trữ</span></div>
                 </div>
 
                 <div class="flex gap-3">
@@ -346,7 +344,7 @@
                         Quay lại</button>
                     <button onclick="confirmReceive()"
                         class="bg-green-600 text-white px-6 py-2.5 rounded-lg font-bold hover:bg-green-700 transition-colors text-sm flex items-center gap-2">
-                        <span class="material-symbols-outlined text-sm">inventory</span> Xác nhận Lưu kho
+                        <span class="material-symbols-outlined text-sm">inventory</span> Xác nhận Nhập kho
                     </button>
                 </div>
             </div>
@@ -387,7 +385,7 @@
             <div class="size-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
                 <span class="material-symbols-outlined text-3xl text-green-600">check_circle</span>
             </div>
-            <h3 class="text-xl font-black text-slate-900 mb-2">Lưu kho thành công!</h3>
+            <h3 class="text-xl font-black text-slate-900 mb-2">Nhập kho thành công!</h3>
             <p class="text-slate-500 text-sm mb-6">Lô hàng đã được nhập kho và chuyển sang trạng thái <strong
                     class="text-amber-600">Biệt trữ</strong> chờ QA/QC phê duyệt.</p>
             <div class="flex gap-3">
