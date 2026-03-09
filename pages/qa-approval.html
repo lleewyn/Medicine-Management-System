@@ -283,10 +283,10 @@
 
     function renderPendingList() {
       // Get all quarantine batches
-      const batches = (window.MockData.BATCHES || []).filter(b => 
-        ['QUARANTINE', 'BIỆT TRỮ', 'CHỜ DUYỆT', 'AWAITING_APPROVAL', 'QC_PENDING'].includes(String(b.BatchStatus).toUpperCase()) || 
-        !b.BatchStatus
-      );
+      const batches = (window.MockData.BATCHES || []).filter(b => {
+        const s = String(b.BatchStatus || '').toUpperCase();
+        return ['QUARANTINE', 'BIỆT TRỮ', 'CHỜ DUYỆT', 'AWAITING_APPROVAL', 'QC_PENDING', 'BIET TRU'].includes(s) || !b.BatchStatus;
+      });
 
       // Update pending count in tab
       const countEl = document.getElementById('qa-pending-count');

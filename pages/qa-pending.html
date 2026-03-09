@@ -17,10 +17,10 @@
         const user = window.Auth.getCurrentUser();
         
         function render() {
-            const batches = (window.MockData.BATCHES || []).filter(b => 
-                ['QUARANTINE', 'BIỆT TRỮ', 'CHỜ DUYỆT', 'AWAITING_APPROVAL'].includes(String(b.BatchStatus).toUpperCase()) || 
-                !b.BatchStatus
-            );
+            const batches = (window.MockData.BATCHES || []).filter(b => {
+                const s = String(b.BatchStatus || '').toUpperCase();
+                return ['QUARANTINE', 'BIỆT TRỮ', 'CHỜ DUYỆT', 'AWAITING_APPROVAL', 'BIET TRU'].includes(s) || !b.BatchStatus;
+            });
             const products = window.MockData.PRODUCTS || [];
             
             document.getElementById('pending-list').innerHTML = batches.map(b => {

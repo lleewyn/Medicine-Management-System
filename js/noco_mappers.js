@@ -40,10 +40,14 @@ const NocoMappers = {
             'ĐANG CHỜ XỬ LÝ': 'QUARANTINE',
             'QUARANTINE': 'QUARANTINE',
             'BIỆT TRỮ': 'QUARANTINE',
+            'BIET TRU': 'QUARANTINE',
+            'biệt trữ': 'QUARANTINE',
             'PENDING_PUTAWAY': 'PENDING_PUTAWAY',
             'CHỜ CẤT HÀNG': 'PENDING_PUTAWAY',
             'ĐANG KIỂM NGHIỆM': 'QUARANTINE',
-            'QC_PENDING': 'QUARANTINE',
+            'QC_PENDING': 'QC_PENDING',
+            'CHỜ QA DUYỆT': 'QC_PENDING',
+            'ĐÃ CÓ KẾT QUẢ QC': 'QC_PENDING',
             'PARTIAL': 'PARTIAL',
             'COMPLETED': 'COMPLETED',
             'CANCELLED': 'CANCELLED',
@@ -76,6 +80,7 @@ const NocoMappers = {
         const reverseMap = {
             'RELEASED': 'Đã duyệt',
             'QUARANTINE': 'Biệt trữ',
+            'QC_PENDING': 'Chờ QA duyệt',
             'PENDING_PUTAWAY': 'Chờ cất hàng',
             'LOCKED': 'Đã khóa',
             'DESTROYED': 'Đã tiêu hủy',
@@ -156,6 +161,10 @@ const NocoMappers = {
             'đã hoàn tất': 'COMPLETED',
             'hoàn thành': 'COMPLETED',
             'đã hoàn thành': 'COMPLETED',
+            'biệt trữ': 'QUARANTINE',
+            'biệt trữ (quarantine)': 'QUARANTINE',
+            'biet tru': 'QUARANTINE',
+            'chờ qa duyệt': 'QUARANTINE',
             'đã hủy': 'CANCELLED'
         };
         const mappedStatus = statusMap[rawStatus.toLowerCase()] || rawStatus.toUpperCase();

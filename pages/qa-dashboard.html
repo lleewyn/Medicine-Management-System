@@ -69,7 +69,10 @@
             const batches = window.MockData.BATCHES || [];
             
             // Lỗi biệt trữ: bao gồm cả đang chờ QC và đang chờ QA duyệt
-            const quarantine = batches.filter(b => ['QUARANTINE', 'BIỆT TRỮ', 'CHỜ DUYỆT', 'AWAITING_APPROVAL', 'QC_PENDING'].includes(String(b.BatchStatus).toUpperCase()));
+            const quarantine = batches.filter(b => {
+                const s = String(b.BatchStatus || '').toUpperCase();
+                return ['QUARANTINE', 'BIỆT TRỮ', 'CHỜ DUYỆT', 'AWAITING_APPROVAL', 'QC_PENDING', 'BIET TRU'].includes(s);
+            });
             // Lô đã hoàn tất phê duyệt (đang chờ cất kệ hoặc đã sẵn sàng)
             const released = batches.filter(b => ['RELEASED', 'ĐÃ DUYỆT', 'AVAILABLE', 'SẴN SÀNG', 'PENDING_PUTAWAY'].includes(String(b.BatchStatus).toUpperCase()));
 

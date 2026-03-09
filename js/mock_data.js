@@ -1096,17 +1096,21 @@ const MockData = {
     const po = _state.purchaseOrders.find(x => x.PO_ID === poId);
     if (!po) return false;
     po.received = Math.min(po.total, (po.received || 0) + parseInt(receivedQty));
-    if (po.received >= po.total) po.Status = 'COMPLETED';
+    
+    // Change: When fully received, status becomes QUARANTINE (Biệt trữ) instead of COMPLETED
+    if (po.received >= po.total) po.Status = 'QUARANTINE';
     else po.Status = 'PARTIAL';
+    
     saveState(_state);
     this._emit('po:updated', { poId });
 
     // NocoDB Sync
     if (window.NocoBridge && window.NocoBridge.API_TOKEN !== 'YOUR_API_TOKEN_HERE') {
       try {
+        const dbStatus = window.NocoMappers ? window.NocoMappers.fromUIStatus(po.Status) : po.Status;
         await window.NocoBridge.updateRow('Purchase_Orders', po.id || poId, { 
           received: po.received, 
-          Status: po.Status 
+          Status: dbStatus 
         });
       } catch (e) { console.error('NocoDB sync failed:', e); }
     }
