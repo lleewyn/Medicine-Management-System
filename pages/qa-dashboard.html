@@ -25,7 +25,7 @@
             <p class="text-slate-500 text-sm font-medium">Lô đã xuất xưởng</p>
             <h3 class="text-3xl font-black text-slate-900 mt-1" id="qa-released">--</h3>
             <button onclick="window.Router.navigate('qa-approval')"
-                class="mt-4 text-xs text-primary font-bold hover:underline">Duyệt lô hàng →</button>
+                class="mt-4 text-xs text-primary font-bold hover:underline">Phê duyệt CL & Xuất xưởng →</button>
         </div>
         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
             <div class="flex items-center justify-between mb-4">
@@ -65,57 +65,106 @@
 
         // ── Render stats + list from reactive getter ──
         function render() {
-            const products = window.MockData.PRODUCTS;
-            const batches = window.MockData.BATCHES;
-            const quarantine = batches.filter(b => b.BatchStatus === 'QUARANTINE');
-            const released = batches.filter(b => b.BatchStatus === 'RELEASED');
+            const products = window.MockData.PRODUCTS || [];
+            const batches = window.MockData.BATCHES || [];
+            
+            // Lỗi biệt trữ: bao gồm cả đang chờ QC và đang chờ QA duyệt
+            const quarantine = batches.filter(b => ['QUARANTINE', 'BIỆT TRỮ', 'CHỜ DUYỆT', 'AWAITING_APPROVAL', 'QC_PENDING'].includes(String(b.BatchStatus).toUpperCase()));
+            // Lô đã hoàn tất phê duyệt (đang chờ cất kệ hoặc đã sẵn sàng)
+            const released = batches.filter(b => ['RELEASED', 'ĐÃ DUYỆT', 'AVAILABLE', 'SẴN SÀNG', 'PENDING_PUTAWAY'].includes(String(b.BatchStatus).toUpperCase()));
 
             document.getElementById('qa-quarantine').textContent = quarantine.length;
             document.getElementById('qa-released').textContent = released.length;
 
             const today = new Date();
+            const sixMonths = new Date();
+            sixMonths.setMonth(today.getMonth() + 6);
+
             const expirySoon = batches.filter(b => {
+                if (!b.ExpDate || b.Quantity <= 0) return false;
                 const d = new Date(b.ExpDate);
-                const diffMonths = (d - today) / (1000 * 60 * 60 * 24 * 30);
-                return diffMonths < 6;
+                return d < sixMonths;
             });
             document.getElementById('qa-expiry').textContent = expirySoon.length;
 
             document.getElementById('qa-quarantine-list').innerHTML = quarantine.map(b => {
-                const product = products.find(p => p.ProductID === b.ProductID) || {};
-                const daysLeft = Math.ceil((new Date(b.ExpDate) - today) / (1000 * 60 * 60 * 24));
-                const urgentCls = daysLeft < 90 ? 'text-red-600' : 'text-slate-400';
+                const pid = window.NocoMappers ? window.NocoMappers._flatten(b.ProductID) : b.ProductID;
+                const product = products.find(p => p.ProductID === pid) || {};
+                
+                const isRecorded = String(b.BatchStatus).toUpperCase() === 'QC_PENDING';
+                const expDate = new Date(b.ExpDate);
+                const diffMs = expDate - today;
+                const daysLeft = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+                
+                let urgentCls = 'text-slate-400';
+                let statusLabel = `còn ${daysLeft} ngày`;
+                
+                if (daysLeft < 0) {
+                    urgentCls = 'text-red-600 font-black';
+                    statusLabel = 'ĐÃ HẾT HẠN';
+                } else if (daysLeft < 90) {
+                    urgentCls = 'text-orange-500 font-bold';
+                }
+
                 return `
-      <div class="p-4 flex items-center gap-4 hover:bg-slate-50" id="qa-row-${b.BatchID}">
-        <div class="size-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-600">
-          <span class="material-symbols-outlined">lock_clock</span>
-        </div>
-        <div class="flex-1">
-          <p class="text-sm font-bold text-slate-900">${product.ProductName || b.ProductID}</p>
-          <p class="text-xs text-slate-500">Lô: ${b.Batchcode} • ${b.Quantity} ${product.BaseUnit || ''} • HSD: ${b.ExpDate}
-            <span class="${urgentCls} font-bold">(còn ${daysLeft} ngày)</span>
-          </p>
-        </div>
-        ${canApprove ? `
-          <button onclick="quickApproveFromDashboard('${b.BatchID}', this)"
-            class="text-xs font-bold px-3 py-1.5 bg-primary text-white rounded-lg hover:bg-primary/90 flex items-center gap-1">
-            <span class="material-symbols-outlined text-xs">gavel</span> Duyệt ngay
-          </button>` : `
-          <span class="text-xs text-slate-400 italic">Chưa có quyền duyệt</span>`}
-      </div>`;
-            }).join('') || '<p class="p-6 text-slate-400 text-sm text-center">Không có lô hàng nào đang biệt trữ ✅</p>';
+                <div class="p-4 flex items-center gap-4 hover:bg-slate-50 transition-colors">
+              <div class="size-10 rounded-xl ${isRecorded ? 'bg-sky-100 text-sky-600' : 'bg-amber-100 text-amber-600'} flex items-center justify-center">
+                  <span class="material-symbols-outlined">${isRecorded ? 'verified_user' : 'science'}</span>
+              </div>
+              <div class="flex-1">
+                  <div class="flex items-center gap-2">
+                       <p class="text-sm font-bold text-slate-900">${product.ProductName || pid}</p>
+                       <span class="text-[9px] px-2 py-0.5 ${isRecorded ? 'bg-sky-50 text-sky-700 border-sky-200' : 'bg-amber-50 text-amber-700 border-amber-200'} border rounded-full uppercase font-black tracking-tighter">
+                        ${isRecorded ? 'CHỜ QA DUYỆT' : 'CHỜ QC KIỂM TRA'}
+                       </span>
+                  </div>
+                  <p class="text-xs text-slate-500 mt-0.5 flex items-center gap-1 opacity-80">
+                      <span class="material-symbols-outlined text-[14px]">barcode</span>
+                      Lô: <span class="font-mono font-bold text-slate-700">${b.Batchcode}</span> 
+                      <span class="mx-1 opacity-30">•</span>
+                      <span class="material-symbols-outlined text-[14px]">event</span>
+                      HSD: ${b.ExpDate}
+                      <span class="${urgentCls} ml-1">(${statusLabel})</span>
+                  </p>
+              </div>
+              <button onclick="window.Router.navigate('qa-approval?batchId=${b.BatchID}');" 
+                  class="text-xs font-bold px-4 py-2.5 ${isRecorded ? 'bg-sky-600/90 hover:bg-sky-600' : 'bg-amber-500/90 hover:bg-amber-500'} text-white rounded-xl shadow-sm transition-all flex items-center gap-2">
+                  <span class="material-symbols-outlined text-[18px]">${isRecorded ? 'verified' : 'biotech'}</span> 
+                  ${isRecorded ? 'Phê duyệt' : 'Tiến hành QC'}
+              </button>
+                </div>`;
+            }).join('') || '<div class="p-12 text-center text-slate-400 flex flex-col items-center gap-2 font-medium">✨ Không có lô hàng nào cần kiểm tra.</div>';
         }
 
         render();
 
         // ── Quick approve directly from dashboard ──
-        window.quickApproveFromDashboard = function (batchId, btn) {
-            if (!confirm('Xác nhận phê duyệt (RELEASE) lô này ngay từ Dashboard?')) return;
-            btn.disabled = true;
-            btn.textContent = 'Đang duyệt...';
-            window.MockData.updateBatchStatus(batchId, 'RELEASED');
-            setTimeout(render, 300);
-        };
+        // This function is no longer used as direct approval is removed.
+        // window.quickApproveFromDashboard = async function (batchId, btn) {
+        //     if (!confirm('Xác nhận phê duyệt (RELEASE) lô này ngay từ Dashboard?')) return;
+        //     const originalContent = btn.innerHTML;
+        //     btn.disabled = true;
+        //     btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-xs">refresh</span>';
+            
+        //     try {
+        //         await window.MockData.updateBatchStatus(batchId, 'RELEASED');
+        //         // Success feedback
+        //         const row = document.getElementById(`qa-row-${batchId}`);
+        //         if (row) {
+        //             row.style.background = '#f0fdf4';
+        //             row.innerHTML = `<div class="p-4 w-full text-center text-green-600 font-bold flex items-center justify-center gap-2">
+        //                 <span class="material-symbols-outlined">check_circle</span> Đã phê duyệt thành công!
+        //             </div>`;
+        //             setTimeout(() => render(), 1500);
+        //         } else {
+        //             render();
+        //         }
+        //     } catch (e) {
+        //         alert('Lỗi phê duyệt: ' + e.message);
+        //         btn.disabled = false;
+        //         btn.innerHTML = originalContent;
+        //     }
+        // };
 
         // ── Auto-refresh when other pages mutate state ──
         window.addEventListener('pharma:statechange', render);

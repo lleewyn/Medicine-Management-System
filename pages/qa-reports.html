@@ -68,12 +68,14 @@
     (function () {
         function updateReports() {
             const batches = window.MockData.BATCHES || [];
-            const released = batches.filter(b => b.BatchStatus === 'RELEASED').length;
-            const rejected = batches.filter(b => b.BatchStatus === 'LOCKED' || b.BatchStatus === 'DESTROYED').length;
-            const quarantine = batches.filter(b => b.BatchStatus === 'QUARANTINE').length;
-
-            const totalResult = released + rejected;
-            const compliance = totalResult > 0 ? ((released / totalResult) * 100).toFixed(1) : '100';
+            
+            // Stats based on real database values
+            const released = batches.filter(b => ['RELEASED', 'ĐÃ DUYỆT', 'AVAILABLE', 'SẴN SÀNG'].includes(String(b.BatchStatus).toUpperCase())).length;
+            const rejected = batches.filter(b => ['LOCKED', 'DESTROYED', 'KHÓA', 'TỪ CHỐI', 'REJECT', 'ĐÃ TIÊU HỦY'].includes(String(b.BatchStatus).toUpperCase())).length;
+            const quarantine = batches.filter(b => ['QUARANTINE', 'BIỆT TRỮ', 'CHỜ DUYỆT', 'AWAITING_APPROVAL'].includes(String(b.BatchStatus).toUpperCase()) || !b.BatchStatus).length;
+            
+            const totalActioned = released + rejected;
+            const compliance = totalActioned > 0 ? ((released / totalActioned) * 100).toFixed(1) : '100';
 
             const elReleased = document.getElementById('stat-released');
             const elRejected = document.getElementById('stat-rejected');

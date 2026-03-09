@@ -36,8 +36,10 @@ const Router = {
     if (!user) return;
 
     // Lấy pageId từ URL hash (ví dụ: #dashboard → 'dashboard')
-    const hash = window.location.hash.replace('#', '') || 'dashboard';
-    const route = this.routes[hash];
+    // Xử lý cả trường hợp có query params phía sau (ví dụ: #qa-approval?batchId=123)
+    const hashFull = window.location.hash.replace('#', '') || 'dashboard';
+    const [pageId, queryStr] = hashFull.split('?');
+    const route = this.routes[pageId];
 
     if (!route) {
       this.renderError('Trang không tồn tại');
@@ -45,13 +47,13 @@ const Router = {
     }
 
     // Kiểm tra quyền truy cập
-    if (!window.MockData.canAccessPage(user, hash)) {
+    if (!window.MockData.canAccessPage(user, pageId)) {
       this.renderAccessDenied(route.title);
       return;
     }
 
     // Load và render nội dung trang
-    await this.loadPage(hash, route);
+    await this.loadPage(pageId, route);
   },
 
   /** Load HTML content từ file pages/ */

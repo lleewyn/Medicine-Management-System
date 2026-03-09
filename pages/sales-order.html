@@ -314,19 +314,28 @@
         }
 
         function updateStockAndList() {
-            const products = window.MockData.PRODUCTS;
-            const batches = window.MockData.BATCHES;
-            const SOs = window.MockData.SALES_ORDERS;
+            const products = window.MockData.PRODUCTS || [];
+            const batches = window.MockData.BATCHES || [];
+            const SOs = window.MockData.SALES_ORDERS || [];
 
-            // Build stock data
+            // Build stock data with robust status mapping
             const stockData = products.map(p => {
-                const totalQty = batches.filter(b => b.ProductID === p.ProductID && b.BatchStatus === 'RELEASED').reduce((s, b) => s + b.Quantity, 0);
+                const totalQty = batches.filter(b => {
+                    const pid = window.NocoMappers ? window.NocoMappers._flatten(b.ProductID) : b.ProductID;
+                    const status = String(b.BatchStatus || '').toUpperCase();
+                    // Include all variants of "RELEASED"
+                    const isReleased = ['RELEASED', 'ĐÃ DUYỆT', 'AVAILABLE', 'SẴN SÀNG'].includes(status);
+                    return pid === p.ProductID && isReleased;
+                }).reduce((s, b) => s + (parseFloat(b.Quantity) || 0), 0);
                 return { ...p, available: totalQty };
             });
 
             // Render Stock Cards (Tab 1)
-            const filter = document.getElementById('stock-search')?.value.toLowerCase() || '';
-            const categoryFilter = document.getElementById('stock-category')?.value || '';
+            const searchEl = document.getElementById('stock-search');
+            const catEl = document.getElementById('stock-category');
+            const filter = searchEl ? searchEl.value.toLowerCase() : '';
+            const categoryFilter = catEl ? catEl.value : '';
+            
             const filtered = stockData.filter(p =>
                 (p.ProductName.toLowerCase().includes(filter) || p.ProductID.toLowerCase().includes(filter)) &&
                 (categoryFilter === '' || p.CategoryID === categoryFilter)
@@ -342,71 +351,80 @@
                     return `
             <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 ${statusCls} transition-all hover:shadow-md">
               <div class="flex items-start justify-between mb-3">
-                <div>
-                  <p class="font-bold text-slate-900 text-sm">${p.ProductName}</p>
-                  <p class="text-xs font-mono text-slate-400 mt-0.5">${p.ProductID}</p>
+                <div class="flex-1">
+                  <p class="font-bold text-slate-900 text-sm leading-tight">${p.ProductName}</p>
+                  <p class="text-[10px] font-mono text-slate-400 mt-1 uppercase tracking-widest">${p.ProductID}</p>
                 </div>
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${labelCls}">${statusLabel}</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${labelCls} ml-2 whitespace-nowrap">${statusLabel}</span>
               </div>
               <div class="flex items-end justify-between mb-2">
                 <span class="text-3xl font-black text-slate-900">${p.available.toLocaleString()}</span>
-                <span class="text-sm text-slate-500">${p.BaseUnit}</span>
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">${p.BaseUnit || 'ĐV'}</span>
               </div>
               <div class="h-1.5 bg-slate-100 rounded-full overflow-hidden mb-3">
                 <div class="h-full rounded-full ${p.available === 0 ? 'bg-red-400' : p.available < 100 ? 'bg-amber-400' : 'bg-green-500'}" style="width:${pct}%"></div>
               </div>
-              <div class="flex items-center justify-between text-xs text-slate-400">
-                <span>${p.CategoryID} • ${p.StorageCondition === 'KHO_LANH' ? '❄️ Kho lạnh' : '🌡️ Kho thường'}</span>
-                <span>${p.ImportPrice.toLocaleString()} VNĐ/${p.BaseUnit}</span>
+              <div class="flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                <span>${p.CategoryID || 'N/A'} • ${String(p.StorageCondition).includes('LANH') ? '❄️ Lạnh' : '🌡️ Thường'}</span>
+                <span class="text-slate-900">${(parseFloat(p.ImportPrice) || 0).toLocaleString()} VNĐ</span>
               </div>
               <button onclick="addToSO('${p.ProductID}', '${p.ProductName}', ${p.ImportPrice}, '${p.BaseUnit}', ${p.available})"
-                class="mt-3 w-full py-2 bg-primary/10 text-primary rounded-lg text-xs font-bold hover:bg-primary/20 transition-colors flex items-center justify-center gap-1 ${p.available === 0 ? 'opacity-40 cursor-not-allowed' : ''}" ${p.available === 0 ? 'disabled' : ''}>
-                <span class="material-symbols-outlined text-xs">add_shopping_cart</span> Thêm vào SO
+                class="mt-4 w-full py-3 bg-primary text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-primary/90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/10 active:scale-95 ${p.available === 0 ? 'opacity-40 cursor-not-allowed' : ''}" ${p.available === 0 ? 'disabled' : ''}>
+                <span class="material-symbols-outlined text-sm">add_shopping_cart</span> Thêm vào SO
               </button>
             </div>`;
-                }).join('') || '<p class="col-span-3 text-center text-slate-400 py-8">Không tìm thấy sản phẩm</p>';
+                }).join('') || '<div class="col-span-3 text-center text-slate-400 py-20 italic">Không tìm thấy sản phẩm nào khớp với bộ lọc.</div>';
             }
 
             // Quick stock side panel
             const sideStock = document.getElementById('so-stock-side');
             if (sideStock) {
                 sideStock.innerHTML = stockData.map(p => `
-          <div onclick="addToSO('${p.ProductID}', '${p.ProductName}', ${p.ImportPrice}, '${p.BaseUnit}', ${p.available})" class="flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors border border-transparent hover:bg-primary/5 hover:border-primary/20">
-            <div class="flex-1 pointer-events-none">
-              <p class="text-xs font-bold text-slate-700">${p.ProductName}</p>
-              <p class="text-[10px] text-slate-400">${p.ProductID} • <span class="text-primary font-bold">${p.ImportPrice.toLocaleString()}đ</span></p>
+          <div onclick="addToSO('${p.ProductID}', '${p.ProductName}', ${p.ImportPrice}, '${p.BaseUnit}', ${p.available})" class="flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors border border-transparent hover:bg-primary/5 hover:border-primary/20 group">
+            <div class="flex-1">
+              <p class="text-[11px] font-bold text-slate-700 leading-tight group-hover:text-primary transition-colors">${p.ProductName}</p>
+              <p class="text-[9px] text-slate-400 font-mono tracking-widest mt-0.5">${p.ProductID} • <span class="text-primary font-bold">${(parseFloat(p.ImportPrice) || 0).toLocaleString()}đ</span></p>
             </div>
-            <div class="text-right pointer-events-none">
-                <span class="text-sm font-bold ${p.available === 0 ? 'text-red-500' : p.available < 100 ? 'text-amber-500' : 'text-green-600'}">${p.available}</span>
-                <span class="material-symbols-outlined text-[10px] text-slate-300 align-middle block">add_circle</span>
+            <div class="text-right">
+                <span class="text-xs font-black ${p.available === 0 ? 'text-red-500' : p.available < 100 ? 'text-amber-500' : 'text-green-600'}">${p.available}</span>
+                <span class="material-symbols-outlined text-[14px] text-slate-300 align-middle block group-hover:text-primary">add_circle</span>
             </div>
           </div>`).join('');
             }
 
-            // SO List (Tab 3)
-            const statusLabelMap = { PICKING: 'Chờ soạn', IN_PROGRESS: 'Đang lấy', PACKING: '<span class="text-amber-600 font-bold">Chờ duyệt</span>', COMPLETED: 'Hoàn thành' };
+            // SO List (Tab 3) with robust status mapping
+            const stSO = { 
+                PICKING: { l: 'Chờ soạn', c: 'bg-slate-100 text-slate-500' },
+                IN_PROGRESS: { l: 'Đang soạn', c: 'bg-blue-100 text-blue-600' },
+                PACKING: { l: 'Chờ duyệt', c: 'bg-amber-100 text-amber-600 font-bold' },
+                COMPLETED: { l: 'Hoàn thành', c: 'bg-green-100 text-green-600' }
+            };
             const soList = document.getElementById('so-all-list');
             if (soList) {
-                soList.innerHTML = SOs.map(so => `
+                soList.innerHTML = SOs.map(so => {
+                    const statusKey = String(so.Status || '').toUpperCase();
+                    const st = stSO[statusKey] || { l: so.Status, c: 'bg-slate-100 text-slate-400' };
+                    return `
           <tr class="hover:bg-slate-50 border-t border-slate-100 transition-colors">
-            <td class="px-5 py-4 font-bold text-primary">${so.SO_ID}</td>
-            <td class="px-5 py-4">
-              <p class="text-sm font-bold">${so.CustomerID}</p>
-              <p class="text-xs text-slate-400">${so.region || ''}</p>
+            <td class="px-5 py-5 font-black text-primary text-sm">${so.SO_ID}</td>
+            <td class="px-5 py-5">
+              <p class="text-sm font-black text-slate-700">${so.CustomerID}</p>
+              <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">${so.region || '—'}</p>
             </td>
-            <td class="px-5 py-4 text-sm ${so.priority === 'URGENT' ? 'text-red-600 font-bold' : 'text-slate-500'}">${so.deadline}</td>
-            <td class="px-5 py-4">
-              <span class="px-2 py-1 rounded-full text-[10px] font-bold ${so.priority === 'URGENT' ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-600'}">
+            <td class="px-5 py-5 text-xs font-medium ${so.priority === 'URGENT' ? 'text-red-600 font-black' : 'text-slate-500'} font-mono">${so.deadline}</td>
+            <td class="px-5 py-5">
+              <span class="px-2 py-0.5 rounded-lg text-[9px] font-black tracking-widest uppercase ${so.priority === 'URGENT' ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-slate-50 text-slate-500 border border-slate-100'}">
                 ${so.priority === 'URGENT' ? 'KHẨN CẤP' : 'BÌNH THƯỜNG'}
               </span>
             </td>
-            <td class="px-5 py-4 text-sm text-slate-600">${statusLabelMap[so.Status] || so.Status}</td>
-            <td class="px-5 py-4 text-right flex justify-end gap-3">
-              ${so.Status === 'PICKING' ? `<button onclick="editSO('${so.SO_ID}')" class="text-blue-500 text-xs font-bold hover:underline">Sửa</button>` : ''}
-              ${so.Status === 'PICKING' ? `<button onclick="cancelSO('${so.SO_ID}')" class="text-red-500 text-xs font-bold hover:underline">Hủy</button>` : ''}
-              <button onclick="showSODetail('${so.SO_ID}')" class="text-primary text-xs font-bold hover:underline">Chi tiết</button>
+            <td class="px-5 py-5"><span class="px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${st.c}">${st.l}</span></td>
+            <td class="px-5 py-5 text-right flex justify-end gap-2">
+              ${so.Status === 'PICKING' ? `<button onclick="editSO('${so.SO_ID}')" class="p-1.5 hover:bg-blue-50 text-blue-600 rounded-lg transition-colors"><span class="material-symbols-outlined text-[18px]">edit</span></button>` : ''}
+              ${so.Status === 'PICKING' ? `<button onclick="cancelSO('${so.SO_ID}')" class="p-1.5 hover:bg-red-50 text-red-600 rounded-lg transition-colors"><span class="material-symbols-outlined text-[18px]">cancel</span></button>` : ''}
+              <button onclick="showSODetail('${so.SO_ID}')" class="px-3 py-1.5 bg-primary/5 text-primary rounded-lg text-xs font-bold hover:bg-primary hover:text-white transition-all">Chi tiết</button>
             </td>
-          </tr>`).join('') || '<tr><td colspan="6" class="p-8 text-center text-slate-400">Chưa có đơn hàng nào.</td></tr>';
+          </tr>`;
+                }).reverse().join('') || '<tr><td colspan="6" class="p-20 text-center text-slate-400 italic">Chưa có đơn hàng nào được ghi nhận.</td></tr>';
             }
         }
 
@@ -440,34 +458,45 @@
 
         window.filterModalProducts = function (query) {
             query = query.toLowerCase();
-            const products = window.MockData.PRODUCTS;
-            const batches = window.MockData.BATCHES;
+            const products = window.MockData.PRODUCTS || [];
+            const batches = window.MockData.BATCHES || [];
             const stockData = products.map(p => {
-                const totalQty = batches.filter(b => b.ProductID === p.ProductID && b.BatchStatus === 'RELEASED').reduce((s, b) => s + b.Quantity, 0);
+                const totalQty = batches.filter(b => {
+                    const pid = window.NocoMappers ? window.NocoMappers._flatten(b.ProductID) : b.ProductID;
+                    const status = String(b.BatchStatus || '').toUpperCase();
+                    const isReleased = ['RELEASED', 'ĐÃ DUYỆT', 'AVAILABLE', 'SẴN SÀNG'].includes(status);
+                    return pid === p.ProductID && isReleased;
+                }).reduce((s, b) => s + (parseFloat(b.Quantity) || 0), 0);
                 return { ...p, available: totalQty };
             });
 
             const filtered = stockData.filter(p => p.ProductName.toLowerCase().includes(query) || p.ProductID.toLowerCase().includes(query));
             document.getElementById('modal-product-list').innerHTML = filtered.map(p => `
-                <div class="flex items-center justify-between p-3 border border-slate-100 rounded-xl hover:bg-slate-50 hover:border-primary/20 cursor-pointer transition-colors" onclick="selectModalProduct('${p.ProductID}')">
+                <div class="flex items-center justify-between p-4 border border-slate-100 rounded-2xl hover:bg-slate-50 hover:border-primary/20 cursor-pointer transition-all group" onclick="selectModalProduct('${p.ProductID}')">
                     <div class="pointer-events-none">
-                        <p class="text-sm font-bold text-slate-800">${p.ProductName}</p>
-                        <p class="text-xs text-slate-500 mt-0.5">${p.ProductID} • Đơn giá: <span class="font-bold text-slate-700">${p.ImportPrice.toLocaleString()} VNĐ</span></p>
+                        <p class="text-sm font-bold text-slate-800 group-hover:text-primary transition-colors">${p.ProductName}</p>
+                        <p class="text-[10px] text-slate-400 mt-1 uppercase tracking-widest font-mono">${p.ProductID} • ${(parseFloat(p.ImportPrice) || 0).toLocaleString()} VNĐ</p>
                     </div>
                     <div class="text-right pointer-events-none">
-                        <p class="text-xs font-bold text-slate-500 uppercase">Tồn kho</p>
+                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Sẵn có</p>
                         <p class="text-lg font-black ${p.available > 0 ? 'text-green-600' : 'text-red-500'}">${p.available.toLocaleString()}</p>
                     </div>
                 </div>
-            `).join('') || '<p class="text-center text-slate-400 py-4 text-xs">Không có kết quả trùng khớp</p>';
+            `).join('') || '<p class="text-center text-slate-400 py-10 font-bold italic">Không tìm thấy sản phẩm</p>';
         };
 
         window.selectModalProduct = function (id) {
-            const products = window.MockData.PRODUCTS;
+            const products = window.MockData.PRODUCTS || [];
             const p = products.find(x => x.ProductID === id);
             if (p) {
-                const batches = window.MockData.BATCHES;
-                const totalQty = batches.filter(b => b.ProductID === p.ProductID && b.BatchStatus === 'RELEASED').reduce((s, b) => s + b.Quantity, 0);
+                const batches = window.MockData.BATCHES || [];
+                const totalQty = batches.filter(b => {
+                    const pid = window.NocoMappers ? window.NocoMappers._flatten(b.ProductID) : b.ProductID;
+                    const status = String(b.BatchStatus || '').toUpperCase();
+                    const isReleased = ['RELEASED', 'ĐÃ DUYỆT', 'AVAILABLE', 'SẴN SÀNG'].includes(status);
+                    return pid === p.ProductID && isReleased;
+                }).reduce((s, b) => s + (parseFloat(b.Quantity) || 0), 0);
+                
                 window.addToSO(p.ProductID, p.ProductName, p.ImportPrice, p.BaseUnit, totalQty);
                 document.getElementById('product-select-modal').classList.remove('open');
             }
@@ -521,16 +550,28 @@
             if (!so) return;
 
             document.getElementById('det-so-id').textContent = so.SO_ID;
-            document.getElementById('det-customer').textContent = so.CustomerID;
+            document.getElementById('det-customer').textContent = window.NocoMappers ? window.NocoMappers._flatten(so.CustomerID) : so.CustomerID;
             document.getElementById('det-deadline').textContent = so.deadline;
-            document.getElementById('det-status').innerHTML = statusLabelMap[so.Status] || so.Status;
+            document.getElementById('det-status').innerHTML = stSO[String(so.Status).toUpperCase()]?.l || so.Status;
 
             let total = 0;
             document.getElementById('det-items-body').innerHTML = (so.itemsDetails || []).map(item => {
-                const p = window.MockData.PRODUCTS.find(x => x.ProductID === item.ProductID) || { ProductName: item.ProductID };
-                const lt = item.OrderedQty * item.UnitPrice;
+                const pid = window.NocoMappers ? window.NocoMappers._flatten(item.ProductID) : item.ProductID;
+                const p = window.MockData.PRODUCTS.find(x => x.ProductID === pid) || { ProductName: pid };
+                const qty = parseFloat(item.OrderedQty) || 0;
+                const price = parseFloat(item.UnitPrice) || 0;
+                const lt = qty * price;
                 total += lt;
-                return `<tr><td class="px-4 py-3"><p class="font-bold text-slate-700">${p.ProductName}</p></td><td class="text-center">${item.OrderedQty}</td><td class="text-right">${item.UnitPrice.toLocaleString()}</td><td class="text-right font-bold">${lt.toLocaleString()}</td></tr>`;
+                return `
+                    <tr class="border-b border-slate-50">
+                        <td class="px-4 py-3">
+                            <p class="font-bold text-slate-700">${p.ProductName}</p>
+                            <p class="text-[9px] text-slate-400 font-mono uppercase tracking-widest">${pid}</p>
+                        </td>
+                        <td class="text-center font-bold text-slate-900">${qty}</td>
+                        <td class="text-right text-slate-500 font-medium">${price.toLocaleString()}</td>
+                        <td class="text-right font-black text-primary">${lt.toLocaleString()}</td>
+                    </tr>`;
             }).join('');
             document.getElementById('det-total-value').textContent = total.toLocaleString() + ' VNĐ';
             document.getElementById('so-detail-modal').classList.add('open');
@@ -561,8 +602,9 @@
             } catch (e) { }
 
             soItems = (so.itemsDetails || []).map(i => {
-                const p = window.MockData.PRODUCTS.find(x => x.ProductID === i.ProductID) || { ProductName: i.ProductID, BaseUnit: 'Sp', available: 1000 };
-                return { id: i.ProductID, name: p.ProductName, price: i.UnitPrice, unit: p.BaseUnit, available: p.available, qty: i.OrderedQty };
+                const pid = window.NocoMappers ? window.NocoMappers._flatten(i.ProductID) : i.ProductID;
+                const p = window.MockData.PRODUCTS.find(x => x.ProductID === pid) || { ProductName: pid, BaseUnit: 'Sp', available: 1000 };
+                return { id: pid, name: p.ProductName, price: i.UnitPrice, unit: p.BaseUnit, available: p.available, qty: i.OrderedQty };
             });
             renderSOItems();
 

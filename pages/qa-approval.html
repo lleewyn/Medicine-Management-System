@@ -50,11 +50,11 @@
   <!-- Tabs -->
   <div class="flex border-b border-slate-200 mb-6 gap-6">
     <button onclick="switchQATab('pending')" id="qa-tab-pending" class="pb-3 text-sm tab-active">
-      Chờ kiểm định <span class="ml-1 bg-amber-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full"
+      Danh sách cần làm (To-do) <span class="ml-1 bg-amber-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full"
         id="qa-pending-count">0</span>
     </button>
     <button onclick="switchQATab('recording')" id="qa-tab-recording" class="pb-3 text-sm tab-inactive">
-      Ghi nhận kết quả QC
+      Phiếu kiểm nghiệm
     </button>
     <button onclick="switchQATab('history')" id="qa-tab-history" class="pb-3 text-sm tab-inactive">
       Lịch sử phê duyệt
@@ -282,7 +282,11 @@
     const canApprove = window.MockData.hasPermission(user, 'approve_qa') || window.MockData.hasPermission(user, 'write_all');
 
     function renderPendingList() {
-      const batches = window.MockData.BATCHES.filter(b => b.BatchStatus === 'QUARANTINE');
+      // Get all quarantine batches
+      const batches = (window.MockData.BATCHES || []).filter(b => 
+        ['QUARANTINE', 'BIỆT TRỮ', 'CHỜ DUYỆT', 'AWAITING_APPROVAL', 'QC_PENDING'].includes(String(b.BatchStatus).toUpperCase()) || 
+        !b.BatchStatus
+      );
 
       // Update pending count in tab
       const countEl = document.getElementById('qa-pending-count');
@@ -292,55 +296,71 @@
       const listEl = document.getElementById('qa-pending-list');
       if (listEl) {
         listEl.innerHTML = batches.map(b => {
-          const p = products.find(x => x.ProductID === b.ProductID) || {};
+          const pid = window.NocoMappers ? window.NocoMappers._flatten(b.ProductID) : b.ProductID;
+          const p = products.find(x => x.ProductID === pid) || {};
+          
+          // Logic: If status is QC_PENDING, it means QC record exists, waiting for QA
+          const isRecorded = String(b.BatchStatus).toUpperCase() === 'QC_PENDING';
+          
           return `
-            <div class="bg-white rounded-xl border-2 border-amber-200 shadow-sm p-6 mb-4" id="qa-card-${b.BatchID}">
+            <div class="bg-white rounded-2xl border-2 ${isRecorded ? 'border-blue-500 shadow-blue-50' : 'border-amber-400 shadow-amber-50'} shadow-xl p-6 mb-4 hover:scale-[1.01] transition-all" id="qa-card-${b.BatchID}">
               <div class="flex items-start justify-between mb-4">
                 <div class="flex items-center gap-4">
-                  <div class="size-12 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center">
-                    <span class="material-symbols-outlined text-2xl">science</span>
+                  <div class="size-14 rounded-2xl ${isRecorded ? 'bg-blue-600 text-white' : 'bg-amber-500 text-white'} flex items-center justify-center shadow-lg">
+                    <span class="material-symbols-outlined text-3xl font-light">${isRecorded ? 'receipt_long' : 'lab_research'}</span>
                   </div>
                   <div>
-                    <div class="flex items-center gap-2">
-                      <h4 class="font-black text-slate-900">${p.ProductName || b.ProductID}</h4>
-                      <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700">BIỆT TRỮ</span>
+                    <div class="flex items-center gap-2 mb-1">
+                       <p class="text-[9px] px-2 py-0.5 ${isRecorded ? 'bg-blue-600' : 'bg-amber-500'} text-white rounded-full uppercase font-black tracking-widest shadow-sm">
+                        ${isRecorded ? 'KIỂM NGHIỆM ĐÃ XONG' : 'CẦN KIỂM NGHIỆM'}
+                       </p>
+                      <h4 class="font-black text-slate-800 text-lg">${p.ProductName || pid}</h4>
                     </div>
-                    <div class="flex gap-4 mt-1 text-xs text-slate-500">
+                    <div class="flex gap-4 mt-2 text-xs text-slate-500">
                       <span>Lô: <strong class="font-mono text-slate-700">${b.Batchcode}</strong></span>
-                      <span>Số lượng: <strong>${b.Quantity.toLocaleString()} ${p.BaseUnit || ''}</strong></span>
-                      <span>HSD: <strong>${b.ExpDate}</strong></span>
-                      <span>Vị trí: <strong>${b.LocationID}</strong></span>
+                      <span>Số lượng: <strong class="text-slate-700">${(b.Quantity || 0).toLocaleString()} ${p.BaseUnit || ''}</strong></span>
+                      <span>HSD: <strong class="text-slate-700">${b.ExpDate || '—'}</strong></span>
                     </div>
                   </div>
                 </div>
-                <span class="px-2 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-500">${b.BatchID}</span>
+                <span class="px-2 py-1 rounded-lg text-[10px] font-bold bg-slate-100 text-slate-500">#${b.BatchID}</span>
               </div>
 
-              <div class="flex gap-3 mt-4">
-                ${canRecord ? `
+              <div class="flex gap-3 mt-4 pt-4 border-t border-slate-50">
+                ${canRecord && !isRecorded ? `
                   <button onclick="startQCRecord('${b.BatchID}')"
-                    class="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-primary/90 transition-colors">
-                    <span class="material-symbols-outlined text-sm">edit_note</span> Ghi nhận kết quả QC
+                    class="flex items-center gap-2 bg-primary text-white px-4 py-2.5 rounded-xl text-sm font-bold hover:shadow-lg transition-all">
+                    <span class="material-symbols-outlined text-sm">edit_note</span> QC: Ghi nhận kết quả
                   </button>` : ''}
-                ${canApprove ? `
-                  <button onclick="quickApprove('${b.BatchID}', 'release')"
-                    class="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-green-700 transition-colors">
-                    <span class="material-symbols-outlined text-sm">check_circle</span> Phê duyệt — Xuất xưởng
-                  </button>
-                  <button onclick="quickApprove('${b.BatchID}', 'reject')"
-                    class="flex items-center gap-2 border border-red-200 text-red-600 px-4 py-2 rounded-xl text-sm font-bold hover:bg-red-50 transition-colors">
-                    <span class="material-symbols-outlined text-sm">cancel</span> Giữ biệt trữ / Tiêu hủy
-                  </button>` : `
-                  <div class="flex items-center gap-2 text-slate-400 text-sm">
-                    <span class="material-symbols-outlined text-sm">lock</span>
-                    Chờ ${canRecord ? 'duyệt của QA' : 'Chuyên viên QC ghi nhận kết quả'}
-                  </div>`}
+                
+                ${canApprove && isRecorded ? `
+                  <div class="flex gap-3">
+                    <button onclick="quickApprove('${b.BatchID}', 'release')"
+                      class="flex items-center gap-2 bg-green-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-green-700 shadow-lg shadow-green-200 transition-all">
+                      <span class="material-symbols-outlined text-sm">verified</span> QA: Phê duyệt & Xuất xưởng
+                    </button>
+                    <button onclick="quickApprove('${b.BatchID}', 'reject')"
+                      class="flex items-center gap-2 border border-red-200 text-red-600 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-red-50 transition-colors">
+                      <span class="material-symbols-outlined text-sm">cancel</span> QA: Từ chối kết quả
+                    </button>
+                  </div>` : ''}
+
+                ${!canApprove && isRecorded ? `
+                  <div class="flex items-center gap-2 text-blue-500 text-sm font-bold">
+                    <span class="material-symbols-outlined text-sm">schedule</span> Chờ QA duyệt phiếu...
+                  </div>` : ''}
+
+                ${!isRecorded && !canRecord ? `
+                   <div class="flex items-center gap-2 text-slate-400 text-sm">
+                    <span class="material-symbols-outlined text-sm">lock</span> Chờ Chuyên viên QC ghi nhận kết quả
+                  </div>` : ''}
               </div>
             </div>`;
         }).join('') || `
           <div class="bg-white rounded-xl border border-slate-200 p-12 text-center text-slate-400">
             <span class="material-symbols-outlined text-5xl block mb-3 text-green-400">check_circle</span>
-            <p class="font-bold text-slate-600">Không có lô hàng nào đang biệt trữ</p>
+            <p class="font-bold text-slate-600 uppercase tracking-widest text-xs">Phòng QC không có hồ sơ tồn đọng</p>
+            <p class="text-sm mt-1">Tất cả các lô hàng đã được xử lý hoặc kho trống.</p>
           </div>`;
       }
 
@@ -350,8 +370,9 @@
         const currentVal = batchSelect.value;
         batchSelect.innerHTML = '<option value="">-- Chọn lô hàng --</option>' +
           batches.map(b => {
-            const p = products.find(x => x.ProductID === b.ProductID) || {};
-            return `<option value="${b.BatchID}">${b.Batchcode} — ${p.ProductName || b.ProductID} (${b.Quantity} ${p.BaseUnit || ''})</option>`;
+             const pid = window.NocoMappers ? window.NocoMappers._flatten(b.ProductID) : b.ProductID;
+            const p = products.find(x => x.ProductID === pid) || {};
+            return `<option value="${b.BatchID}">${b.Batchcode} — ${p.ProductName || pid} (${b.Quantity} ${p.BaseUnit || ''})</option>`;
           }).join('');
         if (currentVal) batchSelect.value = currentVal;
       }
@@ -363,31 +384,75 @@
       if (!historyTable) return;
 
       if (historyData.length === 0) {
-        historyTable.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-slate-400">Chưa có lịch sử phê duyệt</td></tr>`;
+        historyTable.innerHTML = `<tr><td colspan="6" class="text-center py-12 text-slate-400"><span class="material-symbols-outlined text-4xl block mb-2 opacity-20">history</span><p>Chưa có dữ liệu lịch sử phê duyệt</p></td></tr>`;
         return;
       }
 
-      historyTable.innerHTML = historyData.map(h => `
-        <tr class="hover:bg-slate-50">
-          <td class="px-5 py-3 font-mono font-bold text-primary">${h.Batchcode}</td>
-          <td class="px-5 py-3">${h.ProductName}</td>
-          <td class="px-5 py-3 text-slate-500">${h.QC_Date}</td>
-          <td class="px-5 py-3 font-medium">${h.UserID}</td>
-          <td class="px-5 py-3">
-            <span class="font-bold text-sm ${h.Result === 'ĐẠT' ? 'text-green-600' : 'text-red-500'}">${h.Result}</span>
+      historyTable.innerHTML = historyData.map(h => {
+        const statusMap = {
+            'RELEASED': { l: 'Đã xuất xưởng', c: 'bg-green-100 text-green-700' },
+            'ĐÃ DUYỆT': { l: 'Đã xuất xưởng', c: 'bg-green-100 text-green-700' },
+            'LOCKED': { l: 'Đang biệt trữ', c: 'bg-amber-100 text-amber-700' },
+            'BIỆT TRỮ': { l: 'Đang biệt trữ', c: 'bg-amber-100 text-amber-700' },
+            'REJECT': { l: 'Bị từ chối', c: 'bg-red-100 text-red-700' },
+            'TỪ CHỐI': { l: 'Bị từ chối', c: 'bg-red-100 text-red-700' }
+        };
+        const st = statusMap[String(h.Status).toUpperCase()] || { l: h.Status, c: 'bg-slate-100 text-slate-600' };
+
+        return `
+        <tr class="hover:bg-slate-50 transition-colors">
+          <td class="px-5 py-4 font-mono font-bold text-primary">${h.lot || h.Batchcode || '—'}</td>
+          <td class="px-5 py-4">
+             <p class="font-bold text-slate-800">${h.product || h.ProductName || '—'}</p>
+             <p class="text-[10px] text-slate-400 uppercase font-black">${h.BatchID || ''}</p>
           </td>
-          <td class="px-5 py-3">
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${h.Status === 'RELEASED' ? 'bg-green-100 text-green-700' : h.Status === 'LOCKED' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}">
-              ${h.Status === 'RELEASED' ? 'Đã xuất xưởng' : h.Status === 'LOCKED' ? 'Đang biệt trữ' : 'Bị từ chối'}
+          <td class="px-5 py-4 text-slate-500 font-medium">${h.QC_Date || h.date || '—'}</td>
+          <td class="px-5 py-4 font-bold text-slate-700">${h.inspector || h.UserID || 'System'}</td>
+          <td class="px-5 py-4">
+            <span class="font-bold text-xs ${['ĐẠT', 'PASS'].includes(String(h.Result).toUpperCase()) ? 'text-green-600' : 'text-red-500'}">${h.Result}</span>
+          </td>
+          <td class="px-5 py-4">
+            <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${st.c}">
+              ${st.l}
             </span>
           </td>
-        </tr>`).join('');
+        </tr>`;
+      }).join('');
     }
 
-    function updateQA() {
-      products = window.MockData.PRODUCTS;
+    async function updateQA() {
+      products = window.MockData.PRODUCTS || [];
       renderPendingList();
       renderHistory();
+
+      // Check URL parameters for deep linking
+      const params = new URLSearchParams(window.location.hash.includes('?') ? window.location.hash.split('?')[1] : '');
+      const batchId = params.get('batchId');
+      if (batchId) {
+          const batch = (window.MockData.BATCHES || []).find(b => b.BatchID === batchId);
+          if (batch) {
+              const isRecorded = String(batch.BatchStatus).toUpperCase() === 'QC_PENDING';
+              if (isRecorded) {
+                  // If QA needs to approve, keep in pending list but scroll to it
+                  window.switchQATab('pending');
+                  setTimeout(() => {
+                      const el = document.getElementById(`qa-card-${batchId}`);
+                      if (el) {
+                          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                          el.classList.add('ring-2', 'ring-blue-500');
+                      }
+                  }, 300);
+              } else {
+                  // If QC needs to record, open recording tab
+                  window.switchQATab('recording');
+                  const select = document.getElementById('qa-batch-select');
+                  if (select) {
+                      select.value = batchId;
+                      select.dispatchEvent(new Event('change'));
+                  }
+              }
+          }
+      }
     }
 
     // Initialize UI
@@ -397,45 +462,80 @@
     // Event Listeners
     document.getElementById('qa-batch-select')?.addEventListener('change', (e) => {
       const batchId = e.target.value;
-      const batch = window.MockData.BATCHES.find(b => b.BatchID === batchId);
+      const batch = (window.MockData.BATCHES || []).find(b => b.BatchID === batchId);
       const form = document.getElementById('qc-form');
       if (!batch || !form) {
         if (form) form.classList.add('hidden');
         return;
       }
 
-      const prod = products.find(p => p.ProductID === batch.ProductID) || {};
+      const pid = window.NocoMappers ? window.NocoMappers._flatten(batch.ProductID) : batch.ProductID;
+      const prod = products.find(p => p.ProductID === pid) || {};
       document.getElementById('qc-form-title').textContent = `Phiếu kiểm nghiệm — ${batch.Batchcode}`;
       document.getElementById('qc-form-subtitle').textContent = `${prod.ProductName || ''} | Số lượng: ${batch.Quantity} ${prod.BaseUnit || ''} | HSD: ${batch.ExpDate}`;
       form.classList.remove('hidden');
 
       const submitArea = document.getElementById('qc-submit-area');
       if (submitArea) {
-        let html = '';
-        if (canRecord) {
-          html += `
-            <button onclick="submitQCResult('record')" class="flex-1 bg-primary text-white py-3 rounded-xl font-bold text-sm hover:bg-primary/90 flex items-center justify-center gap-2">
-              <span class="material-symbols-outlined text-sm">save</span> Lưu Phiếu kiểm nghiệm
-            </button>`;
+        const isRecorded = String(batch.BatchStatus).toUpperCase() === 'QC_PENDING';
+        let actionButtons = '';
+
+        if (!isRecorded) {
+          // BƯỚC 1: QC Đang ghi nhận phiếu mới
+          if (canRecord) {
+            actionButtons = `
+              <button onclick="submitQCResult('record')" 
+                class="flex-1 bg-blue-600 text-white py-3 rounded-xl font-bold text-sm hover:bg-blue-700 shadow-lg shadow-blue-100 flex items-center justify-center gap-2 transition-all">
+                <span class="material-symbols-outlined">save</span> QC: Lưu Phiếu kiểm nghiệm
+              </button>
+            `;
+          } else {
+            actionButtons = `<div class="p-4 bg-amber-50 border border-amber-200 rounded-xl text-center w-full text-amber-700 text-xs font-bold">
+              Yêu cầu tài khoản Chuyên viên QC để ghi nhận kết quả.
+            </div>`;
+          }
+        } else {
+          // BƯỚC 2: QA Đang xem xét để phê duyệt
+          if (canApprove) {
+            actionButtons = `
+              <button onclick="submitQCResult('approve')" 
+                class="flex-1 bg-green-600 text-white py-3 rounded-xl font-bold text-sm hover:bg-green-700 shadow-lg shadow-green-100 flex items-center justify-center gap-2 transition-all">
+                <span class="material-symbols-outlined">verified</span> QA: Chấp nhận & Phê duyệt xuất xưởng
+              </button>
+              <button onclick="submitQCResult('reject')" 
+                class="w-1/3 border-2 border-red-200 text-red-600 py-3 rounded-xl font-bold text-sm hover:bg-red-50 flex items-center justify-center gap-2 transition-all">
+                <span class="material-symbols-outlined">block</span> Từ chối
+              </button>
+            `;
+          } else {
+            actionButtons = `<div class="p-4 bg-blue-50 border border-blue-200 rounded-xl text-center w-full text-blue-700 text-xs font-bold">
+              Phiếu đã có kết quả QC. Đang chờ Trưởng phòng QA phê duyệt cuối.
+            </div>`;
+          }
         }
-        if (canApprove) {
-          html += `
-            <button onclick="submitQCResult('approve')" class="flex-1 bg-green-600 text-white py-3 rounded-xl font-bold text-sm hover:bg-green-700 flex items-center justify-center gap-2">
-              <span class="material-symbols-outlined text-sm">task_alt</span> Lưu & Phê duyệt ngay
-            </button>`;
-        }
-        submitArea.innerHTML = html;
+        submitArea.innerHTML = actionButtons;
       }
     });
 
-    // Helpers
-    const paramResults = {};
+    // Help state variable
+    let currentResults = { coa: null, storage: null, visual: null, ph: null, micro: null, diss: null };
+
     window.setParam = function (param, result, btn) {
-      paramResults[param] = result;
+      currentResults[param] = result;
       const card = document.getElementById(`param-${param}`);
-      if (card) card.className = `p-4 border-2 rounded-xl ${result === 'pass' ? 'result-pass' : 'result-fail'}`;
+      if (card) card.className = `p-4 border-2 rounded-xl transition-all ${result === 'pass' ? 'result-pass border-green-500' : 'result-fail border-red-500'}`;
+      
       btn.closest('.flex').querySelectorAll('.param-btn').forEach(b => b.classList.remove('bg-green-100', 'text-green-700', 'bg-red-100', 'text-red-600', 'border-green-400', 'border-red-400'));
-      btn.classList.add(result === 'pass' ? 'bg-green-100' : 'bg-red-100', result === 'pass' ? 'text-green-700' : 'text-red-600');
+      btn.classList.add(result === 'pass' ? 'bg-green-100' : 'bg-red-100', result === 'pass' ? 'text-green-700' : 'text-red-600', result === 'pass' ? 'border-green-400' : 'border-red-400');
+
+      // Auto-suggest overall conclusion
+      const values = Object.values(currentResults);
+      const allDone = values.filter(v => v !== null).length >= 4; // At least first 4 are mandatory
+      if (allDone) {
+          const hasFail = values.some(v => v === 'fail');
+          const radio = document.querySelector(`input[name="overall"][value="${hasFail ? 'fail' : 'pass'}"]`);
+          if (radio) radio.checked = true;
+      }
     };
 
     window.startQCRecord = function (batchId) {
@@ -447,7 +547,7 @@
       }
     };
 
-    window.submitQCResult = function (mode) {
+    window.submitQCResult = async function (mode) {
       const modal = document.getElementById('qc-result-modal');
       const icon = document.getElementById('qc-result-icon');
       const title = document.getElementById('qc-result-title');
@@ -455,43 +555,66 @@
 
       const overallPass = document.querySelector('input[name="overall"]:checked')?.value === 'pass';
       const batchId = document.getElementById('qa-batch-select').value;
-      if (!batchId) return;
+      if (!batchId) { alert('Vui lòng chọn lô hàng!'); return; }
 
       const batch = window.MockData.BATCHES.find(b => b.BatchID === batchId);
-      const prod = products.find(p => p.ProductID === batch.ProductID) || {};
+      const pid = window.NocoMappers ? window.NocoMappers._flatten(batch.ProductID) : batch.ProductID;
+      const prod = products.find(p => p.ProductID === pid) || {};
 
-      if (mode === 'approve' && overallPass) {
-        window.MockData.updateBatchStatus(batchId, 'RELEASED');
-        window.MockData.addQAHistory({
-          lot: batch.Batchcode,
-          product: prod.ProductName || batch.ProductID,
-          date: new Date().toLocaleDateString('vi-VN'),
-          inspector: user.FullName || user.username,
-          result: 'ĐẠT',
-          status: 'RELEASED'
-        });
-        icon.className = 'size-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4';
-        icon.innerHTML = '<span class="material-symbols-outlined text-3xl text-green-600">verified</span>';
-        title.textContent = 'Lô hàng đã được phê duyệt!';
-        body.textContent = 'Lô đã được cập nhật trạng thái RELEASED và sẵn sàng xuất kho.';
-      } else {
-        window.MockData.addQAHistory({
-          lot: batch.Batchcode,
-          product: prod.ProductName || batch.ProductID,
-          date: new Date().toLocaleDateString('vi-VN'),
-          inspector: user.FullName || user.username,
-          result: overallPass ? 'ĐẠT' : 'KHÔNG ĐẠT',
-          status: 'LOCKED'
-        });
-        icon.className = 'size-16 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-4';
-        icon.innerHTML = '<span class="material-symbols-outlined text-3xl text-blue-600">save</span>';
-        title.textContent = 'Đã lưu phiếu kiểm nghiệm!';
-        body.textContent = 'Kết quả QC đã được ghi nhận. Lô hàng vẫn ở trạng thái Biệt trữ cho đến khi QA phê duyệt.';
+      try {
+          if (mode === 'approve') {
+            const finalStatus = overallPass ? 'PENDING_PUTAWAY' : 'LOCKED';
+            await window.MockData.updateBatchStatus(batchId, finalStatus);
+            await window.MockData.addQAHistory({
+              lot: batch.Batchcode,
+              product: prod.ProductName || pid,
+              date: new Date().toLocaleDateString('vi-VN'),
+              inspector: user.FullName || user.username,
+              result: overallPass ? 'ĐẠT' : 'KHÔNG ĐẠT',
+              status: finalStatus
+            });
+
+            if (overallPass) {
+                icon.className = 'size-16 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-4';
+                icon.innerHTML = '<span class="material-symbols-outlined text-3xl text-blue-600">move_up</span>';
+                title.textContent = 'Phê duyệt & Chờ cất hàng!';
+                body.textContent = 'Kết quả QC ĐẠT. Lô hàng đã được chuyển sang danh sách CHỜ CẤT HÀNG.';
+            } else {
+                icon.className = 'size-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4';
+                icon.innerHTML = '<span class="material-symbols-outlined text-3xl text-red-600">block</span>';
+                title.textContent = 'Từ chối chất lượng!';
+                body.textContent = 'Lô hàng đã bị KHÓA (LOCKED) do không đạt chuẩn.';
+            }
+          } else {
+            // Mode: Record only
+            const recordStatus = overallPass ? 'QC_PENDING' : 'LOCKED';
+            await window.MockData.updateBatchStatus(batchId, recordStatus);
+            await window.MockData.addQAHistory({
+              lot: batch.Batchcode,
+              product: prod.ProductName || pid,
+              date: new Date().toLocaleDateString('vi-VN'),
+              inspector: user.FullName || user.username,
+              result: overallPass ? 'ĐẠT' : 'KHÔNG ĐẠT',
+              status: recordStatus
+            });
+
+            icon.className = 'size-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4';
+            icon.innerHTML = '<span class="material-symbols-outlined text-3xl text-slate-600">save</span>';
+            title.textContent = 'Đã lưu Phiếu kiểm định!';
+            body.textContent = `Thông tin QC đã được ghi nhận. Trạng thái hiện tại: ${overallPass ? 'Chờ QA phê duyệt cuối' : 'Đã khóa'}`;
+          }
+          
+          modal.classList.add('open');
+          updateQA(); // Refresh data
+          document.getElementById('qc-form').classList.add('hidden');
+          document.getElementById('qa-batch-select').value = '';
+          currentResults = { coa: null, storage: null, visual: null, ph: null, micro: null, diss: null };
+      } catch (err) {
+          alert('Lỗi: ' + err.message);
       }
-      modal.classList.add('open');
     };
 
-    window.quickApprove = function (batchId, action) {
+    window.quickApprove = async function (batchId, action) {
       const modal = document.getElementById('qc-result-modal');
       const icon = document.getElementById('qc-result-icon');
       const title = document.getElementById('qc-result-title');
@@ -499,45 +622,50 @@
 
       const batch = window.MockData.BATCHES.find(b => b.BatchID === batchId);
       if (!batch) return;
-      const prod = products.find(p => p.ProductID === batch.ProductID) || {};
+      const pid = window.NocoMappers ? window.NocoMappers._flatten(batch.ProductID) : batch.ProductID;
+      const prod = products.find(p => p.ProductID === pid) || {};
 
-      if (action === 'release') {
-        window.MockData.updateBatchStatus(batchId, 'RELEASED');
-        window.MockData.addQAHistory({
-          lot: batch.Batchcode,
-          product: prod.ProductName || batch.ProductID,
-          date: new Date().toLocaleDateString('vi-VN'),
-          inspector: user.FullName || user.username,
-          result: 'ĐẠT',
-          status: 'RELEASED'
-        });
-        icon.className = 'size-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4';
-        icon.innerHTML = '<span class="material-symbols-outlined text-3xl text-green-600">verified</span>';
-        title.textContent = 'Phê duyệt thành công!';
-        body.innerHTML = `Lô hàng <strong>${batchId}</strong> đã được <span class="text-green-600 font-bold">XUẤT XƯỞNG (RELEASED)</span>.`;
-      } else {
-        window.MockData.updateBatchStatus(batchId, 'LOCKED');
-        window.MockData.addQAHistory({
-          lot: batch.Batchcode,
-          product: prod.ProductName || batch.ProductID,
-          date: new Date().toLocaleDateString('vi-VN'),
-          inspector: user.FullName || user.username,
-          result: 'KHÔNG ĐẠT',
-          status: 'REJECT'
-        });
-        icon.className = 'size-16 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-4';
-        icon.innerHTML = '<span class="material-symbols-outlined text-3xl text-amber-600">lock</span>';
-        title.textContent = 'Lô hàng bị giữ lại';
-        body.innerHTML = `Lô <strong>${batchId}</strong> đã được chuyển sang trạng thái LOCKED.`;
+      try {
+          if (action === 'release') {
+            await window.MockData.updateBatchStatus(batchId, 'PENDING_PUTAWAY');
+            await window.MockData.addQAHistory({
+              lot: batch.Batchcode,
+              product: prod.ProductName || pid,
+              date: new Date().toLocaleDateString('vi-VN'),
+              inspector: user.FullName || user.username,
+              result: 'ĐẠT',
+              status: 'PENDING_PUTAWAY'
+            });
+            icon.className = 'size-16 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-4';
+            icon.innerHTML = '<span class="material-symbols-outlined text-3xl text-blue-600">move_up</span>';
+            title.textContent = 'Phê duyệt thành công!';
+            body.innerHTML = `Lô hàng <strong>${batch.Batchcode}</strong> đã đạt chuẩn. <br><br>Trạng thái: <span class="text-blue-600 font-black">CHỜ CẤT HÀNG</span>.<br>Thông tin đã được gửi cho bộ phận Kho để di chuyển vào kệ.`;
+          } else {
+            await window.MockData.updateBatchStatus(batchId, 'LOCKED');
+            await window.MockData.addQAHistory({
+              lot: batch.Batchcode,
+              product: prod.ProductName || pid,
+              date: new Date().toLocaleDateString('vi-VN'),
+              inspector: user.FullName || user.username,
+              result: 'KHÔNG ĐẠT',
+              status: 'REJECT'
+            });
+            icon.className = 'size-16 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-4';
+            icon.innerHTML = '<span class="material-symbols-outlined text-3xl text-amber-600">lock</span>';
+            title.textContent = 'Lô hàng bị giữ lại';
+            body.innerHTML = `Lô <strong>${batch.Batchcode}</strong> đã được chuyển sang trạng thái LOCKED.`;
+          }
+          modal.classList.add('open');
+      } catch (err) {
+          alert('Lỗi phê duyệt: ' + err.message);
       }
-      modal.classList.add('open');
     };
 
     window.exportQAReport = function () {
       const headers = ['Lô hàng', 'Sản phẩm', 'Ngày kiểm', 'Kiểm nghiệm viên', 'Kết quả', 'Trạng thái'];
       const data = (window.MockData.QA_HISTORY || []).map(h => [
-        h.Batchcode, h.ProductName, h.QC_Date, h.UserID, h.Result,
-        h.Status === 'RELEASED' ? 'Đã xuất xưởng' : 'Đang biệt trữ'
+        h.lot || h.Batchcode, h.product || h.ProductName, h.QC_Date || h.date, h.UserID || h.inspector, h.Result,
+        h.Status
       ]);
       window.MockData.exportToCSV([{ headers, data }], `BaoCao_QA_${new Date().toISOString().slice(0, 10)}.csv`);
     };

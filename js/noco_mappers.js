@@ -26,18 +26,28 @@ const NocoMappers = {
      * Based on actual DB Schema: BatchID, ProductID, SupplierID, Batchcode, IsConsignment, MfgDate, ExpDate, ImportPrice, BatchStatus
      */
     toUIBatch(nocoBatch) {
-        const rawStatus = String(this._flatten(nocoBatch.BatchStatus) || 'Đã duyệt').trim();
+        const rawStatus = String(this._flatten(nocoBatch.BatchStatus) || 'Đã duyệt').trim().toUpperCase();
         
         // Map status names (VN -> EN)
         const statusMap = {
-            'Đã duyệt': 'RELEASED',
             'ĐÃ DUYỆT': 'RELEASED',
-            'PENDING': { label: 'CHỜ NHẬN', color: 'orange' },
-            'PARTIAL': { label: 'NHẬP MỘT PHẦN', color: 'info' },
-            'COMPLETED': { label: 'HOÀN THÀNH', color: 'success' },
-            'CANCELLED': { label: 'ĐÃ HỦY', color: 'danger' },
-            'AWAITING_APPROVAL': { label: 'CHỜ DUYỆT', color: 'warning' },
-            'ĐANG CHỜ XỬ LÝ': { label: 'CHỜ DUYỆT', color: 'warning' }
+            'SẴN SÀNG': 'RELEASED',
+            'AVAILABLE': 'RELEASED',
+            'RELEASED': 'RELEASED',
+            'PENDING': 'QUARANTINE',
+            'CHỜ DUYỆT': 'QUARANTINE',
+            'AWAITING_APPROVAL': 'QUARANTINE',
+            'ĐANG CHỜ XỬ LÝ': 'QUARANTINE',
+            'QUARANTINE': 'QUARANTINE',
+            'BIỆT TRỮ': 'QUARANTINE',
+            'PENDING_PUTAWAY': 'PENDING_PUTAWAY',
+            'CHỜ CẤT HÀNG': 'PENDING_PUTAWAY',
+            'ĐANG KIỂM NGHIỆM': 'QUARANTINE',
+            'QC_PENDING': 'QUARANTINE',
+            'PARTIAL': 'PARTIAL',
+            'COMPLETED': 'COMPLETED',
+            'CANCELLED': 'CANCELLED',
+            'ĐÃ HỦY': 'CANCELLED'
         };
 
         const flattened = {

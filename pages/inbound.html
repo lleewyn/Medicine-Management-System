@@ -72,6 +72,9 @@
         <button onclick="switchTab('receive')" id="tab-receive" class="pb-3 text-sm tab-inactive">
             Nhận hàng vào kho
         </button>
+        <button onclick="switchTab('putaway')" id="tab-putaway" class="pb-3 text-sm tab-inactive">
+            Lệnh cất hàng (Putaway) <span id="putaway-badge" class="ml-1 bg-blue-500 text-white text-[10px] px-1.5 py-0.5 rounded-full hidden">0</span>
+        </button>
     </div>
 
     <!-- TAB 1: PO List -->
@@ -353,6 +356,31 @@
 
 
 
+    <!-- TAB 3: Putaway List -->
+    <div id="tab-content-putaway" class="hidden">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="p-5 border-b border-slate-100 bg-indigo-50/30">
+                <h4 class="font-bold text-indigo-900 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-lg">move_down</span>
+                    Lệnh điều chuyển vào kệ chính thức
+                </h4>
+                <p class="text-xs text-slate-500 mt-1">Lô hàng đã ĐẠT CHẤT LƯỢNG. Nhân viên kho cần di chuyển hàng từ Khu Biệt Trữ sang vị trí kệ lưu trữ bên dưới.</p>
+            </div>
+            <table class="w-full text-left text-sm">
+                <thead class="bg-slate-50">
+                    <tr>
+                        <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase">Lô hàng</th>
+                        <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase">Sản phẩm</th>
+                        <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase text-center w-36">Từ (Biệt trữ)</th>
+                        <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase text-center w-48 font-black text-indigo-600">Đến (Kệ chính)</th>
+                        <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase text-right">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="putaway-table-body" class="divide-y divide-slate-100"></tbody>
+            </table>
+        </div>
+    </div>
+
     <!-- Success Modal -->
     <div class="modal-overlay" id="success-modal">
         <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 text-center">
@@ -447,6 +475,52 @@
                     </tr>`;
                 }).join('');
 
+                // 2.1 Render Putaway Table
+                const putawayItems = currentBatches.filter(b => String(b.BatchStatus).toUpperCase() === 'PENDING_PUTAWAY');
+                const badge = document.getElementById('putaway-badge');
+                if (badge) {
+                    badge.textContent = putawayItems.length;
+                    badge.classList.toggle('hidden', putawayItems.length === 0);
+                }
+
+                const putawayTable = document.getElementById('putaway-table-body');
+                if (putawayTable) {
+                    if (putawayItems.length === 0) {
+                        putawayTable.innerHTML = `<tr><td colspan="5" class="py-12 text-center text-slate-400">Không có lệnh cất hàng nào cần xử lý.</td></tr>`;
+                    } else {
+                        putawayTable.innerHTML = putawayItems.map(item => {
+                            const p = products.find(x => x.ProductID === item.ProductID) || { ProductName: item.ProductID };
+                            return `
+                            <tr>
+                                <td class="px-5 py-4">
+                                    <p class="font-bold text-slate-800">${item.Batchcode}</p>
+                                    <p class="text-[10px] text-slate-400">ID: ${item.BatchID}</p>
+                                </td>
+                                <td class="px-5 py-4">
+                                    <p class="font-medium text-slate-700">${p.ProductName}</p>
+                                    <p class="text-[10px] text-slate-400">${item.Quantity} ${p.BaseUnit || ''}</p>
+                                </td>
+                                <td class="px-5 py-4 text-center">
+                                    <span class="px-2 py-1 bg-slate-100 rounded text-slate-600 font-mono text-xs">${item.LocationID || '—'}</span>
+                                </td>
+                                <td class="px-5 py-4">
+                                    <div class="flex gap-1">
+                                        <input type="text" id="put-loc-${item.BatchID}" placeholder="Kệ B-01..."
+                                            class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs outline-none focus:ring-1 focus:ring-primary/30"
+                                            value="${item.LocationID && !item.LocationID.includes('Q-') ? item.LocationID : ''}">
+                                    </div>
+                                </td>
+                                <td class="px-5 py-4 text-right">
+                                    <button onclick="confirmPutawayItem('${item.BatchID}')"
+                                        class="bg-green-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-green-700 transition-all flex items-center justify-center gap-1 ml-auto">
+                                        <span class="material-symbols-outlined text-sm">check_circle</span> Hoàn tất cất hàng
+                                    </button>
+                                </td>
+                            </tr>`;
+                        }).join('');
+                    }
+                }
+
                 // 3. Populate PO select
                 const poSelect = document.getElementById('po-select-receive');
                 if (poSelect) {
@@ -464,12 +538,28 @@
 
 
             window.switchTab = function (tabId) {
-                ['po-list', 'receive'].forEach(t => {
+                ['po-list', 'receive', 'putaway'].forEach(t => {
                     const btn = document.getElementById(`tab-${t}`);
                     const content = document.getElementById(`tab-content-${t}`);
                     if (btn) btn.className = `pb-3 text-sm ${t === tabId ? 'tab-active' : 'tab-inactive'}`;
                     if (content) content.classList.toggle('hidden', t !== tabId);
                 });
+            };
+
+            window.confirmPutawayItem = async function (batchId) {
+                const locInput = document.getElementById(`put-loc-${batchId}`);
+                if (!locInput || !locInput.value.trim()) {
+                    alert('Vui lòng nhập vị trí kệ mới!');
+                    return;
+                }
+                
+                try {
+                    await window.MockData.confirmPutaway(batchId, locInput.value.trim());
+                    window.MockData.addNotification(`Lô ${batchId} đã được cất vào kệ ${locInput.value.trim()}.`, 'success');
+                    updateInboundUI();
+                } catch (e) {
+                    alert('Lỗi: ' + e.message);
+                }
             };
             window.goStep = function (step) {
                 if (step === 2) {

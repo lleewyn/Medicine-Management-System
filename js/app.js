@@ -57,7 +57,6 @@ const App = {
             { separator: 'Kiểm soát chất lượng' },
             { page: 'qa-dashboard', icon: 'verified_user', label: 'QA/QC Dashboard' },
             { page: 'qa-approval', icon: 'task_alt', label: 'Duyệt lô hàng' },
-            { page: 'qa-pending', icon: 'pending_actions', label: 'Chờ kiểm định' },
             { page: 'qa-recall', icon: 'remove_shopping_cart', label: 'Thu hồi / Tiêu hủy' },
             { page: 'qa-reports', icon: 'description', label: 'Báo cáo QA' },
             { separator: 'Đơn hàng & Mua hàng' },

@@ -36,7 +36,7 @@
             <select id="inv-filter-status"
                 class="border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20">
                 <option value="">Tất cả trạng thái</option>
-                <option value="RELEASED">Xuất xưởng</option>
+                <option value="RELEASED">Sẵn sàng</option>
                 <option value="QUARANTINE">Biệt trữ</option>
                 <option value="LOCKED">Đã khóa</option>
             </select>
@@ -79,7 +79,7 @@
                     <span class="material-symbols-outlined">lock_clock</span>
                 </div>
                 <div>
-                    <p class="text-xs font-medium text-slate-500 mb-0.5">Biệt trữ (Quarantine)</p>
+                    <p class="text-xs font-medium text-slate-500 mb-0.5">Biệt trữ</p>
                     <p class="text-2xl font-bold text-amber-600" id="inv-quarantine">--</p>
                 </div>
             </div>
@@ -88,7 +88,7 @@
                     <span class="material-symbols-outlined">check_circle</span>
                 </div>
                 <div>
-                    <p class="text-xs font-medium text-slate-500 mb-0.5">Đã xuất xưởng</p>
+                    <p class="text-xs font-medium text-slate-500 mb-0.5">Sẵn sàng</p>
                     <p class="text-2xl font-bold text-green-600" id="inv-released">--</p>
                 </div>
             </div>
@@ -202,12 +202,16 @@
     (function () {
         const products = window.MockData.PRODUCTS;
         const statusMap = {
-            RELEASED: { label: 'Xuất xưởng', cls: 'bg-emerald-50 text-emerald-600 border border-emerald-100' },
+            RELEASED: { label: 'Sẵn sàng', cls: 'bg-emerald-50 text-emerald-600 border border-emerald-100' },
             QUARANTINE: { label: 'Biệt trữ', cls: 'bg-amber-50 text-amber-600 border border-amber-100' },
+            'BIỆT TRỮ': { label: 'Biệt trữ', cls: 'bg-amber-50 text-amber-600 border border-amber-100' },
+            'ĐANG KIỂM NGHIỆM': { label: 'Đang kiểm nghiệm', cls: 'bg-blue-50 text-blue-600 border border-blue-100' },
             TESTING: { label: 'Đang kiểm nghiệm', cls: 'bg-blue-50 text-blue-600 border border-blue-100' },
             EXPIRED: { label: 'Hết hạn', cls: 'bg-red-50 text-red-600 border border-red-100' },
+            'HẾT HẠN': { label: 'Hết hạn', cls: 'bg-red-50 text-red-600 border border-red-100' },
             LOCKED: { label: 'Đã khóa', cls: 'bg-rose-50 text-rose-600 border border-rose-100' },
             PENDING: { label: 'Chờ duyệt', cls: 'bg-indigo-50 text-indigo-600 border border-indigo-100' },
+            PENDING_PUTAWAY: { label: 'Đang lên kệ', cls: 'bg-indigo-50 text-indigo-600 border border-indigo-100' },
             DESTROYED: { label: 'Tiêu hủy', cls: 'bg-slate-50 text-slate-500 border border-slate-200' },
         };
 
@@ -220,7 +224,10 @@
             const filtered = filter ? batches.filter(b => b.BatchStatus === filter) : batches;
 
             document.getElementById('inv-total').textContent = batches.length;
-            document.getElementById('inv-quarantine').textContent = batches.filter(b => b.BatchStatus === 'QUARANTINE').length;
+            document.getElementById('inv-quarantine').textContent = batches.filter(b => {
+                const s = String(b.BatchStatus || '').toUpperCase();
+                return ['QUARANTINE', 'BIỆT TRỮ', 'CHỜ DUYỆT', 'AWAITING_APPROVAL', 'QC_PENDING', 'ĐANG KIỂM NGHIỆM', 'PENDING_PUTAWAY'].includes(s);
+            }).length;
             document.getElementById('inv-released').textContent = batches.filter(b => b.BatchStatus === 'RELEASED').length;
             document.getElementById('inv-locked').textContent = batches.filter(b => b.BatchStatus === 'LOCKED' || b.BatchStatus === 'DESTROYED').length;
             document.getElementById('inv-count-label').textContent = `${filtered.length} lô`;

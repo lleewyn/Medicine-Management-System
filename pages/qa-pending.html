@@ -17,25 +17,69 @@
         const user = window.Auth.getCurrentUser();
         
         function render() {
-            const batches = window.MockData.BATCHES.filter(b => b.BatchStatus === 'QUARANTINE');
-            const products = window.MockData.PRODUCTS;
+            const batches = (window.MockData.BATCHES || []).filter(b => 
+                ['QUARANTINE', 'BIỆT TRỮ', 'CHỜ DUYỆT', 'AWAITING_APPROVAL'].includes(String(b.BatchStatus).toUpperCase()) || 
+                !b.BatchStatus
+            );
+            const products = window.MockData.PRODUCTS || [];
+            
             document.getElementById('pending-list').innerHTML = batches.map(b => {
-                const p = products.find(x => x.ProductID === b.ProductID) || {};
-                return `<div class="p-5 flex items-center gap-4 hover:bg-slate-50">
-          <div class="size-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center"><span class="material-symbols-outlined">science</span></div>
-          <div class="flex-1">
-            <p class="font-bold text-sm">${p.ProductName || b.ProductID}</p>
-            <p class="text-xs text-slate-400">Lô: ${b.Batchcode} • ${b.Quantity} ${p.BaseUnit || ''} • HSD: ${b.ExpDate}</p>
-          </div>
-          <div class="flex items-center gap-4">
-            <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700">CHỜ KIỂM ĐỊNH</span>
-            ${(window.MockData.hasPermission(user, 'write_qa_result') || window.MockData.hasPermission(user, 'write_all')) ? `
-            <button onclick="window.Router.navigate('qa-approval'); setTimeout(() => window.startQCRecord('${b.BatchID}'), 100);" class="flex items-center gap-1 text-sm font-bold text-primary hover:underline">
-              <span class="material-symbols-outlined text-[16px]">edit_note</span> Kiểm định ngay
-            </button>` : ''}
-          </div>
-        </div>`;
-            }).join('') || '<p class="p-8 text-center text-slate-400">Không có lô hàng nào đang chờ</p>';
+                const pid = window.NocoMappers ? window.NocoMappers._flatten(b.ProductID) : b.ProductID;
+                const p = products.find(x => x.ProductID === pid) || {};
+                
+                // Calculate days left
+                const today = new Date();
+                const expDate = new Date(b.ExpDate);
+                const diffMs = expDate - today;
+                const daysLeft = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+                const isUrgent = daysLeft < 90;
+
+                return `
+                <div class="p-6 flex items-center justify-between hover:bg-slate-50 transition-colors group">
+                    <div class="flex items-center gap-5">
+                        <div class="size-12 rounded-2xl bg-amber-50 text-amber-500 border border-amber-100 flex items-center justify-center group-hover:bg-amber-500 group-hover:text-white transition-all shadow-sm">
+                            <span class="material-symbols-outlined text-2xl">biotech</span>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <h4 class="font-black text-slate-900">${p.ProductName || pid}</h4>
+                                <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-slate-100 text-slate-500 uppercase tracking-widest">${b.BatchStatus || 'NEW'}</span>
+                            </div>
+                            <div class="flex items-center gap-4 text-xs text-slate-400 font-medium">
+                                <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">barcode</span> Lô: <strong class="text-slate-600 font-mono">${b.Batchcode}</strong></span>
+                                <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">inventory_2</span> SL: <strong class="text-slate-600">${(b.Quantity || 0).toLocaleString()} ${p.BaseUnit || ''}</strong></span>
+                                <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">event</span> HSD: <strong class="${isUrgent ? 'text-red-500' : 'text-slate-600'}">${b.ExpDate || '—'}</strong></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-6">
+                        <div class="text-right">
+                             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Thời hạn</p>
+                             <p class="text-xs font-bold ${isUrgent ? 'text-red-600' : 'text-emerald-600'}">
+                                ${daysLeft < 0 ? 'Đã hết hạn' : `Còn ${daysLeft} ngày`}
+                             </p>
+                        </div>
+                        
+                        <div class="h-10 w-px bg-slate-100 mx-2"></div>
+
+                        ${(window.MockData.hasPermission(user, 'write_qa_result') || window.MockData.hasPermission(user, 'write_all')) ? `
+                        <button onclick="window.location.hash = '#qa-approval'; setTimeout(() => { if (typeof window.startQCRecord === 'function') window.startQCRecord('${b.BatchID}'); }, 500);" 
+                            class="bg-white border border-slate-200 text-primary px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-primary hover:text-white hover:border-primary transition-all shadow-sm flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[18px]">assignment_turned_in</span>
+                            Tiến hành QC
+                        </button>` : `
+                        <span class="px-4 py-2 bg-slate-50 text-slate-400 rounded-xl text-[10px] font-black uppercase tracking-widest border border-slate-100">Chờ lệnh QA</span>`}
+                    </div>
+                </div>`;
+            }).join('') || `
+            <div class="p-20 text-center flex flex-col items-center justify-center">
+                <div class="size-20 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center mb-4">
+                    <span class="material-symbols-outlined text-4xl">verified</span>
+                </div>
+                <h3 class="text-lg font-black text-slate-900">Phòng Kiểm nghiệm Trống</h3>
+                <p class="text-slate-400 text-sm mt-1">Tất cả các lô hàng đã được phê duyệt hoặc chưa có hàng mới về.</p>
+            </div>`;
         }
 
         render();

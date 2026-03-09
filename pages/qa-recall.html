@@ -313,13 +313,13 @@
 <script>
     (function () {
         const user = window.Auth.getCurrentUser();
-        const products = window.MockData.PRODUCTS;
+        const products = window.MockData.PRODUCTS || [];
         const canRecall = window.MockData.hasPermission(user, 'write_recall') || window.MockData.hasPermission(user, 'write_all');
         const canDestroy = window.MockData.hasPermission(user, 'destroy_batch') || window.MockData.hasPermission(user, 'write_all');
         const currentRole = window.MockData.getUserRole(user);
 
         function updateRecallUI() {
-            const batches = window.MockData.BATCHES;
+            const batches = window.MockData.BATCHES || [];
 
             // 1. Role Badge
             const badge = document.getElementById('recall-role-badge');
@@ -339,25 +339,28 @@
 
             if (noticeSelect) {
                 noticeSelect.innerHTML = '<option value="">-- Chọn lô để thu hồi --</option>' +
-                    batches.filter(b => b.BatchStatus === 'RELEASED').map(b => {
-                        const p = products.find(x => x.ProductID === b.ProductID) || {};
-                        return `<option value="${b.BatchID}">${b.BatchID} — ${p.ProductName || b.ProductID} (${b.Batchcode})</option>`;
+                    batches.filter(b => ['RELEASED', 'ĐÃ DUYỆT', 'AVAILABLE'].includes(String(b.BatchStatus).toUpperCase())).map(b => {
+                        const pid = window.NocoMappers ? window.NocoMappers._flatten(b.ProductID) : b.ProductID;
+                        const p = products.find(x => x.ProductID === pid) || {};
+                        return `<option value="${b.BatchID}">${b.BatchID} — ${p.ProductName || pid} (${b.Batchcode})</option>`;
                     }).join('');
             }
 
             if (lockSelect) {
                 lockSelect.innerHTML = '<option value="">-- Chọn lô để phong tỏa --</option>' +
-                    batches.filter(b => b.BatchStatus === 'QUARANTINE' || b.BatchStatus === 'RELEASED').map(b => {
-                        const p = products.find(x => x.ProductID === b.ProductID) || {};
-                        return `<option value="${b.BatchID}">${b.BatchID} — ${p.ProductName || b.ProductID} (${b.Batchcode})</option>`;
+                    batches.filter(b => !['LOCKED', 'DESTROYED', 'KHÓA', 'ĐÃ TIÊU HỦY'].includes(String(b.BatchStatus).toUpperCase())).map(b => {
+                        const pid = window.NocoMappers ? window.NocoMappers._flatten(b.ProductID) : b.ProductID;
+                        const p = products.find(x => x.ProductID === pid) || {};
+                        return `<option value="${b.BatchID}">${b.BatchID} — ${p.ProductName || pid} (${b.Batchcode})</option>`;
                     }).join('');
             }
 
             if (destroySelect) {
                 destroySelect.innerHTML = '<option value="">-- Chọn lô đang bị phong tỏa --</option>' +
-                    batches.filter(b => b.BatchStatus === 'LOCKED').map(b => {
-                        const p = products.find(x => x.ProductID === b.ProductID) || {};
-                        return `<option value="${b.BatchID}">${b.BatchID} — ${p.ProductName || b.ProductID} (${b.Batchcode})</option>`;
+                    batches.filter(b => ['LOCKED', 'KHÓA', 'REJECT'].includes(String(b.BatchStatus).toUpperCase())).map(b => {
+                        const pid = window.NocoMappers ? window.NocoMappers._flatten(b.ProductID) : b.ProductID;
+                        const p = products.find(x => x.ProductID === pid) || {};
+                        return `<option value="${b.BatchID}">${b.BatchID} — ${p.ProductName || pid} (${b.Batchcode})</option>`;
                     }).join('');
             }
 
@@ -367,9 +370,10 @@
             }
 
             // 3. Render Locked List
-            const lockedBatches = batches.filter(b => b.BatchStatus === 'LOCKED');
+            const lockedBatches = batches.filter(b => ['LOCKED', 'KHÓA', 'REJECT'].includes(String(b.BatchStatus).toUpperCase()));
             document.getElementById('locked-batches-list').innerHTML = lockedBatches.map(b => {
-                const p = products.find(x => x.ProductID === b.ProductID) || {};
+                const pid = window.NocoMappers ? window.NocoMappers._flatten(b.ProductID) : b.ProductID;
+                const p = products.find(x => x.ProductID === pid) || {};
                 return `
                     <div class="p-5 flex items-center justify-between hover:bg-red-50/30 transition-colors">
                         <div class="flex items-center gap-4">
@@ -377,8 +381,8 @@
                                 <span class="material-symbols-outlined">lock</span>
                             </div>
                             <div>
-                                <p class="text-sm font-bold text-slate-800">${p.ProductName || b.ProductID} <span class="font-mono text-xs text-slate-400 ml-2">#${b.Batchcode}</span></p>
-                                <p class="text-xs text-slate-500">Số lượng: ${b.Quantity.toLocaleString()} • Vị trí: ${b.LocationID} • HSD: ${b.ExpDate}</p>
+                                <p class="text-sm font-bold text-slate-800">${p.ProductName || pid} <span class="font-mono text-[10px] px-1.5 py-0.5 bg-red-100 text-red-600 rounded ml-2">#${b.Batchcode}</span></p>
+                                <p class="text-xs text-slate-500 mt-0.5 font-medium">Số lượng: ${(b.Quantity || 0).toLocaleString()} • Vị trí: ${b.LocationID || '—'} • HSD: ${b.ExpDate || '—'}</p>
                             </div>
                         </div>
                         <div class="flex gap-2">
@@ -386,27 +390,27 @@
                             ${canDestroy ? `<button onclick="switchRecallTab('destroy'); document.getElementById('destroy-batch-select').value='${b.BatchID}'" class="px-3 py-1.5 bg-red-600 text-white rounded-lg text-xs font-bold hover:bg-red-700 transition-colors">Lập BB tiêu hủy</button>` : ''}
                         </div>
                     </div>`;
-            }).join('') || '<div class="p-10 text-center text-slate-400 text-sm italic">Không có lô hàng nào đang bị phong tỏa.</div>';
+            }).join('') || '<div class="p-12 text-center text-slate-400 text-sm italic flex flex-col items-center gap-2 font-medium opacity-60">✨ Không có lô hàng nào đang bị phong tỏa.</div>';
 
             // 4. Render History
             const historyArea = document.getElementById('recall-history-list');
             if (historyArea) {
-                const logs = window.MockData.AUDIT_LOGS.filter(l => l.module === 'Kiểm định QA' || l.module === 'Nhập kho');
-                historyArea.innerHTML = logs.reverse().slice(0, 5).map(l => {
-                    const isDestroy = l.action.includes('DESTROYED');
-                    const isLock = l.action.includes('LOCKED');
+                const logs = (window.MockData.AUDIT_LOGS || []).filter(l => l.module === 'Kiểm định QA' || l.module === 'Nhập kho' || l.module === 'Chất lượng');
+                historyArea.innerHTML = logs.reverse().slice(0, 8).map(l => {
+                    const isDestroy = String(l.action).includes('DESTROYED') || String(l.action).includes('TIÊU HỦY');
+                    const isLock = String(l.action).includes('LOCKED') || String(l.action).includes('PHONG TỎA');
                     const icon = isDestroy ? 'delete_forever' : (isLock ? 'lock' : 'info');
                     const color = isDestroy ? 'bg-slate-100 text-slate-600' : (isLock ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600');
                     return `
-                        <div class="p-5 flex items-center gap-4">
+                        <div class="p-5 flex items-center gap-4 hover:bg-slate-50 transition-colors">
                             <div class="size-10 rounded-full ${color} flex items-center justify-center">
-                                <span class="material-symbols-outlined text-sm">${icon}</span>
+                                <span class="material-symbols-outlined text-sm font-black">${icon}</span>
                             </div>
                             <div class="flex-1">
-                                <p class="text-sm font-bold">${l.action}</p>
-                                <p class="text-xs text-slate-400">Thời gian: ${l.timestamp} • Người thực hiện: ${user.name}</p>
+                                <p class="text-sm font-bold text-slate-800">${l.action}</p>
+                                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">${l.timestamp} • ${l.user || 'Hệ thống'}</p>
                             </div>
-                            <span class="px-3 py-1 rounded-full text-xs font-bold ${color}">${l.type.toUpperCase()}</span>
+                            <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${color}">${l.type || 'INFO'}</span>
                         </div>`;
                 }).join('') || '<div class="p-10 text-center text-slate-400 text-sm italic">Chưa có lịch sử.</div>';
             }
@@ -421,9 +425,9 @@
             });
         };
 
-        window.createRecallInbound = function () {
+        window.createRecallInbound = async function () {
             const ProductID = document.getElementById('inbound-product-select').value;
-            const Quantity = document.getElementById('inbound-qty').value;
+            const Quantity = parseFloat(document.getElementById('inbound-qty').value);
             const Batchcode = document.getElementById('inbound-lot').value;
             const ExpDate = document.getElementById('inbound-expiry').value;
             const LocationID = document.getElementById('inbound-loc').value;
@@ -433,42 +437,56 @@
                 return;
             }
 
-            const newBatch = window.MockData.addBatch({
-                ProductID,
-                Batchcode: Batchcode,
-                Quantity,
-                ExpDate,
-                LocationID,
-                warehouseId: 'WH-HCM'
-            });
+            try {
+                const newBatch = await window.MockData.addBatch({
+                    ProductID,
+                    Batchcode: Batchcode,
+                    Quantity,
+                    ExpDate,
+                    LocationID,
+                    BatchStatus: 'LOCKED', // Tự động phong tỏa hàng thu hồi ngay khi nhập
+                    UOM: 'đv'
+                });
 
-            if (newBatch) {
-                // Tự động phong tỏa hàng thu hồi ngay khi nhập
-                window.MockData.updateBatchStatus(newBatch.BatchID, 'LOCKED');
-                showModal('inbound');
+                if (newBatch) {
+                    showModal('inbound');
+                }
+            } catch (err) {
+                alert('Lỗi: ' + err.message);
             }
         };
 
-        window.lockBatch = function () {
+        window.lockBatch = async function () {
             const batchId = document.getElementById('lock-batch-select').value;
             if (!batchId) { alert('Vui lòng chọn lô hàng!'); return; }
-            window.MockData.updateBatchStatus(batchId, 'LOCKED');
-            showModal('lock');
+            try {
+                await window.MockData.updateBatchStatus(batchId, 'LOCKED');
+                showModal('lock');
+            } catch (err) { alert('Lỗi: ' + err.message); }
         };
 
-        window.unlockBatch = function (batchId) {
+        window.unlockBatch = async function (batchId) {
             if (confirm('Xác nhận gỡ phong tỏa cho lô hàng này?')) {
-                window.MockData.updateBatchStatus(batchId, 'RELEASED');
+                try {
+                    await window.MockData.updateBatchStatus(batchId, 'RELEASED');
+                } catch (err) { alert('Lỗi: ' + err.message); }
             }
         };
 
-        window.createDestroyRecord = function () {
+        window.createDestroyRecord = async function () {
             const batchId = document.getElementById('destroy-batch-select').value;
             if (!batchId) { alert('Vui lòng chọn lô hàng!'); return; }
 
-            if (confirm('XÁC NHẬN: Sau khi lập biên bản, lô hàng này sẽ được tiêu hủy và XÓA khỏi kho tồn. Bạn có chắc chắn?')) {
-                window.MockData.updateBatchStatus(batchId, 'DESTROYED');
-                showModal('destroy');
+            if (confirm('XÁC NHẬN: Sau khi lập biên bản, lô hàng này sẽ được tiêu hủy và cập nhật số lượng tồn kho về 0. Bạn có chắc chắn?')) {
+                try {
+                    // Cập nhật quantity về 0 và trạng thái Đã tiêu hủy
+                    const batch = window.MockData.BATCHES.find(b => b.BatchID === batchId);
+                    if (batch) {
+                        await window.MockData.updateBatchQuantity(batchId, 0);
+                        await window.MockData.updateBatchStatus(batchId, 'DESTROYED');
+                        showModal('destroy');
+                    }
+                } catch (err) { alert('Lỗi: ' + err.message); }
             }
         };
 
@@ -495,7 +513,7 @@
                 body.textContent = 'Hàng thu hồi đã được đưa vào khu vực Biệt trữ và tự động Phong tỏa.';
             } else {
                 icon.className = 'size-16 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center mx-auto mb-4';
-                icon.innerHTML = '<span class="material-symbols-outlined text-3xl">delete_forever</span>';
+                icon.innerHTML = '<span class="material-symbols-outlined text-3xl text-slate-400">delete_forever</span>';
                 title.textContent = 'Đã lập biên bản tiêu hủy';
                 body.textContent = 'Số lượng tồn kho của lô hàng đã được cập nhật về 0.';
             }
@@ -506,17 +524,17 @@
         const lockBtnArea = document.getElementById('lock-btn-area');
         if (lockBtnArea) {
             lockBtnArea.innerHTML = canRecall ? `
-                <button onclick="lockBatch()" class="flex items-center gap-2 bg-red-600 text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-red-700 transition-colors">
-                    <span class="material-symbols-outlined text-sm">lock</span> Xác nhận Phong tỏa
-                </button>` : '<p class="text-sm text-red-500 italic">Bạn không có quyền thực hiện thao tác này.</p>';
+                <button onclick="lockBatch()" class="flex items-center gap-2 bg-red-600 text-white px-8 py-3.5 rounded-2xl font-black text-sm hover:shadow-lg hover:bg-red-700 transition-all shadow-red-200">
+                    <span class="material-symbols-outlined text-sm">lock</span> XÁC NHẬN PHONG TỎA NGAY
+                </button>` : '<p class="text-sm text-red-500 font-bold bg-red-50 p-4 rounded-xl inline-block">⚠️ Bạn không có quyền thực hiện phong tỏa lô hàng.</p>';
         }
 
         const destroyBtnArea = document.getElementById('destroy-btn-area');
         if (destroyBtnArea) {
             destroyBtnArea.innerHTML = canDestroy ? `
-                <button onclick="createDestroyRecord()" class="flex-1 bg-red-600 text-white py-3 rounded-xl font-bold text-sm hover:bg-red-700 flex items-center justify-center gap-2">
-                    <span class="material-symbols-outlined text-sm">local_fire_department</span> Lập biên bản tiêu hủy
-                </button>` : '<p class="text-sm text-red-500 italic">Bạn không có quyền lập biên bản tiêu hủy.</p>';
+                <button onclick="createDestroyRecord()" class="flex-1 bg-slate-900 text-white py-4 rounded-2xl font-black text-sm hover:bg-black flex items-center justify-center gap-2 shadow-xl">
+                    <span class="material-symbols-outlined text-sm">local_fire_department</span> LẬP BIÊN BẢN TIÊU HỦY
+                </button>` : '<p class="text-sm text-red-500 font-bold bg-red-50 p-4 rounded-xl inline-block w-full text-center">⚠️ Chỉ QA có thẩm quyền mới được lập biên bản tiêu hủy.</p>';
         }
 
         // Initialize

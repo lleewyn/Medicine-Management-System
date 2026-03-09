@@ -434,6 +434,14 @@ function initState() {
         id: 'APV-003', type: 'Điều chỉnh tồn kho', Status: 'PENDING', dept: 'Kho + Kế toán', urgent: false,
         desc: 'Điều chỉnh chênh lệch kiểm kê T10/2023: +3 hộp Hapacol (nhầm lẫn nhập liệu).'
       },
+      {
+        id: 'APV-004', type: 'Tiêu hủy lô hàng', Status: 'PENDING', dept: 'QA/QC', urgent: true,
+        desc: 'Tiêu hủy 50 hộp Hapacol hết hạn sử dụng. Mã lô: HP-231015. Biên bản kiểm tra chất lượng số 12/BB-QA.'
+      },
+      {
+        id: 'APV-005', type: 'Tiêu hủy lô hàng', Status: 'PENDING', dept: 'QA/QC', urgent: false,
+        desc: 'Tiêu hủy lô hàng hỏng do sự cố vận chuyển: 20 lọ Insulin. Mã lô: IN-230905.'
+      },
     ],
     inventoryChecks: [
       {
@@ -494,7 +502,10 @@ const MockData = {
     const val = batches.reduce((acc, b) => acc + ((b.qty || 0) * (b.ImportPrice || 0)), 0);
     return {
       totalInventoryValue: val.toLocaleString('vi-VN') + ' VNĐ',
-      quarantineBatches: batches.filter(b => b.BatchStatus === 'QUARANTINE').length,
+      quarantineBatches: batches.filter(b => {
+          const st = String(b.BatchStatus || '').toUpperCase();
+          return ['QUARANTINE', 'BIỆT TRỮ', 'CHỜ DUYỆT', 'AWAITING_APPROVAL', 'QC_PENDING'].includes(st);
+      }).length,
       nearExpiryBatches: batches.filter(b => {
           if (!b.ExpDate) return false;
           const exp = new Date(b.ExpDate);
@@ -626,7 +637,7 @@ const MockData = {
     }
 
     saveState(_state);
-    this.addAuditLog('Kiểm định QA', `Lô ${batchId} → ${newStatus}`, newStatus === 'RELEASED' ? 'info' : 'warn');
+    this.addAuditLog('Kiểm định QA', `Lô ${batchId} → ${newStatus}`, 'success');
     this._emit('batch:updated', { batchId, newStatus });
     this._emit('pharma:statechange');
 
@@ -634,6 +645,32 @@ const MockData = {
     if (window.NocoBridge && window.NocoBridge.API_TOKEN !== 'YOUR_API_TOKEN_HERE') {
       try {
         await window.NocoBridge.updateRow('Batches', b.id || batchId, { BatchStatus: newStatus, Quantity: b.Quantity });
+      } catch (e) { console.error('NocoDB sync failed:', e); }
+    }
+    return true;
+  },
+
+  async confirmPutaway(batchId, newLocation) {
+    const b = _state.batches.find(x => x.BatchID === batchId);
+    if (!b) return false;
+    
+    const oldLoc = b.LocationID;
+    b.LocationID = newLocation;
+    b.BatchStatus = 'RELEASED';
+
+    saveState(_state);
+    this.addAuditLog('Nhân viên kho', `Cất hàng: Lô ${batchId} -> ${newLocation}`, 'success');
+    this._emit('batch:updated', { batchId, newStatus: 'RELEASED' });
+    this._emit('pharma:statechange');
+
+    // NocoDB Sync
+    if (window.NocoBridge && window.NocoBridge.API_TOKEN !== 'YOUR_API_TOKEN_HERE') {
+      try {
+        // Cập nhật cả bảng Batches (trạng thái) và Inventory (vị trí/số lượng)
+        await window.NocoBridge.updateRow('Batches', b.id || batchId, { BatchStatus: 'RELEASED' });
+        // NOTE: Trong NocoDB thực tế, Inventory thường được map qua BatchID. 
+        // Nếu BatchID là ID của Inventory record thì update trực tiếp.
+        await window.NocoBridge.updateRow('Inventory', b.id || batchId, { LocationID: newLocation, BatchStatus: 'RELEASED' }).catch(() => {});
       } catch (e) { console.error('NocoDB sync failed:', e); }
     }
     return true;
