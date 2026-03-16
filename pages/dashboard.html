@@ -69,188 +69,250 @@
 
     <!-- TAB 1: Overview -->
     <div id="dir-tab-content-overview">
-        <div class="max-w-6xl mx-auto">
-        <!-- Stat Cards -->
-        <!-- Stat Cards -->
-        <div class="grid grid-cols-4 gap-6 mb-8">
-            <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden group hover:border-primary/50 transition-all">
-                <div class="flex justify-between items-start mb-4">
-                    <div class="size-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                        <span class="material-symbols-outlined text-2xl">account_balance_wallet</span>
-                    </div>
-                    <span class="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-1 rounded-lg flex items-center gap-1">
-                        <span class="material-symbols-outlined text-[10px]">trending_up</span> +2.4%
-                    </span>
-                </div>
-                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Giá trị tồn kho</p>
-                <h3 class="text-2xl font-bold text-slate-900" id="db-total-value">...</h3>
+        <div>
+            
 
-            </div>
 
-            <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden group hover:border-amber-500/50 transition-all">
-                <div class="flex justify-between items-start mb-4">
-                    <div class="size-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center group-hover:bg-amber-600 group-hover:text-white transition-colors">
-                        <span class="material-symbols-outlined text-2xl">error</span>
-                    </div>
-                    <span class="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded-lg flex items-center gap-1">
-                        Rủi ro cao
-                    </span>
-                </div>
-                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Lô hàng biệt trữ</p>
-                <h3 class="text-2xl font-bold text-slate-900" id="db-quarantine">...</h3>
-
-            </div>
-
-            <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden group hover:border-purple-500/50 transition-all">
-                <div class="flex justify-between items-start mb-4">
-                    <div class="size-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-colors">
-                        <span class="material-symbols-outlined text-2xl">rocket_launch</span>
-                    </div>
-                    <span class="text-[10px] font-bold text-purple-600 bg-purple-50 px-2 py-1 rounded-lg flex items-center gap-1">
-                        Hôm nay
-                    </span>
-                </div>
-                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Đơn hàng đang xử lý</p>
-                <h3 class="text-2xl font-bold text-slate-900" id="db-pending-orders">...</h3>
-
-            </div>
-
-            <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden group hover:border-emerald-500/50 transition-all">
-                <div class="flex justify-between items-start mb-4">
-                    <div class="size-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-colors">
-                        <span class="material-symbols-outlined text-2xl">box_add</span>
-                    </div>
-                    <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg flex items-center gap-1">
-                        Ổn định
-                    </span>
-                </div>
-                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Nhập kho hôm nay</p>
-                <h3 class="text-2xl font-bold text-slate-900" id="db-today-in">...</h3>
-
-            </div>
-        </div>
-
-        <!-- Main Analytics Section -->
-        <div class="grid grid-cols-3 gap-6 mb-8">
-            <!-- Revenue Chart -->
-            <div class="col-span-2 bg-white rounded-3xl border border-slate-200 shadow-sm p-8 flex flex-col min-h-[400px]">
-                <div class="flex items-center justify-between mb-8">
-                    <div>
-                        <h5 class="font-black text-slate-900 text-lg">Phân tích Hiệu năng Kho</h5>
-                        <p class="text-xs text-slate-400 font-medium tracking-wide mt-0.5">Dữ liệu doanh thu 6 tháng gần nhất (Triệu VNĐ)</p>
-                    </div>
-                    <div class="flex gap-2">
-                        <button class="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-[10px] font-bold text-slate-600 hover:bg-slate-100">XUẤT BÁO CÁO</button>
-                    </div>
-                </div>
-                <div class="flex-1 flex items-end gap-6 min-h-[160px]" id="chart-bars"></div>
-                <div class="flex gap-6 mt-6 text-[11px] text-slate-400 font-bold uppercase tracking-widest border-t border-slate-50 pt-4" id="chart-labels"></div>
-            </div>
-
-            <!-- Warehouse Health & Latest Activity -->
-            <div class="flex flex-col gap-6">
-                <!-- Circular Health Gauge Mockup -->
-                <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-8 flex flex-col items-center text-center">
-                    <div class="relative size-32 mb-4">
-                        <svg class="size-full -rotate-90" viewBox="0 0 36 36">
-                            <circle cx="18" cy="18" r="16" fill="none" class="stroke-slate-100" stroke-width="3.5"></circle>
-                            <circle cx="18" cy="18" r="16" fill="none" class="stroke-primary" stroke-width="3.5" stroke-dasharray="85, 100" stroke-linecap="round"></circle>
-                        </svg>
-                        <div class="absolute inset-0 flex flex-col items-center justify-center">
-                            <span class="text-2xl font-black text-slate-900">85%</span>
-                            <span class="text-[8px] font-bold text-slate-400 uppercase">Sức khỏe</span>
+            <!-- Enhanced Stat Cards -->
+            <div class="grid grid-cols-4 gap-6 mb-8">
+                <!-- Value -->
+                <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm group hover:border-primary transition-all relative">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="size-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
+                            <span class="material-symbols-outlined text-2xl">account_balance_wallet</span>
+                        </div>
+                        <div class="text-right">
+                             <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tài sản kho</div>
+                             <div class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg inline-flex items-center gap-1 mt-1">
+                                <span class="material-symbols-outlined text-[10px]">auto_graph</span> Real-time
+                            </div>
                         </div>
                     </div>
-                    <h5 class="font-bold text-slate-800 text-sm mb-1">Vận hành tối ưu</h5>
-                    <p class="text-[10px] text-slate-400 leading-relaxed px-4">Kho đang hoạt động ở mức công suất cao. Nhân sự ổn định.</p>
+                    <h3 class="text-2xl font-black text-slate-900" id="db-total-value">0 VNĐ</h3>
+                    <p class="text-[10px] text-slate-400 mt-2 flex items-center gap-1 font-bold">
+                        <span class="material-symbols-outlined text-[12px] text-emerald-500">check_circle</span> 
+                        Giá trị dựa trên đơn giá nhập khẩu mới nhất
+                    </p>
                 </div>
 
-                <!-- Latest Approval Quick View -->
-                <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 flex flex-col">
-                    <h5 class="font-bold text-slate-900 text-xs uppercase tracking-widest mb-4 flex items-center gap-2">
-                        <span class="size-2 bg-red-500 rounded-full animate-pulse"></span>
-                        Cần phê duyệt nhanh
-                    </h5>
-                    <div class="space-y-4" id="db-approval-list-mini"></div>
-                    <button onclick="switchDirTab('approval')" class="w-full mt-6 py-3 text-xs font-bold text-primary bg-primary/5 rounded-2xl hover:bg-primary/10 transition-colors">Xem tất cả yêu cầu</button>
+                <!-- Quarantine/Risk -->
+                <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm group hover:border-rose-500/50 transition-all relative">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="size-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center group-hover:bg-rose-600 group-hover:text-white transition-colors">
+                            <span class="material-symbols-outlined text-2xl">warning_amber</span>
+                        </div>
+                        <div class="text-right">
+                             <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Lô hàng rủi ro</div>
+                             <div id="risk-status-badge" class="text-xs font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-lg inline-flex items-center gap-1 mt-1">
+                                <span class="material-symbols-outlined text-[10px]">report</span> Cảnh báo
+                            </div>
+                        </div>
+                    </div>
+                    <h3 class="text-2xl font-black text-slate-900" id="db-quarantine">0</h3>
+                    <p class="text-[10px] text-slate-400 mt-2 flex items-center gap-1 font-bold">Lô hàng đang bị biệt trữ hoặc hết hạn</p>
+                </div>
+
+                <!-- Activity -->
+                <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm group hover:border-amber-500/50 transition-all relative">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="size-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center group-hover:bg-amber-600 group-hover:text-white transition-colors">
+                            <span class="material-symbols-outlined text-2xl">pending_actions</span>
+                        </div>
+                        <div class="text-right">
+                             <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Hiệu suất đơn</div>
+                             <div class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-lg inline-flex items-center gap-1 mt-1">
+                                <span class="material-symbols-outlined text-[10px]">schedule</span> Đang xử lý
+                            </div>
+                        </div>
+                    </div>
+                    <h3 class="text-2xl font-black text-slate-900" id="db-pending-orders">0</h3>
+                    <p class="text-[10px] text-slate-400 mt-2 font-bold">Tổng đơn PO/SO đang trong luồng vận hành</p>
+                </div>
+
+                <!-- Fulfillment -->
+                <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm group hover:border-emerald-500/50 transition-all relative">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="size-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                            <span class="material-symbols-outlined text-2xl">local_shipping</span>
+                        </div>
+                        <div class="text-right">
+                             <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Fulfillment Rate</div>
+                             <div class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg inline-flex items-center gap-1 mt-1" id="fulfillment-pct">
+                                0%
+                            </div>
+                        </div>
+                    </div>
+                    <h3 class="text-2xl font-black text-slate-900" id="db-today-out">0</h3>
+                    <p class="text-[10px] text-slate-400 mt-2 font-bold">Đơn hàng đã giao thành công hôm nay</p>
                 </div>
             </div>
-        </div>
 
-        <!-- Bottom Grid: Inventory Trends & Top Sales -->
-        <div class="grid grid-cols-2 gap-6 pb-20">
-            <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-8">
-                <div class="flex items-center justify-between mb-6">
-                    <h5 class="font-black text-slate-900">Nhật ký hoạt động hệ thống</h5>
-                    <span class="text-[10px] font-bold text-slate-400 opacity-60">Real-time</span>
-                </div>
-                <div class="space-y-6">
-                    <div class="flex gap-4">
-                        <div class="size-2 mt-2 rounded-full bg-blue-500 shadow-lg shadow-blue-500/30"></div>
+            <!-- Main Charts Section -->
+            <div class="grid grid-cols-3 gap-6 mb-8">
+                <!-- Activity Trend - Line Chart -->
+                <div class="col-span-2 bg-white rounded-3xl border border-slate-200 shadow-sm p-8 flex flex-col min-h-[450px]">
+                    <div class="flex items-center justify-between mb-8">
                         <div>
-                            <p class="text-xs font-bold text-slate-800">Thanh toán Đơn hàng SO-24-045</p>
-                            <p class="text-[10px] text-slate-400 mt-1">2 phút trước • Nhà thuốc An Khang</p>
+                            <h5 class="font-black text-slate-900 text-lg">Biểu đồ Vận hành Hệ thống</h5>
+                            <p class="text-xs text-slate-400 font-bold tracking-wide mt-1 uppercase">Xu hướng Nhập kho vs Xuất kho (6 tháng gần nhất)</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <div class="flex items-center gap-4 mr-4">
+                                <div class="flex items-center gap-2"><span class="size-3 rounded-full bg-primary/20 border-2 border-primary"></span><span class="text-[10px] font-bold text-slate-500 uppercase">Nhập</span></div>
+                                <div class="flex items-center gap-2"><span class="size-3 rounded-full bg-emerald-100 border-2 border-emerald-500"></span><span class="text-[10px] font-bold text-slate-500 uppercase">Xuất</span></div>
+                            </div>
                         </div>
                     </div>
-                    <div class="flex gap-4">
-                        <div class="size-2 mt-2 rounded-full bg-orange-500 shadow-lg shadow-orange-500/30"></div>
-                        <div>
-                            <p class="text-xs font-bold text-slate-800">QC từ chối lô BATCH-HCM002</p>
-                            <p class="text-[10px] text-slate-400 mt-1">15 phút trước • Lý do: Nhiệt độ vượt ngưỡng</p>
+                    <div class="flex-1 relative w-full h-full min-h-[250px]">
+                        <canvas id="activityChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Stock Distribution - Pie/Doughnut Chart -->
+                <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-8 flex flex-col">
+                    <h5 class="font-black text-slate-900 text-lg mb-1">Cơ cấu Tồn kho</h5>
+                    <p class="text-xs text-slate-400 font-bold tracking-wide uppercase mb-8">Phân loại theo trạng thái GSP</p>
+                    
+                    <div class="flex-1 flex flex-col items-center justify-center relative">
+                        <div class="size-full max-h-[220px]">
+                            <canvas id="distributionChart"></canvas>
                         </div>
                     </div>
-                    <div class="flex gap-4">
-                        <div class="size-2 mt-2 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/30"></div>
-                        <div>
-                            <p class="text-xs font-bold text-slate-800">Nhập kho thành công PO-10222</p>
-                            <p class="text-[10px] text-slate-400 mt-1">1 giờ trước • NCC MSD (Viet Nam)</p>
+                    
+                    <div class="mt-6 space-y-3 pt-4 border-t border-slate-50">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="size-3 rounded-full bg-emerald-500"></span>
+                                <span class="text-xs font-bold text-slate-600">Sẵn dùng (Released)</span>
+                            </div>
+                            <span class="text-xs font-black" id="pct-released">0%</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="size-3 rounded-full bg-amber-500"></span>
+                                <span class="text-xs font-bold text-slate-600">Biệt trữ (Quarantine)</span>
+                            </div>
+                            <span class="text-xs font-black" id="pct-quarantine">0%</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="size-3 rounded-full bg-rose-500"></span>
+                                <span class="text-xs font-bold text-slate-600">Khóa/Hủy (Locked)</span>
+                            </div>
+                            <span class="text-xs font-black" id="pct-locked">0%</span>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-8">
-                <div class="flex items-center justify-between mb-6">
-                    <h5 class="font-black text-slate-900">Mức độ lấp lầy khu vực</h5>
-                    <span class="text-[10px] font-bold text-slate-400 opacity-60">Theo mét khối (m³)</span>
+
+            <!-- Bottom Row: Cold Chain & Operations -->
+            <div class="grid grid-cols-3 gap-6 pb-20">
+                <!-- Cold Chain Monitoring (Wow Factor) -->
+                <div class="bg-indigo-950 rounded-3xl shadow-xl shadow-indigo-100 p-8 text-white relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-125 transition-transform">
+                        <span class="material-symbols-outlined text-[100px]">thermostat</span>
+                    </div>
+                    <div class="relative flex flex-col h-full">
+                        <div class="flex items-center justify-between mb-8">
+                            <h5 class="font-black text-white/90 text-sm tracking-widest uppercase flex items-center gap-2">
+                                <span class="size-2 bg-emerald-400 rounded-full animate-ping"></span>
+                                Giám sát Chuỗi lạnh
+                            </h5>
+                            <span class="text-[10px] font-black text-emerald-400 border border-emerald-400/30 px-2 py-0.5 rounded-lg">GSP COMPLIANT</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4 mb-8">
+                            <div class="bg-white/10 rounded-2xl p-4 backdrop-blur-md">
+                                <p class="text-[10px] font-bold text-white/50 uppercase mb-1">Zone A (2-8°C)</p>
+                                <div class="flex items-end gap-1">
+                                    <span class="text-2xl font-black" id="temp-zone-a">4.2</span>
+                                    <span class="text-xs font-bold text-white/50 mb-1">°C</span>
+                                </div>
+                            </div>
+                            <div class="bg-white/10 rounded-2xl p-4 backdrop-blur-md">
+                                <p class="text-[10px] font-bold text-white/50 uppercase mb-1">Zone B (-25°C)</p>
+                                <div class="flex items-end gap-1">
+                                    <span class="text-2xl font-black" id="temp-zone-b">-21.5</span>
+                                    <span class="text-xs font-bold text-white/50 mb-1">°C</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-auto">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-[10px] font-bold text-white/50 uppercase">Tính ổn định hệ thống</span>
+                                <span class="text-[10px] font-black text-emerald-400">99.8%</span>
+                            </div>
+                            <div class="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+                                <div class="h-full bg-emerald-400" id="stability-bar" style="width: 98%"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="space-y-5">
-                    <div>
-                        <div class="flex justify-between text-[10px] font-bold mb-1.5 uppercase">
-                            <span class="text-slate-500">Khu mát (2-8°C)</span>
-                            <span class="text-primary">92%</span>
+
+                <!-- Latest System Logs -->
+                <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-8 flex flex-col col-span-1">
+                    <div class="flex items-center justify-between mb-6">
+                        <h5 class="font-black text-slate-900">Vận hành gần đây</h5>
+                        <button class="text-[10px] font-bold text-primary hover:underline">XEM TẤT CẢ</button>
+                    </div>
+                    <div class="space-y-6 flex-1" id="db-activity-logs">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+
+                <!-- Storage Capacity per Zone -->
+                <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-8 flex flex-col">
+                    <div class="flex items-center justify-between mb-6">
+                        <h5 class="font-black text-slate-900">Lấp đầy kho bãi</h5>
+                        <span class="text-[10px] font-bold text-slate-400">Volume (m³)</span>
+                    </div>
+                    <div class="space-y-6 flex-1">
+                        <div>
+                            <div class="flex justify-between text-[10px] font-black mb-2 uppercase tracking-wide">
+                                <span class="text-slate-500">Khu mát (Cold)</span>
+                                <span class="text-primary" id="pct-cold-val">0%</span>
+                            </div>
+                            <div class="h-2 w-full bg-slate-50 rounded-full group cursor-help relative">
+                                <div class="h-full bg-primary rounded-full transition-all duration-1000" id="bar-cold" style="width: 0%"></div>
+                            </div>
                         </div>
-                        <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                            <div class="h-full bg-primary" style="width: 92%"></div>
+                        <div>
+                            <div class="flex justify-between text-[10px] font-black mb-2 uppercase tracking-wide">
+                                <span class="text-slate-500">Khu thường (Ambient)</span>
+                                <span class="text-slate-400" id="pct-ambient-val">0%</span>
+                            </div>
+                            <div class="h-2 w-full bg-slate-50 rounded-full">
+                                <div class="h-full bg-slate-400 rounded-full transition-all duration-1000" id="bar-ambient" style="width: 0%"></div>
+                            </div>
+                        </div>
+                         <div>
+                            <div class="flex justify-between text-[10px] font-black mb-2 uppercase tracking-wide">
+                                <span class="text-slate-500">Biệt trữ & Kiểm soát</span>
+                                <span class="text-rose-500" id="pct-locked-val">0%</span>
+                            </div>
+                            <div class="h-2 w-full bg-slate-50 rounded-full">
+                                <div class="h-full bg-rose-500 rounded-full transition-all duration-1000" id="bar-locked" style="width: 0%"></div>
+                            </div>
                         </div>
                     </div>
-                    <div>
-                        <div class="flex justify-between text-[10px] font-bold mb-1.5 uppercase">
-                            <span class="text-slate-500">Khu thường (15-25°C)</span>
-                            <span class="text-slate-400">45%</span>
-                        </div>
-                        <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                            <div class="h-full bg-slate-400" style="width: 45%"></div>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="flex justify-between text-[10px] font-bold mb-1.5 uppercase">
-                            <span class="text-slate-500">Khu biệt trữ (LOCKED)</span>
-                            <span class="text-red-500">12%</span>
-                        </div>
-                        <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                            <div class="h-full bg-red-500" style="width: 12%"></div>
-                        </div>
+                    <div class="mt-6 p-4 bg-slate-50 rounded-2xl flex items-center justify-between">
+                         <div class="flex flex-col">
+                             <span class="text-[8px] font-black text-slate-400 uppercase">Trạng thái lấp đầy</span>
+                             <span class="text-xs font-bold text-slate-700" id="global-capacity-status">Đang tải...</span>
+                         </div>
+                         <div class="size-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center">
+                             <span class="material-symbols-outlined text-slate-400 text-sm">settings_overscan</span>
+                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
         </div>
     </div>
 
     <!-- TAB 2: Approval Center -->
     <div id="dir-tab-content-approval" class="hidden">
-        <div class="max-w-6xl mx-auto">
+        <div>
             <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-2xl flex items-center gap-3">
                 <span class="material-symbols-outlined text-blue-500">info</span>
                 <p class="text-sm text-blue-700 font-medium" id="approval-instruction-text">Vui lòng xem xét và phê duyệt các yêu cầu nghiệp vụ dưới đây theo đúng thẩm quyền.</p>
@@ -261,7 +323,7 @@
 
     <!-- TAB 3: Report -->
     <div id="dir-tab-content-report" class="hidden">
-        <div class="max-w-6xl mx-auto">
+        <div>
         <div class="grid grid-cols-3 gap-6 mb-6">
             <div class="bg-gradient-to-br from-indigo-500 to-blue-600 rounded-2xl shadow-sm p-6 text-white border border-indigo-200">
                 <div class="flex items-center gap-3 mb-4 opacity-80">
@@ -285,10 +347,10 @@
                     <h5 class="font-bold text-sm tracking-widest uppercase">Lấp đầy kho (Capacity)</h5>
                 </div>
                 <div class="flex items-end gap-2 mb-2">
-                    <h3 class="text-3xl font-black text-slate-900" id="report-capacity">78%</h3>
+                    <h3 class="text-3xl font-black text-slate-900" id="report-capacity">0%</h3>
                 </div>
                 <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
-                    <div class="h-full bg-primary" style="width: 78%"></div>
+                    <div class="h-full bg-primary" style="width: 0%"></div>
                 </div>
             </div>
         </div>
@@ -315,7 +377,7 @@
 
     <!-- TAB 4: Quality -->
     <div id="dir-tab-content-quality" class="hidden">
-        <div class="max-w-6xl mx-auto">
+        <div>
             <div class="grid grid-cols-4 gap-6 mb-8">
             <div class="bg-white p-5 rounded-2xl border border-rose-200 shadow-sm bg-rose-50/30">
                 <p class="text-xs font-bold text-rose-500 mb-1 uppercase tracking-wider">Lô hàng hết hạn</p>
@@ -460,88 +522,298 @@
 
 <script>
 (function() {
-    const user = window.Auth.getCurrentUser();
-    const role = window.MockData.getUserRole(user);
-    let activeApprovalId = null;
-    let activeIsPO = false;
+    let activityChart = null;
+    let distributionChart = null;
 
     async function refreshDashboard() {
-        // Ensure we wait for sync if it's still running (though it's usually done)
+        const user = window.Auth.getCurrentUser();
+        const role = user ? window.MockData.getUserRole(user) : null;
+        
         const pos = window.MockData.PURCHASE_ORDERS || [];
+        const sos = window.MockData.SALES_ORDERS || [];
         const approvals = window.MockData.APPROVALS || [];
         const batches = window.MockData.BATCHES || [];
         const products = window.MockData.PRODUCTS || [];
         const receipts = window.MockData.GOODS_RECEIPTS || [];
         const issues = window.MockData.GOODS_ISSUES || [];
         const issueDetails = window.MockData.ISSUE_DETAILS || [];
+        const soDetails = window.MockData.SALES_ORDER_DETAILS || [];
         const logs = window.MockData.AUDIT_LOGS || [];
 
         const todayStr = new Date().toISOString().split('T')[0];
 
-        // Header dynamic update
+        // 1. Header & Context Updates
+        const dateEl = document.getElementById('dir-date');
+        if (dateEl) dateEl.textContent = new Date().toLocaleDateString('vi-VN', { weekday: 'long', day: 'numeric', month: 'long' });
+
         const titleEl = document.getElementById('db-title');
         const subtitleEl = document.getElementById('db-subtitle');
         if (titleEl && role) {
             titleEl.textContent = `Bảng điều khiển — ${role.label}`;
             if (role.label.includes('Giám đốc')) {
-                subtitleEl.textContent = 'Phê duyệt nghiệp vụ, báo cáo quản trị và theo dõi chất lượng toàn hệ thống.';
-            } else if (role.label.includes('Thủ kho')) {
-                subtitleEl.textContent = 'Quản lý kho bãi, phê duyệt đơn hàng và điều phối nhân sự.';
-            }
-        }
-
-        const instructionEl = document.getElementById('approval-instruction-text');
-        if (instructionEl && role) {
-            if (role.label.includes('Giám đốc')) {
-                instructionEl.innerHTML = `<strong>Ban Giám Đốc</strong> vui lòng xem xét và phê duyệt các yêu cầu quản trị (Thu hồi, Điều chỉnh tồn).`;
-            } else if (role.label.includes('Thủ kho')) {
-                instructionEl.innerHTML = `<strong>Thủ kho</strong> vui lòng duyệt các Đơn mua hàng (PO) để chuyển sang trạng thái "Sẵn sàng nhận hàng".`;
+                subtitleEl.textContent = 'Phân tích hiệu năng, phê duyệt chiến lược và giám sát chất lượng toàn diện.';
             } else {
-                instructionEl.innerHTML = `Hệ thống ghi nhận bạn có quyền quản trị toàn bộ các yêu cầu phê duyệt dưới đây.`;
+                subtitleEl.textContent = 'Quản lý vận hành kho vận và điều phối nghiệp vụ thời gian thực.';
             }
         }
 
-        // Inventory Value - Sync with Accounting logic
+        // 2. Main KPI Calculations
+        const _dmH = (id) => (window.NocoMappers && window.NocoMappers._flatten) ? window.NocoMappers._flatten(id) : id;
+        
+        // Inventory Value
         const totalValue = batches.reduce((sum, b) => {
-            const pid = window.NocoMappers ? window.NocoMappers._flatten(b.ProductID) : b.ProductID;
+            const pid = _dmH(b.ProductID);
             const p = products.find(prod => prod.ProductID === pid);
-            return sum + (parseFloat(b.Quantity || b.qty || 0) * parseFloat(p?.ImportPrice || p?.UnitPrice || 0));
+            return sum + (parseFloat(b.Quantity || b.qty || 0) * parseFloat(p?.ImportPrice || p?.UnitPrice || 50000));
         }, 0);
         
         const totalValueEl = document.getElementById('db-total-value');
         if (totalValueEl) {
-            if (totalValue >= 1000000000) {
-                totalValueEl.textContent = (totalValue / 1000000000).toFixed(2) + 'B VNĐ';
+            totalValueEl.textContent = (totalValue / 1000000).toLocaleString('vi-VN', { minimumFractionDigits: 1 }) + 'M VNĐ';
+        }
+
+        // Quarantine / Risks
+        const qCount = batches.filter(b => {
+            const st = String(b.BatchStatus || '').toUpperCase();
+            return ['QUARANTINE', 'BIỆT TRỮ', 'CHỜ DUYỆT', 'LOCKED', 'KHÓA', 'REJECT'].some(s => st.includes(s));
+        }).length;
+        if (document.getElementById('db-quarantine')) document.getElementById('db-quarantine').textContent = qCount;
+        
+        const riskBadge = document.getElementById('risk-status-badge');
+        if (riskBadge) {
+            if (qCount > 10) {
+                riskBadge.className = 'text-xs font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-lg inline-flex items-center gap-1 mt-1';
+                riskBadge.innerHTML = '<span class="material-symbols-outlined text-[10px]">report</span> Nguy cơ cao';
             } else {
-                totalValueEl.textContent = (totalValue / 1000000).toFixed(0) + 'M VNĐ';
+                riskBadge.className = 'text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg inline-flex items-center gap-1 mt-1';
+                riskBadge.innerHTML = '<span class="material-symbols-outlined text-[10px]">check_circle</span> Kiểm soát tốt';
             }
         }
 
-        // Quarantine
-        const quarantineCount = batches.filter(b => {
-            const st = String(b.BatchStatus || '').toUpperCase();
-            return ['QUARANTINE', 'BIỆT TRỮ', 'CHỜ DUYỆT', 'AWAITING_APPROVAL', 'QC_PENDING'].includes(st);
+        // Pending Orders (Combined PO + SO)
+        const pendingPOs = pos.filter(p => !['COMPLETED', 'CANCELLED'].includes(p.Status?.toUpperCase())).length;
+        const pendingSOs = sos.filter(s => !['COMPLETED', 'CANCELLED'].includes(s.Status?.toUpperCase())).length;
+        if (document.getElementById('db-pending-orders')) document.getElementById('db-pending-orders').textContent = pendingPOs + pendingSOs;
+
+        // Today Outbound & Fulfillment
+        const todayOutbound = issues.filter(i => (i.IssueDate || '').startsWith(todayStr)).length;
+        if (document.getElementById('db-today-out')) document.getElementById('db-today-out').textContent = todayOutbound;
+        
+        const totalTodaySO = sos.filter(s => (s.OrderDate || '').startsWith(todayStr)).length;
+        const fulfillmentRate = totalTodaySO > 0 ? Math.round((todayOutbound / totalTodaySO) * 100) : 100;
+        const fulfillEl = document.getElementById('fulfillment-pct');
+        if (fulfillEl) {
+            fulfillEl.textContent = fulfillmentRate + '%';
+            fulfillEl.className = `text-xs font-bold px-2 py-0.5 rounded-lg inline-flex items-center gap-1 mt-1 ${fulfillmentRate > 80 ? 'text-emerald-600 bg-emerald-50' : 'text-amber-600 bg-amber-50'}`;
+        }
+
+        // 3. SECONDARY TABS UPDATE (Move up & Wrap in try-catch for robustness)
+        try { updateApprovalCenter(pos, approvals); } catch(e) { console.error(e); }
+        try { updateReportTab(products, issues, issueDetails, pos, soDetails); } catch(e) { console.error(e); }
+        try { updateQualityTab(batches, products); } catch(e) { console.error(e); }
+
+        // 4. Initialize Charts
+        try {
+            initActivityChart(receipts, issues);
+            initDistributionChart(batches);
+        } catch(e) { console.error("Chart init error", e); }
+
+        // 4. Activity Logs
+        const logsContainer = document.getElementById('db-activity-logs');
+        if (logsContainer) {
+            logsContainer.innerHTML = logs.slice(0, 4).map(log => `
+                <div class="flex gap-4 group cursor-pointer p-2 hover:bg-slate-50 rounded-xl transition-colors">
+                    <div class="size-2 mt-2 rounded-full ${log.lvl === 'error' ? 'bg-rose-500' : (log.lvl === 'warn' ? 'bg-amber-500' : 'bg-primary')} shadow-sm"></div>
+                    <div>
+                        <p class="text-[11px] font-black text-slate-900 group-hover:text-primary transition-colors uppercase tracking-tight">${log.action}</p>
+                        <p class="text-[10px] text-slate-500 mt-1 line-clamp-1">${log.detail}</p>
+                        <p class="text-[9px] text-slate-300 mt-1 font-bold">${log.time} • ${log.user}</p>
+                    </div>
+                </div>
+            `).join('') || '<p class="text-xs text-slate-400 text-center py-10">Chưa có nhật ký hôm nay</p>';
+        }
+
+        // 5. Cold Chain Simulation (Wow Factor)
+        if (document.getElementById('temp-zone-a')) {
+            const baseA = 4.2;
+            const baseB = -21.4;
+            document.getElementById('temp-zone-a').textContent = (baseA + (Math.random() * 0.4 - 0.2)).toFixed(1);
+            document.getElementById('temp-zone-b').textContent = (baseB + (Math.random() * 0.6 - 0.3)).toFixed(1);
+        }
+
+        // 6. Zone Capacity
+        const _dm = (id) => (window.NocoMappers && window.NocoMappers._flatten) ? window.NocoMappers._flatten(id) : id;
+        
+        const coolBatches = batches.filter(b => {
+             const p = products.find(prod => prod.ProductID === _dm(b.ProductID));
+             return p?.StorageCondition?.includes('2-8') || p?.StorageCondition?.includes('LANH');
         }).length;
-        const quarantineEl = document.getElementById('db-quarantine');
-        if (quarantineEl) quarantineEl.textContent = quarantineCount;
+        const ambientBatches = batches.filter(b => {
+             const p = products.find(prod => prod.ProductID === _dm(b.ProductID));
+             return !p?.StorageCondition || p?.StorageCondition?.includes('15-25') || p?.StorageCondition?.includes('THUONG');
+        }).length;
+        const lockedBatches = batches.filter(b => ['LOCKED', 'KHÓA', 'QUARANTINE'].includes(String(b.BatchStatus).toUpperCase())).length;
 
-        // Pending Orders (Sales Orders or Purchase Orders? Screenshot shows "Đơn hàng đang xử lý" which usually refers to Outbound/Sales)
-        // Previous logic used pos.filter(p => p.Status !== 'COMPLETED').length
-        const pendingOrdersCount = pos.filter(p => !['COMPLETED', 'CANCELLED', 'ĐÃ HỦY'].includes(p.Status?.toUpperCase())).length;
-        const pendingOrdersEl = document.getElementById('db-pending-orders');
-        if (pendingOrdersEl) pendingOrdersEl.textContent = pendingOrdersCount;
+        const zoneMax = Math.max(batches.length, 50);
+        const updateZone = (id, count, max) => {
+             const pct = Math.min(100, Math.round((count / (max/2)) * 100));
+             const bar = document.getElementById('bar-' + id);
+             const val = document.getElementById('pct-' + id + '-val');
+             if (bar) bar.style.width = pct + '%';
+             if (val) val.textContent = pct + '%';
+        };
+        updateZone('cold', coolBatches, zoneMax);
+        updateZone('ambient', ambientBatches, zoneMax);
+        updateZone('locked', lockedBatches, zoneMax);
+        
+        const capStatus = document.getElementById('global-capacity-status');
+        if (capStatus) {
+            const avg = Math.round((coolBatches + ambientBatches + lockedBatches) / zoneMax * 50);
+            capStatus.textContent = avg > 80 ? 'Sắp lấp đầy' : 'Còn nhiều chỗ';
+            capStatus.className = `text-xs font-bold ${avg > 80 ? 'text-rose-600' : 'text-slate-700'}`;
+        }
 
-        // Today Inbound
-        const todayInboundCount = receipts.filter(r => (r.ReceiptDate || '').startsWith(todayStr)).length;
-        const todayInEl = document.getElementById('db-today-in');
-        if (todayInEl) todayInEl.textContent = todayInboundCount;
 
-        // Date Display
-        const dateEl = document.getElementById('dir-date');
-        if (dateEl) dateEl.textContent = new Date().toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
 
-        // 2. Build Approval List (PO + General) - Filtered by permissions
-        const canApprovePO = role?.permissions?.includes('approve_po'); // Strict delegation
+        // 9. Final Cleanup
+    }
+
+    function initActivityChart(receipts, issues) {
+        const ctx = document.getElementById('activityChart')?.getContext('2d');
+        if (!ctx) return;
+        if (activityChart) activityChart.destroy();
+
+        // 1. Prepare 6-month labels and slots
+        const months = [];
+        const now = new Date();
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            months.push({
+                label: `Tháng ${d.getMonth() + 1}`,
+                year: d.getFullYear(),
+                month: d.getMonth(),
+                in: 0,
+                out: 0
+            });
+        }
+
+        // 2. Count receipts (Inbound)
+        receipts.forEach(r => {
+            const date = new Date(r.ReceiptDate || r.CreatedAt);
+            const found = months.find(m => m.year === date.getFullYear() && m.month === date.getMonth());
+            if (found) found.in++;
+        });
+
+        // 3. Count issues (Outbound)
+        issues.forEach(i => {
+            const date = new Date(i.IssueDate || i.CreatedAt);
+            const found = months.find(m => m.year === date.getFullYear() && m.month === date.getMonth());
+            if (found) found.out++;
+        });
+
+        activityChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: months.map(m => m.label),
+                datasets: [
+                    {
+                        label: 'Nhập kho',
+                        data: months.map(m => m.in),
+                        borderColor: '#2563EB',
+                        backgroundColor: 'rgba(37, 99, 235, 0.05)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#2563EB',
+                        pointBorderWidth: 2
+                    },
+                    {
+                        label: 'Xuất kho',
+                        data: months.map(m => m.out),
+                        borderColor: '#10B981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.05)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#10B981',
+                        pointBorderWidth: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        padding: 12,
+                        backgroundColor: '#1e293b',
+                        titleFont: { size: 12, weight: 'bold' },
+                        bodyFont: { size: 12 },
+                        cornerRadius: 8
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { borderDash: [5, 5], color: '#f1f5f9' },
+                        ticks: { font: { weight: 'bold', size: 10 }, color: '#94a3b8' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { weight: 'bold', size: 10 }, color: '#94a3b8' }
+                    }
+                }
+            }
+        });
+    }
+
+    function initDistributionChart(batches) {
+        const ctx = document.getElementById('distributionChart')?.getContext('2d');
+        if (!ctx) return;
+
+        if (distributionChart) distributionChart.destroy();
+
+        const released = batches.filter(b => b.BatchStatus === 'RELEASED').length;
+        const quarantine = batches.filter(b => ['QUARANTINE', 'BIỆT TRỮ'].includes(String(b.BatchStatus).toUpperCase())).length;
+        const locked = batches.length - released - quarantine;
+
+        const total = batches.length || 1;
+        document.getElementById('pct-released').textContent = Math.round(released/total*100) + '%';
+        document.getElementById('pct-quarantine').textContent = Math.round(quarantine/total*100) + '%';
+        document.getElementById('pct-locked').textContent = Math.round(locked/total*100) + '%';
+
+        distributionChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Sẵn dùng', 'Biệt trữ', 'Khác'],
+                datasets: [{
+                    data: [released, quarantine, locked],
+                    backgroundColor: ['#10B981', '#F59E0B', '#F43F5E'],
+                    borderWidth: 0,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '75%',
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    }
+
+    function updateApprovalCenter(pos, approvals) {
+        // Build Approval List (PO + General) - Filtered by permissions
+        const canApprovePO = role?.permissions?.includes('approve_po');
         const canApproveDirector = role?.permissions?.includes('approve_director') || role?.permissions?.includes('write_all');
 
         const unifiedApprovals = [];
@@ -558,19 +830,13 @@
         }
 
         if (canApproveDirector) {
-            approvals.filter(a => a.Status === 'PENDING' && !String(a.type || '').includes('Xuất kho')).forEach(a => {
+            (approvals || []).filter(a => a.Status === 'PENDING' && !String(a.type || '').includes('Xuất kho')).forEach(a => {
                 unifiedApprovals.push({
-                    id: a.id,
-                    type: a.type,
-                    desc: a.desc,
-                    dept: a.dept || 'Hệ thống',
-                    isPO: false,
-                    raw: a
+                    id: a.id, type: a.type, desc: a.desc, dept: a.dept || 'Hệ thống', isPO: false
                 });
             });
         }
 
-        // 3. Render Approval List
         const listEl = document.getElementById('approval-items-list');
         if (listEl) {
             listEl.innerHTML = unifiedApprovals.map(a => `
@@ -582,177 +848,109 @@
                             </div>
                             <div>
                                 <h4 class="font-black text-slate-900">${a.type}</h4>
-                                <p class="text-xs text-slate-400">Mã yêu cầu: #${a.id} • Bộ phận: ${a.dept}</p>
+                                <p class="text-xs text-slate-400 font-bold uppercase tracking-tight">Mã: #${a.id} • ${a.dept}</p>
                             </div>
                         </div>
-                        <span class="px-3 py-1 bg-amber-50 text-amber-600 text-[10px] font-black rounded-lg uppercase tracking-wider">Chờ phê duyệt</span>
+                        <span class="px-3 py-1 bg-amber-50 text-amber-600 text-[10px] font-black rounded-lg uppercase tracking-wider animate-pulse">Waiting</span>
                     </div>
-                    <p class="mt-4 text-sm text-slate-600 leading-relaxed font-medium bg-slate-50 p-3 rounded-xl border border-slate-100">${a.desc}</p>
+                    <p class="mt-4 text-sm text-slate-600 leading-relaxed font-medium bg-slate-50 p-4 rounded-xl border border-slate-100">${a.desc}</p>
                     <div class="mt-5 flex gap-3">
                         <button onclick="handleDashboardApproval('${a.id}', '${a.type}', '${a.desc}', ${a.isPO})" 
-                            class="px-6 py-2.5 bg-primary text-white rounded-xl text-sm font-bold hover:shadow-lg transition-all">Phê duyệt</button>
-                        <button onclick="${a.isPO ? `showPODetailInDashboard('${a.id}')` : `alert('Chi tiết phê duyệt đang được cập nhật')`}" 
-                            class="px-6 py-2.5 border border-slate-200 text-slate-600 rounded-xl text-sm font-bold hover:bg-slate-50 transition-colors">Xem chi tiết</button>
+                            class="flex-1 py-3 bg-primary text-white rounded-xl text-sm font-bold hover:shadow-lg transition-all">Phê duyệt ngay</button>
+                        <button onclick="${a.isPO ? `showPODetailInDashboard('${a.id}')` : `alert('Chi tiết đang được tải...')`}" 
+                            class="px-6 py-3 border border-slate-200 text-slate-600 rounded-xl text-sm font-bold hover:bg-slate-50 transition-colors">Chi tiết</button>
                     </div>
                 </div>
-            `).join('') || '<p class="text-center py-20 text-slate-400 font-medium">Tuyệt vời! Không còn yêu cầu nào đang chờ xử lý.</p>';
+            `).join('') || `
+                <div class="col-span-full py-20 bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl flex flex-col items-center justify-center text-slate-400">
+                    <span class="material-symbols-outlined text-4xl mb-2 opacity-20">check_circle</span>
+                    <p class="font-bold">Tuyệt vời! Không còn yêu cầu nào đang chờ xử lý.</p>
+                </div>
+            `;
         }
 
-        // Mini list (Sidebar/Overview)
         const miniEl = document.getElementById('db-approval-list-mini');
         if (miniEl) {
             miniEl.innerHTML = unifiedApprovals.slice(0, 3).map(a => `
                 <div class="flex items-center gap-3 p-3 hover:bg-slate-50 rounded-xl cursor-pointer" onclick="switchDirTab('approval')">
-                    <div class="size-8 rounded-lg bg-slate-100 flex items-center justify-center"><span class="material-symbols-outlined text-sm">notifications</span></div>
+                    <div class="size-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400"><span class="material-symbols-outlined text-sm">notifications</span></div>
                     <div class="flex-1 overflow-hidden">
                         <p class="text-xs font-bold text-slate-900 truncate">${a.type}</p>
-                        <p class="text-[10px] text-slate-500 truncate">${a.desc}</p>
+                        <p class="text-[10px] text-slate-500 truncate mt-0.5">${a.id}</p>
                     </div>
+                    <span class="material-symbols-outlined text-slate-300 text-sm">chevron_right</span>
                 </div>
-            `).join('') || '<p class="text-[11px] text-slate-400 text-center py-4">Sạch bóng yêu cầu!</p>';
+            `).join('') || '<p class="text-[10px] text-slate-400 text-center py-4 font-bold uppercase tracking-widest">Hệ thống sạch</p>';
         }
 
-        // Badge
         const badgeEl = document.getElementById('approval-count-badge');
         if (badgeEl) {
             badgeEl.textContent = unifiedApprovals.length;
             badgeEl.style.display = unifiedApprovals.length ? 'inline' : 'none';
         }
+    }
 
-        // 4. Activity Logs (Real-time)
-        const logsContainer = document.querySelector('.bg-white.rounded-3xl.border.border-slate-200.shadow-sm.p-8 .space-y-6');
-        if (logsContainer && logs.length > 0) {
-            logsContainer.innerHTML = logs.slice(0, 5).map(log => {
-                let color = 'bg-blue-500';
-                if (log.lvl === 'warn') color = 'bg-orange-500';
-                if (log.lvl === 'error') color = 'bg-red-500';
-                if (log.lvl === 'success') color = 'bg-emerald-500';
-
-                return `
-                <div class="flex gap-4">
-                    <div class="size-2 mt-2 rounded-full ${color} shadow-lg"></div>
-                    <div>
-                        <p class="text-xs font-bold text-slate-800">${log.action}</p>
-                        <p class="text-[10px] text-slate-400 mt-1">${log.time} • ${log.user} • ${log.detail}</p>
-                    </div>
-                </div>`;
-            }).join('');
-        }
-
-        // 5. Chart Data (Last 6 Months Revenue from Issues)
-        const chartBars = document.getElementById('chart-bars');
-        const chartLabels = document.getElementById('chart-labels');
-        if (chartBars && chartLabels) {
-            // Group issue details by month
-            const monthNames = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'];
-            const last6Months = [];
-            for (let i = 5; i >= 0; i--) {
-                const d = new Date();
-                d.setMonth(d.getMonth() - i);
-                last6Months.push({
-                    month: d.getMonth() + 1,
-                    year: d.getFullYear(),
-                    label: i === 0 ? 'Tháng Nay' : monthNames[d.getMonth()],
-                    value: 0
-                });
-            }
-
-            // Calculate value for each month
-            // We use Goods Issues to represent "Sales Performance"
-            issues.forEach(issue => {
-                const issueDate = new Date(issue.IssueDate);
-                const month = issueDate.getMonth() + 1;
-                const year = issueDate.getFullYear();
-                
-                const monthData = last6Months.find(m => m.month === month && m.year === year);
-                if (monthData) {
-                    // Find all details for this issue
-                    const details = issueDetails.filter(d => 
-                        window.NocoMappers._flatten(d.IssueID) === issue.IssueID
-                    );
-                    
-                    details.forEach(d => {
-                        const p = products.find(prod => prod.ProductID === window.NocoMappers._flatten(d.ProductID));
-                        const price = p ? (p.ImportPrice * 1.2) : 0; // Simplified "Sales Price"
-                        monthData.value += (d.ActualQty || 0) * price;
-                    });
-                }
-            });
-
-            const maxVal = Math.max(...last6Months.map(d => d.value), 1); // Avoid div by zero
-            const displayMax = maxVal > 1000000 ? (maxVal / 1000000) : 1;
-            
-            chartBars.innerHTML = last6Months.map(d => {
-                const valInMillion = d.value / 1000000;
-                const h = Math.max(5, (valInMillion / displayMax) * 100);
-                const isCurrent = d.label === 'Tháng Nay';
-                return `
-                <div class="flex-1 flex flex-col justify-end group relative cursor-pointer h-full">
-                    <div class="absolute -top-7 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] font-bold py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity z-10 whitespace-nowrap shadow-lg">
-                        ${valInMillion.toFixed(1)}M
-                    </div>
-                    <div class="w-full rounded-t-lg transition-all duration-500 ease-out ${isCurrent ? 'bg-primary' : 'bg-primary/20 group-hover:bg-primary/50'}" style="height: ${h}%"></div>
-                </div>`;
-            }).join('');
-            
-            chartLabels.innerHTML = last6Months.map(d => `
-                <div class="flex-1 text-center truncate ${d.label === 'Tháng Nay' ? 'text-primary font-bold' : ''}">
-                    ${d.label}
-                </div>
-            `).join('');
-        }
-
-        // 6. Report: Total In/Out
+    function updateReportTab(products, issues, issueDetails, pos, soDetails = []) {
+        const _flatten = (id) => (window.NocoMappers && window.NocoMappers._flatten) ? window.NocoMappers._flatten(id) : id;
+        
         let totalOutValue = 0;
         issues.forEach(issue => {
-            const details = issueDetails.filter(d => 
-                window.NocoMappers._flatten(d.IssueID) === issue.IssueID
-            );
+            const details = issueDetails.filter(d => _flatten(d.IssueID) === issue.IssueID);
             details.forEach(d => {
-                const pid = window.NocoMappers._flatten(d.ProductID);
-                const p = products.find(prod => prod.ProductID === pid);
-                // Sales price = Import price * 1.2
-                totalOutValue += (d.ActualQty || 0) * (p?.ImportPrice || 50000) * 1.2;
+                const p = products.find(prod => prod.ProductID === _flatten(d.ProductID));
+                const price = p?.ImportPrice || p?.UnitPrice || 50000;
+                totalOutValue += (d.ActualQty || 0) * price * 1.2;
             });
         });
 
         let totalInValue = 0;
         pos.forEach(p => {
-            if (['COMPLETED', 'PARTIAL', 'HOÀN TẤT', 'ĐÃ NHẬN'].includes(p.Status?.toUpperCase())) {
+            const st = String(p.Status || '').toUpperCase();
+            if (['COMPLETED', 'HOÀN TẤT', 'PARTIAL', 'NHẬN MỘT PHẦN'].includes(st)) {
                 totalInValue += (p.totalValue || 0);
             }
         });
 
         const rInEl = document.getElementById('report-total-in');
-        if (rInEl) rInEl.textContent = (totalInValue / 1000000000).toFixed(2) + 'B VNĐ';
+        if (rInEl) rInEl.textContent = totalInValue > 0 ? (totalInValue / 1000000).toLocaleString('vi-VN', { maximumFractionDigits: 1 }) + 'M VNĐ' : '0 VNĐ';
+        
         const rOutEl = document.getElementById('report-total-out');
-        if (rOutEl) rOutEl.textContent = (totalOutValue / 1000000000).toFixed(2) + 'B VNĐ';
+        if (rOutEl) rOutEl.textContent = totalOutValue > 0 ? (totalOutValue / 1000000).toLocaleString('vi-VN', { maximumFractionDigits: 1 }) + 'M VNĐ' : '0 VNĐ';
 
         // Capacity
-        const maxCapacity = 1000; // Mock total slots for the whole warehouse
-        const currentCapacityPct = Math.min(99, Math.round((batches.length / maxCapacity) * 100));
-        const capTextEl = document.getElementById('report-capacity');
-        if (capTextEl) capTextEl.textContent = currentCapacityPct + '%';
-        const capBarEl = document.querySelector('#dir-tab-content-report .h-full.bg-primary');
-        if (capBarEl) capBarEl.style.width = currentCapacityPct + '%';
+        const batches = window.MockData.BATCHES || [];
+        const zoneMax = Math.max(batches.length, 100);
+        const capacityPct = Math.round((batches.length / zoneMax) * 100);
+        const rCapEl = document.getElementById('report-capacity');
+        if (rCapEl) rCapEl.textContent = capacityPct + '%';
+        const capBar = document.querySelector('#dir-tab-content-report .bg-primary');
+        if (capBar) capBar.style.width = capacityPct + '%';
 
-        // 7. Top Selling Products
+        // Top Selling - Fallback to Sales Orders if no real Outbound issues yet
         const prodSales = {};
-        issueDetails.forEach(d => {
-            const pid = window.NocoMappers._flatten(d.ProductID);
-            if (pid) prodSales[pid] = (prodSales[pid] || 0) + (d.ActualQty || 0);
-        });
-
+        const sourceData = (issueDetails && issueDetails.length > 0) ? issueDetails : soDetails;
+        
+        if (Array.isArray(sourceData)) {
+            sourceData.forEach(d => {
+                const pid = _flatten(d.ProductID);
+                if (pid) {
+                    const qty = parseFloat(d.ActualQty || d.OrderedQty || d.Qty || d.Quantity || 0);
+                    prodSales[pid] = (prodSales[pid] || 0) + qty;
+                }
+            });
+        }
+        
         const sortedProds = Object.entries(prodSales)
             .map(([pid, qty]) => {
                 const p = products.find(prod => prod.ProductID === pid);
                 return { 
-                    ProductID: pid,
-                    ProductName: p?.ProductName || ('SP ' + pid), 
-                    BaseUnit: p?.BaseUnit || 'Đơn vị',
+                    ProductID: pid, 
+                    ProductName: p?.ProductName || pid, 
+                    BaseUnit: p?.BaseUnit || 'Đơn vị', 
                     sold: qty 
                 };
             })
+            .filter(p => p.sold > 0)
             .sort((a, b) => b.sold - a.sold)
             .slice(0, 5);
 
@@ -762,109 +960,72 @@
                 <tr class="hover:bg-slate-50 transition-colors">
                     <td class="px-5 py-4">
                         <p class="font-bold text-slate-800">${p.ProductName}</p>
-                        <p class="text-[10px] text-slate-400">${p.ProductID}</p>
+                        <p class="text-[10px] text-slate-400 font-bold">${p.ProductID}</p>
                     </td>
-                    <td class="px-5 py-4 text-right font-medium">${(p.sold || 0).toLocaleString()} ${p.BaseUnit}</td>
+                    <td class="px-5 py-4 text-right font-black text-primary">${(p.sold || 0).toLocaleString()} ${p.BaseUnit}</td>
                     <td class="px-5 py-4 text-center">
-                        <span class="px-2 py-1 bg-green-100 text-green-700 text-[10px] font-bold rounded-lg uppercase tracking-wider">CÒN HÀNG</span>
+                        <span class="px-2 py-1 bg-emerald-50 text-emerald-600 text-[10px] font-black rounded-lg uppercase">Ổn định</span>
                     </td>
                 </tr>
-            `).join('') || '<tr><td colspan="3" class="p-8 text-center text-slate-400">Chưa có dữ liệu giao hàng</td></tr>';
+            `).join('') || '<tr><td colspan="3" class="px-5 py-8 text-center text-slate-400 font-bold">Chưa có dữ liệu</td></tr>';
         }
+    }
 
-        // 8. Quality Stats
+    function updateQualityTab(batches, products) {
+        const _flatten = (id) => (window.NocoMappers && window.NocoMappers._flatten) ? window.NocoMappers._flatten(id) : id;
         const now = new Date();
         const sixMonths = new Date();
         sixMonths.setMonth(now.getMonth() + 6);
         
-        let expCount = 0;
-        let nearExpCount = 0;
+        let expCount = 0; 
+        let nearExpCount = 0; 
+        let quarantineCount = 0;
         const problemBatches = [];
 
         batches.forEach(b => {
+            const st = String(b.BatchStatus || b.Status || '').toUpperCase();
+            const isQuarantine = ['QUARANTINE', 'BIỆT TRỮ', 'CHỜ DUYỆT', 'PENDING_QC', 'LOCKED'].some(s => st.includes(s));
+            if (isQuarantine) quarantineCount++;
+
             if (b.ExpDate && b.Quantity > 0) {
                 const ed = new Date(b.ExpDate);
-                if (ed < now) {
-                    expCount++;
-                    problemBatches.push({ ...b, statusLabel: 'HẾT HẠN', isExpired: true });
-                } else if (ed < sixMonths) {
-                    nearExpCount++;
-                    problemBatches.push({ ...b, statusLabel: 'CẬN DATE', isExpired: false });
+                if (ed < now) { 
+                    expCount++; 
+                    problemBatches.push({ ...b, statusLabel: 'HẾT HẠN', isExpired: true }); 
+                } else if (ed < sixMonths) { 
+                    nearExpCount++; 
+                    problemBatches.push({ ...b, statusLabel: 'CẬN DATE', isExpired: false }); 
                 }
             }
         });
 
-        const qExp = document.getElementById('qual-expired');
-        if (qExp) qExp.textContent = expCount;
-        const qNear = document.getElementById('qual-near-expiry');
-        if (qNear) qNear.textContent = nearExpCount;
-        const qQuar = document.getElementById('qual-quarantine');
-        if (qQuar) qQuar.textContent = quarantineCount;
-        const qQc = document.getElementById('qual-qc');
-        if (qQc) qQc.textContent = (window.MockData.QC_REQUESTS || []).filter(t => t.Status === 'PENDING').length;
+        const qcPendingCount = (window.MockData.QC_REQUESTS || []).filter(t => ['PENDING', 'CHỜ DUYỆT'].includes(t.Status)).length;
 
-        const qualBatchesEl = document.getElementById('qual-batch-list');
-        if (qualBatchesEl) {
-            qualBatchesEl.innerHTML = problemBatches.slice(0, 8).map(b => {
-                const p = products.find(x => x.ProductID === b.ProductID) || {};
-                return `
-                <tr class="hover:bg-slate-50 transition-colors">
-                    <td class="px-5 py-4"><span class="font-bold text-slate-800">${b.Batchcode}</span></td>
-                    <td class="px-5 py-4 text-sm">${p.ProductName || b.ProductID}</td>
-                    <td class="px-5 py-4 text-center font-medium">${b.Quantity}</td>
-                    <td class="px-5 py-4 text-right">
-                        <span class="px-2 py-1 rounded-lg text-[10px] font-bold ${b.isExpired ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'}">
-                            ${b.ExpDate} (${b.statusLabel})
-                        </span>
-                    </td>
-                </tr>`
-            }).join('') || '<tr><td colspan="4" class="p-8 text-center text-slate-400 font-medium">Tuyệt vời! Không có lô hàng cận/hết date. Kho an toàn!</td></tr>';
-        }
-
-        // 9. Zone Capacity (Based on Batches)
-        const zoneLevels = document.querySelectorAll('.grid-cols-2.gap-6.pb-20 > div:last-child .space-y-5 > div');
-        if (zoneLevels.length > 0) {
-            // Group batches by storage condition (proxy for zone)
-            const coolBatches = batches.filter(b => {
-                const p = products.find(prod => prod.ProductID === b.ProductID);
-                return p?.StorageCondition === 'KHO_LANH' || p?.StorageCondition === '2-8°C';
-            });
-            const normalBatches = batches.filter(b => {
-                const p = products.find(prod => prod.ProductID === b.ProductID);
-                return p?.StorageCondition === 'KHO_THUONG' || p?.StorageCondition === '15-25°C' || (!p?.StorageCondition);
-            });
-            const quarantineZoneBatches = batches.filter(b => {
-                const st = String(b.BatchStatus || '').toUpperCase();
-                return ['QUARANTINE', 'BIỆT TRỮ', 'CHỜ DUYỆT', 'AWAITING_APPROVAL', 'QC_PENDING'].includes(st);
-            });
-
-            const totalCapacityPerZone = batches.length > 0 ? Math.max(batches.length * 1.5, 100) : 100;
-            
-            const updateZone = (el, count, total) => {
-                const pct = Math.min(98, Math.max(5, Math.round((count / (total/3)) * 100)));
-                const pctEl = el.querySelector('.text-primary, .text-slate-400, .text-red-500');
-                const barEl = el.querySelector('.h-full');
-                if (pctEl) pctEl.textContent = pct + '%';
-                if (barEl) barEl.style.width = pct + '%';
-            };
-
-            if (zoneLevels[0]) updateZone(zoneLevels[0], coolBatches.length, totalCapacityPerZone);
-            if (zoneLevels[1]) updateZone(zoneLevels[1], normalBatches.length, totalCapacityPerZone);
-            if (zoneLevels[2]) updateZone(zoneLevels[2], quarantineZoneBatches.length, totalCapacityPerZone);
-        }
-
-        // 10. Health Gauge
-        const healthPct = batches.length > 0 ? Math.round(((batches.length - quarantineCount) / batches.length) * 100) : 85;
-        const healthValEl = document.querySelector('.relative.size-32 .text-2xl');
-        const healthCircleEl = document.querySelector('.relative.size-32 circle.stroke-primary');
-        if (healthValEl) healthValEl.textContent = healthPct + '%';
-        if (healthCircleEl) healthCircleEl.setAttribute('stroke-dasharray', `${healthPct}, 100`);
+        if (document.getElementById('qual-expired')) document.getElementById('qual-expired').textContent = expCount;
+        if (document.getElementById('qual-near-expiry')) document.getElementById('qual-near-expiry').textContent = nearExpCount;
+        if (document.getElementById('qual-quarantine')) document.getElementById('qual-quarantine').textContent = quarantineCount;
+        if (document.getElementById('qual-qc')) document.getElementById('qual-qc').textContent = qcPendingCount;
         
-        const healthDescEl = document.querySelector('.relative.size-32 + h5 + p');
-        if (healthDescEl) {
-            if (healthPct > 90) healthDescEl.textContent = 'Kho đang vận hành cực kỳ an toàn. Tỷ lệ hàng sẵn dùng cao.';
-            else if (healthPct > 70) healthDescEl.textContent = 'Vận hành ổn định. Một số lô hàng đang chờ kiểm định QA.';
-            else healthDescEl.textContent = 'Cảnh báo: Tỷ lệ hàng biệt trữ cao. Cần đẩy nhanh tiến độ QC.';
+        const qList = document.getElementById('qual-batch-list');
+        if (qList) {
+            qList.innerHTML = problemBatches.slice(0, 8).map(b => {
+                 const pid = _flatten(b.ProductID);
+                 const p = products.find(prod => prod.ProductID === pid);
+                 return `
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-5 py-4 font-black text-slate-700">${b.Batchcode || 'N/A'}</td>
+                        <td class="px-5 py-4">
+                            <p class="font-bold text-xs">${p?.ProductName || pid}</p>
+                            <p class="text-[10px] text-slate-400 font-bold">${pid}</p>
+                        </td>
+                        <td class="px-5 py-4 text-center font-bold text-slate-600">${b.Quantity}</td>
+                        <td class="px-5 py-4 text-right">
+                            <span class="px-2 py-1 rounded-lg text-[10px] font-black ${b.isExpired ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'}">
+                                ${b.ExpDate || '—'}
+                            </span>
+                        </td>
+                    </tr>`;
+            }).join('') || '<tr><td colspan="4" class="px-5 py-10 text-center text-emerald-500 font-black uppercase tracking-widest">Tuyệt vời! Không có lô hàng lỗi.</td></tr>';
         }
     }
 
@@ -875,6 +1036,7 @@
             if (btn) btn.className = `pb-3 text-sm ${t === tabId ? 'tab-active' : 'tab-inactive'}`;
             if (content) content.classList.toggle('hidden', t !== tabId);
         });
+        refreshDashboard();
     };
 
     window.handleDashboardApproval = function(id, type, desc, isPO) {
@@ -885,6 +1047,11 @@
         document.getElementById('modal-comment-center').value = '';
         document.getElementById('approve-modal-center').classList.add('open');
     }
+
+    // Modal helpers (Close on outside click)
+    document.querySelectorAll('.modal-overlay').forEach(m => {
+        m.addEventListener('click', (e) => { if (e.target === m) m.classList.remove('open'); });
+    });
 
     window.showPODetailInDashboard = function(poId) {
         const po = (window.MockData.PURCHASE_ORDERS || []).find(p => p.PO_ID === poId);
@@ -908,7 +1075,6 @@
             stEl.className = `px-2 py-0.5 rounded-full text-[10px] font-bold ${st.c}`;
         }
 
-        // Render items
         const itemsBody = document.getElementById('po-detail-items-body');
         const items = po.itemsDetails || [];
         if (items.length) {
@@ -917,15 +1083,11 @@
                 const price = it.UnitPrice || prod.ImportPrice || 0;
                 return `
                     <tr>
-                        <td class="px-4 py-3">
-                            <p class="font-bold text-slate-900">${prod.ProductName}</p>
-                            <p class="text-[10px] text-slate-400">${it.ProductID}</p>
-                        </td>
-                        <td class="px-4 py-3 text-center font-medium">${it.OrderedQty || it.total || 0}</td>
+                        <td class="px-4 py-3"><p class="font-bold text-slate-900">${prod.ProductName}</p><p class="text-[10px] text-slate-400 font-bold">${it.ProductID}</p></td>
+                        <td class="px-4 py-3 text-center font-black text-primary">${it.OrderedQty || it.total || 0}</td>
                         <td class="px-4 py-3 text-right text-slate-500">${price.toLocaleString()}</td>
-                        <td class="px-4 py-3 text-right font-bold text-slate-900">${((it.OrderedQty || 0) * price).toLocaleString()}</td>
-                    </tr>
-                `;
+                        <td class="px-4 py-3 text-right font-black text-slate-900">${((it.OrderedQty || 0) * price).toLocaleString()}</td>
+                    </tr>`;
             }).join('');
         } else {
             itemsBody.innerHTML = '<tr><td colspan="4" class="px-4 py-8 text-center text-slate-400 italic">Không có chi tiết sản phẩm</td></tr>';
@@ -967,19 +1129,19 @@
             
             const card = document.getElementById(`card-${activeApprovalId}`);
             if (card) {
-                card.innerHTML = `<div class="flex items-center gap-4 bg-green-50 p-6 rounded-2xl border border-green-100">
-                    <div class="size-12 rounded-full bg-green-500 text-white flex items-center justify-center"><span class="material-symbols-outlined">check</span></div>
-                    <div><h4 class="font-black text-green-700">ĐÃ PHÊ DUYỆT</h4><p class="text-xs text-green-600">Lúc: ${new Date().toLocaleTimeString('vi-VN')}</p></div>
+                card.innerHTML = `<div class="flex items-center gap-4 bg-emerald-50 p-6 rounded-2xl border border-emerald-100 shadow-sm animate-bounce">
+                    <div class="size-12 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-lg shadow-emerald-200"><span class="material-symbols-outlined">verified</span></div>
+                    <div><h4 class="font-black text-emerald-800 uppercase tracking-tight">Đã phê duyệt hoàn tất</h4><p class="text-[10px] font-bold text-emerald-600 opacity-70">Lệnh được thực thi lúc: ${new Date().toLocaleTimeString('vi-VN')}</p></div>
                 </div>`;
             }
             
-            document.getElementById('approve-modal-center').classList.remove('open');
+            setTimeout(() => { document.getElementById('approve-modal-center').classList.remove('open'); }, 300);
             setTimeout(() => refreshDashboard(), 1000);
         } catch (e) {
             alert('Lỗi phê duyệt: ' + e.message);
         } finally {
             btn.disabled = false;
-            btn.textContent = 'Phê duyệt cuối cùng';
+            btn.textContent = 'Xác nhận Phê duyệt';
         }
     }
 

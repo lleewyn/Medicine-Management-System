@@ -189,6 +189,32 @@
             </div>
         </div>
 
+        <!-- FR-QC-10 & FR-TH-02: Emergency Controls -->
+        <div class="grid grid-cols-2 gap-6 mb-6">
+            <div class="bg-red-600 rounded-2xl shadow-xl p-6 text-white">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="p-2 rounded-xl bg-white/20 material-symbols-outlined">e911_emergency</span>
+                    <h4 class="font-black">Báo động đỏ (Emergency Lock)</h4>
+                </div>
+                <p class="text-xs text-white/80 mb-6">Kích hoạt lệnh phong tỏa toàn hệ thống cho 1 mã hàng/lô hàng trong 30 giây. Dùng cho trường hợp phát hiện sai sót nghiêm trọng.</p>
+                <div class="flex gap-2">
+                    <input type="text" id="emergency-id" placeholder="Mã SKU hoặc Số lô..." class="flex-1 px-4 py-2 bg-white/10 border border-white/20 rounded-xl text-xs placeholder:text-white/40 outline-none focus:bg-white/20">
+                    <button onclick="emergencyLockdown()" class="bg-white text-red-600 px-4 py-2 rounded-xl text-xs font-black hover:bg-red-50 transition-all uppercase tracking-tighter">Kích hoạt</button>
+                </div>
+            </div>
+
+            <div class="bg-slate-800 rounded-2xl shadow-xl p-6 text-white">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="p-2 rounded-xl bg-white/20 material-symbols-outlined">analytics</span>
+                    <h4 class="font-black">FR-TH-04: Báo cáo Truy suất (Traceability)</h4>
+                </div>
+                <p class="text-xs text-white/60 mb-6">Trích xuất nhanh danh sách khách hàng đã nhận lô hàng đang bị thu hồi để thực hiện thu hồi tại đại lý.</p>
+                <button onclick="exportTraceability()" class="w-full bg-slate-700 border border-slate-600 py-3 rounded-xl text-xs font-bold hover:bg-slate-600 transition-all flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined text-sm">download_for_offline</span> TRÍCH XUẤT DỮ LIỆU
+                </button>
+            </div>
+        </div>
+
         <!-- Currently locked batches -->
         <div class="bg-white rounded-xl border border-red-200 shadow-sm overflow-hidden">
             <div class="p-5 border-b border-red-100 bg-red-50 flex items-center gap-3">
@@ -240,16 +266,23 @@
                         </select>
                     </div>
 
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase">Phương thức tiêu
-                            hủy</label>
-                        <select
-                            class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20">
-                            <option>Đốt (Incineration) — Lò đốt chất thải y tế</option>
-                            <option>Phân hủy hóa học (Chemical Degradation)</option>
-                            <option>Chôn lấp an toàn (Secured Landfill)</option>
-                            <option>Trả về nhà sản xuất để tiêu hủy</option>
                         </select>
+                    </div>
+
+                    <!-- FR-TH-05: Disposal Evidence Upload -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase">Minh chứng tiêu hủy (Hình ảnh/Video)</label>
+                        <div class="flex items-center gap-4 p-4 border-2 border-dashed border-slate-200 rounded-xl hover:border-primary/50 cursor-pointer transition-colors" onclick="simulateUpload()">
+                            <div class="size-12 rounded-lg bg-slate-100 text-slate-400 flex items-center justify-center" id="evidence-preview">
+                                <span class="material-symbols-outlined">add_a_photo</span>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-xs font-bold text-slate-700">Tải lên hình ảnh bằng chứng</p>
+                                <p class="text-[10px] text-slate-400">Định dạng JPG, PNG hoặc Video ngắn (GSP Compliance)</p>
+                            </div>
+                            <input type="file" id="evidence-input" class="hidden">
+                            <span id="evidence-status" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Chưa có tệp</span>
+                        </div>
                     </div>
 
                     <!-- Witness signing -->
@@ -473,6 +506,26 @@
             }
         };
 
+        window.emergencyLockdown = async function() {
+            const id = document.getElementById('emergency-id').value.trim();
+            if (!id) return alert('Vui lòng nhập Mã SKU hoặc Số lô!');
+            if (confirm(`🚨 KÍCH HOẠT BÁO ĐỘNG ĐỎ CHO ${id}?\nHệ thống sẽ phong tỏa tức thời mọi giao dịch liên quan.`)) {
+                await window.MockData.activateEmergencyLockdown(id, 'Yêu cầu phong tỏa khẩn cấp từ QA');
+            }
+        };
+
+        window.exportTraceability = function() {
+            const id = document.getElementById('notice-batch-select').value || 'ALL';
+            const headers = ['Mã khách hàng', 'Tên khách hàng', 'Sản phẩm', 'Lô hàng', 'Số lượng đã nhận', 'Ngày giao'];
+            const data = [
+                ['CUST-001', 'Nhà thuốc Long Châu', 'Paracetamol 500mg', 'LOT-2401-22', '500', '2024-03-10'],
+                ['CUST-002', 'Bệnh viện Chợ Rẫy', 'Paracetamol 500mg', 'LOT-2401-22', '2000', '2024-03-12'],
+                ['CUST-045', 'Nhà thuốc An Khang', 'Paracetamol 500mg', 'LOT-2401-22', '300', '2024-03-14']
+            ];
+            window.MockData.exportToCSV([{ headers, data }], `Traceability_${id}_${new Date().toISOString().slice(0,10)}.csv`);
+            window.MockData.addNotification('Đã trích xuất báo cáo truy suất (FR-TH-04).', 'info');
+        };
+
         window.createDestroyRecord = async function () {
             const batchId = document.getElementById('destroy-batch-select').value;
             if (!batchId) { alert('Vui lòng chọn lô hàng!'); return; }
@@ -536,6 +589,18 @@
                     <span class="material-symbols-outlined text-sm">local_fire_department</span> LẬP BIÊN BẢN TIÊU HỦY
                 </button>` : '<p class="text-sm text-red-500 font-bold bg-red-50 p-4 rounded-xl inline-block w-full text-center">⚠️ Chỉ QA có thẩm quyền mới được lập biên bản tiêu hủy.</p>';
         }
+
+        window.simulateUpload = function() {
+            const status = document.getElementById('evidence-status');
+            const preview = document.getElementById('evidence-preview');
+            status.textContent = 'Đang tải...';
+            setTimeout(() => {
+                status.textContent = '✅ Đã tải lên (1 tệp)';
+                status.className = 'text-[10px] font-bold text-green-600 uppercase tracking-widest';
+                preview.innerHTML = '<span class="material-symbols-outlined text-green-500">task_alt</span>';
+                preview.className = 'size-12 rounded-lg bg-green-50 text-green-600 flex items-center justify-center';
+            }, 800);
+        };
 
         // Initialize
         updateRecallUI();

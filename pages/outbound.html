@@ -112,6 +112,7 @@
             <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase">Hạn giao</th>
             <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase text-center w-28">Ưu tiên</th>
             <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase text-center w-40">Trạng thái</th>
+            <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase w-32 text-center">Chứng từ</th>
             <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase text-right w-36">Thao tác</th>
           </tr>
         </thead>
@@ -156,11 +157,15 @@
       </div>
 
       <!-- Submit Picking -->
-      <button onclick="submitPicking()"
-        class="bg-primary text-white px-6 py-3 rounded-xl font-bold hover:bg-primary/90 transition-colors flex items-center gap-2">
-        <span class="material-symbols-outlined">send</span>
-        Hoàn tất soạn hàng — Gửi chờ Thủ kho phê duyệt
       </button>
+
+      <!-- FR-XK-14: Sales Return Action -->
+      <div class="mt-12 pt-8 border-t border-slate-200">
+          <h4 class="font-bold text-slate-900 mb-2">Trả hàng & Huống dẫn khác</h4>
+          <button onclick="openReturnModal()" class="bg-slate-100 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-200 flex items-center gap-2">
+              <span class="material-symbols-outlined text-sm">assignment_return</span> Nhập hàng trả lại (Sales Return)
+          </button>
+      </div>
     </div>
   </div>
 
@@ -214,6 +219,41 @@
   </div>
 </div>
 
+<!-- FR-XK-14: Sales Return Modal -->
+<div class="modal-overlay" id="return-modal">
+  <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4">
+    <h3 class="text-xl font-black text-slate-900 mb-4">Nhập trả hàng Sales</h3>
+    <div class="space-y-4">
+        <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase">Mã đơn hàng gốc (SO)</label>
+            <input type="text" id="ret-so-id" placeholder="SO-24-001" class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm outline-none">
+        </div>
+        <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase">Lý do trả hàng</label>
+            <select id="ret-reason" class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm outline-none">
+                <option>Sai số lượng / chủng loại</option>
+                <option>Hàng cận hạn / hết hạn</option>
+                <option>Bao bì hư hỏng</option>
+                <option>Khách hàng từ chối nhận</option>
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase">Sản phẩm trả lại</label>
+            <div id="ret-items-list" class="space-y-2">
+                <div class="flex gap-2">
+                    <input type="text" placeholder="Mã SKU" class="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-xs">
+                    <input type="number" placeholder="SL" class="w-20 px-3 py-2 border border-slate-200 rounded-lg text-xs">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="flex gap-3 mt-6">
+      <button onclick="document.getElementById('return-modal').classList.remove('open')" class="flex-1 border border-slate-200 py-2.5 rounded-xl text-sm font-bold">Hủy</button>
+      <button onclick="submitReturn()" class="flex-1 bg-primary text-white py-2.5 rounded-xl text-sm font-bold">Xác nhận nhập trả</button>
+    </div>
+  </div>
+</div>
+
 <script>
   (function () {
     const user = window.Auth.getCurrentUser();
@@ -262,19 +302,25 @@
                 s.Status === 'PENDING' ? '<span class="inline-flex px-3 py-1.5 bg-slate-50 border border-slate-200 text-slate-500 rounded-full text-xs font-bold shadow-sm justify-center min-w-[120px]">Chờ xử lý</span>' : 
                 `<span class="inline-flex px-3 py-1.5 bg-gray-50 border border-gray-200 text-gray-700 rounded-full text-xs font-bold shadow-sm justify-center min-w-[120px]">${s.Status}</span>`}
             </td>
+            <td class="px-5 py-4 text-center">
+              <div class="flex items-center justify-center gap-1">
+                <button onclick="window.MockData.exportSODocument('${s.SO_ID}', 'invoice')" class="p-1.5 hover:bg-slate-100 rounded text-slate-500" title="Xuất Hóa đơn"><span class="material-symbols-outlined text-sm">receipt_long</span></button>
+                <button onclick="window.MockData.exportSODocument('${s.SO_ID}', 'packing_list')" class="p-1.5 hover:bg-slate-100 rounded text-slate-500" title="Phiếu đóng gói"><span class="material-symbols-outlined text-sm">inventory</span></button>
+              </div>
+            </td>
             <td class="px-5 py-4 text-right">
               ${s.Status === 'PICKING' || s.Status === 'IN_PROGRESS' ? `
                 <button onclick="startPicking('${s.SO_ID}')"
                   class="bg-primary/10 text-primary px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-primary/20 mr-2">
                   <span class="material-symbols-outlined text-xs align-middle">checklist</span> Soạn hàng
                 </button>` : ''}
-              ${canApprove && s.Status === 'PACKING' ? `
+              ${canApprove && (s.Status === 'PACKING' || s.Status === 'IN_PROGRESS') ? `
                 <button onclick="switchOutboundTab('approval')"
                   class="bg-amber-100 text-amber-700 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-amber-200">
                   <span class="material-symbols-outlined text-xs align-middle">gavel</span> Phê duyệt
                 </button>` : ''}
             </td>
-          </tr>`).join('') || '<tr><td colspan="6" class="p-8 text-center text-slate-400">Không có đơn hàng chờ xuất.</td></tr>';
+          </tr>`).join('') || '<tr><td colspan="7" class="p-8 text-center text-slate-400">Không có đơn hàng chờ xuất.</td></tr>';
       }
 
       // Update approval badge
@@ -425,12 +471,16 @@
         const prod = window.MockData.PRODUCTS.find(p => p.ProductID === it.ProductID) || {};
         const qNeeded = it.OrderedQty || it.qty;
         
-        // Find suitable batches (Released and has enough quantity)
-        const suggestedBatches = window.MockData.BATCHES.filter(b => 
-            b.ProductID === it.ProductID && 
-            b.BatchStatus === 'RELEASED' && 
-            (b.Quantity || b.qty) >= qNeeded
-        );
+        // FR-XK-03: FEFO + FR-QC-09: Near-expiry Block (< 6 months)
+        const suggestedBatches = window.MockData.BATCHES.filter(b => {
+            const isMatch = b.ProductID === it.ProductID && b.BatchStatus === 'RELEASED' && (b.Quantity || b.qty) >= qNeeded;
+            if (!isMatch) return false;
+            
+            // Near-expiry check (current date + 6 months)
+            const sixMonthsFromNow = new Date();
+            sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
+            return new Date(b.ExpDate) > sixMonthsFromNow;
+        }).sort((a, b) => new Date(a.ExpDate) - new Date(b.ExpDate)); // Sort by ExpDate (FEFO)
         
         const selectedBatch = suggestedBatches[0] || {};
         
@@ -442,28 +492,41 @@
                     BatchID: selectedBatch.BatchID,
                     Batchcode: selectedBatch.Batchcode,
                     batchInternalId: selectedBatch.id || selectedBatch.Id,
-                    ActualQty: qNeeded
+                    ActualQty: qNeeded,
+                    verified: false // FR-XK-05: Barcode validation field
                 });
             }
         }
 
         return `
-          <div class="p-4 flex items-center gap-4 cursor-pointer transition-colors hover:bg-slate-50" id="pick-row-${idx}" 
-            onclick="if(event.target.type !== 'checkbox') { let chk = document.getElementById('pick-chk-${idx}'); chk.checked = !chk.checked; togglePickItem(${idx}, chk.checked); }">
-            <input type="checkbox" class="size-5 rounded accent-primary pointer-events-auto" id="pick-chk-${idx}"
-              onchange="togglePickItem(${idx}, this.checked)" onclick="event.stopPropagation()">
-            <div class="size-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center pointer-events-none">
-              <span class="material-symbols-outlined text-base">inventory_2</span>
+          <div class="p-4 flex flex-col gap-3 transition-colors hover:bg-slate-50 border-b border-slate-100" id="pick-row-${idx}">
+            <div class="flex items-center gap-4">
+              <input type="checkbox" class="size-5 rounded accent-primary pointer-events-auto" id="pick-chk-${idx}"
+                onchange="togglePickItem(${idx}, this.checked)">
+              <div class="size-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                <span class="material-symbols-outlined text-base">inventory_2</span>
+              </div>
+              <div class="flex-1">
+                <p class="text-sm font-bold" id="pick-name-${idx}">${prod.ProductName || it.ProductID}</p>
+                <p class="text-[11px] text-slate-500">
+                  ${selectedBatch.Batchcode ? `Lô đề xuất: <strong class="text-primary font-mono">${selectedBatch.Batchcode}</strong> • Hạn: <strong>${selectedBatch.ExpDate}</strong> • Vị trí: <strong>${selectedBatch.LocationID}</strong>` : '<span class="text-red-500 font-bold">KHÔNG TÌM THẤY LÔ PHÙ HỢP (HẾT HÀNG HOẶC CẬN HẠN)</span>'}
+                </p>
+              </div>
+              <div class="text-right">
+                <p class="font-bold text-slate-900">${qNeeded} ${prod.BaseUnit || ''}</p>
+              </div>
             </div>
-            <div class="flex-1 pointer-events-none">
-              <p class="text-sm font-bold" id="pick-name-${idx}">${prod.ProductName || it.ProductID}</p>
-              <p class="text-xs text-slate-400">
-                ${selectedBatch.Batchcode ? `Lô tốt nhất: <strong>${selectedBatch.Batchcode}</strong> • Vị trí: <strong>${selectedBatch.LocationID}</strong>` : '<span class="text-red-500 font-bold">KHÔNG CÒN HÀNG TRONG KHO</span>'}
-              </p>
-            </div>
-            <div class="text-right pointer-events-none">
-              <p class="font-bold text-slate-900">${qNeeded} ${prod.BaseUnit || ''}</p>
-              <p class="text-xs text-slate-400">Tồn: ${selectedBatch.Quantity || selectedBatch.qty || 0}</p>
+            
+            <!-- FR-XK-05: Barcode Validation Input -->
+            <div class="ml-14 flex items-center gap-2">
+                <div class="relative flex-1">
+                    <span class="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs">barcode_scanner</span>
+                    <input type="text" placeholder="Quét hoặc nhập mã lô để xác nhận..." 
+                        class="w-full pl-8 pr-3 py-1.5 border border-slate-200 rounded-lg text-xs outline-none focus:ring-1 focus:ring-primary/30"
+                        oninput="verifyBarcode(${idx}, this.value, '${selectedBatch.Batchcode}')"
+                        id="pick-verify-${idx}">
+                </div>
+                <span id="pick-verify-status-${idx}" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Chưa xác thực</span>
             </div>
           </div>`;
       }).join('') || '<p class="p-8 text-center text-slate-400 text-sm">Đơn hàng không có mục nào.</p>';
@@ -576,6 +639,43 @@
           </div>`;
       }
       updateOutbound();
+    };
+
+    window.verifyBarcode = function(idx, val, expected) {
+        const status = document.getElementById(`pick-verify-status-${idx}`);
+        const chk = document.getElementById(`pick-chk-${idx}`);
+        if (val.trim() === expected) {
+            status.textContent = '✅ Đã xác thực';
+            status.className = 'text-[10px] font-bold text-green-600 uppercase tracking-widest';
+            chk.checked = true;
+            togglePickItem(idx, true);
+            // Update session data
+            if (activeSOId && pickingSessionData[activeSOId][idx]) {
+                pickingSessionData[activeSOId][idx].verified = true;
+            }
+        } else {
+            status.textContent = '❌ Sai mã lô';
+            status.className = 'text-[10px] font-bold text-red-500 uppercase tracking-widest';
+            chk.checked = false;
+            togglePickItem(idx, false);
+        }
+    };
+
+    window.openReturnModal = function() {
+        document.getElementById('return-modal').classList.add('open');
+    };
+
+    window.submitReturn = async function() {
+        const soId = document.getElementById('ret-so-id').value;
+        if(!soId) { alert('Vui lòng nhập mã SO'); return; }
+        
+        // Mock items for return
+        const items = [{ ProductID: 'SKU-PFIZ-01', Quantity: 10, Batchcode: 'RET-PF-001' }];
+        await window.MockData.addSalesReturn(soId, items);
+        
+        document.getElementById('return-modal').classList.remove('open');
+        document.getElementById('ok-modal-msg').textContent = `Đã nhập trả hàng thành công cho đơn ${soId}.`;
+        document.getElementById('ok-modal').classList.add('open');
     };
 
     window.switchOutboundTab = function (tabId) {

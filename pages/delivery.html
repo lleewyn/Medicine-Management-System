@@ -124,14 +124,11 @@
               class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20">
           </div>
           <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase">Tình trạng hàng khi giao</label>
-            <div class="space-y-2">
-              <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="accent-primary"
-                  checked><span class="text-sm">Hàng nguyên vẹn, đủ số lượng</span></label>
-              <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="accent-primary"
-                  checked><span class="text-sm">Hóa đơn / phiếu giao hàng đã đưa cho khách</span></label>
-              <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="accent-primary"><span
-                  class="text-sm">Có sự cố cần báo cáo</span></label>
+            <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase">Đối soát chứng từ (FR-XK-10)</label>
+            <div class="space-y-2 p-3 bg-blue-50 border border-blue-200 rounded-xl">
+              <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="pod-doc-1" class="accent-primary" checked><span class="text-xs font-bold text-blue-800">Khách đã ký Phiếu Xuất Kho</span></label>
+              <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="pod-doc-2" class="accent-primary" checked><span class="text-xs font-bold text-blue-800">Đã thu hồi Hóa đơn liên xanh (nếu có)</span></label>
+              <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="pod-doc-3" class="accent-primary"><span class="text-xs font-bold text-blue-800">Biên bản ghi nhận hư hỏng (nếu có)</span></label>
             </div>
           </div>
           <div>

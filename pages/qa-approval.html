@@ -205,6 +205,26 @@
             <input type="number" placeholder="Kết quả (%): VD — 92.5"
               class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs outline-none focus:ring-1 focus:ring-primary/30">
           </div>
+
+          <!-- FR-NK-12: 3-Way Match (Financial/Doc) -->
+          <div class="p-4 border-2 border-indigo-200 bg-indigo-50/30 rounded-xl" id="param-finance">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <p class="font-bold text-sm text-indigo-900">Đối soát 3 bên (3-Way Match)</p>
+                <p class="text-xs text-indigo-700">So khớp PO vs Hóa đơn vs Thực tế nhập</p>
+              </div>
+              <div class="flex gap-2">
+                <button onclick="setParam('finance', 'pass', this)"
+                  class="param-btn px-3 py-1 border border-indigo-200 rounded-lg text-xs font-bold text-indigo-600 hover:bg-indigo-100 transition-colors">KHỚP</button>
+                <button onclick="setParam('finance', 'fail', this)"
+                  class="param-btn px-3 py-1 border border-indigo-200 rounded-lg text-xs font-bold text-indigo-600 hover:bg-red-50 hover:border-red-400 hover:text-red-600">LỆCH</button>
+              </div>
+            </div>
+            <div class="flex gap-2">
+                <input type="text" placeholder="Số hóa đơn (Invoice #)..." class="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-xs outline-none">
+                <input type="number" placeholder="Số lượng trên HĐ..." class="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-xs outline-none">
+            </div>
+          </div>
         </div>
 
         <!-- Overall conclusion -->
@@ -286,6 +306,11 @@
       const batches = (window.MockData.BATCHES || []).filter(b => {
         const s = String(b.BatchStatus || '').toUpperCase();
         return ['QUARANTINE', 'BIỆT TRỮ', 'CHỜ DUYỆT', 'AWAITING_APPROVAL', 'QC_PENDING', 'BIET TRU'].includes(s) || !b.BatchStatus;
+      }).map(b => {
+        // FR-NK-12: Enrich with PO info for 3-way match
+        const po = window.MockData.PURCHASE_ORDERS.find(p => p.itemsDetails?.some(it => it.ProductID === b.ProductID));
+        const poItem = po?.itemsDetails?.find(it => it.ProductID === b.ProductID);
+        return { ...b, _poQty: poItem?.OrderedQty || 0, _poId: po?.PO_ID };
       });
 
       // Update pending count in tab
@@ -326,6 +351,28 @@
                 <span class="px-2 py-1 rounded-lg text-[10px] font-bold bg-slate-100 text-slate-500">#${b.BatchID}</span>
               </div>
 
+              <!-- FR-NK-12: 3-Way Match Preview -->
+              <div class="grid grid-cols-3 gap-2 mb-4 bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                <div class="text-center">
+                  <p class="text-[9px] text-slate-400 font-bold uppercase">PO Quantity</p>
+                  <p class="text-xs font-bold text-slate-700">${(b._poQty || '—')}</p>
+                </div>
+                <div class="text-center border-x border-slate-200">
+                  <p class="text-[9px] text-slate-400 font-bold uppercase">Actual Receipt</p>
+                  <p class="text-xs font-bold text-primary">${b.Quantity}</p>
+                </div>
+                <div class="text-center">
+                  <p class="text-[9px] text-slate-400 font-bold uppercase">Variance</p>
+                  <p class="text-xs font-bold ${b.Quantity < (b._poQty || 0) ? 'text-red-500' : 'text-green-600'}">${b.Quantity - (b._poQty || 0)}</p>
+                </div>
+              </div>
+
+              ${b.FlowType === 'COLD' ? `
+              <div class="mb-4 flex items-center gap-2 p-2 bg-blue-50 border border-blue-100 rounded-xl">
+                <span class="material-symbols-outlined text-sm text-blue-600">thermostat</span>
+                <span class="text-[10px] font-bold text-blue-700 uppercase tracking-tight">Cold Chain Log: ${b.TemperatureLog?.length > 0 ? 'DATALOGGER_SYNCED' : 'AWAITING_DATA'}</span>
+              </div>` : ''}
+
               <div class="flex gap-3 mt-4 pt-4 border-t border-slate-50">
                 ${canRecord && !isRecorded ? `
                   <button onclick="startQCRecord('${b.BatchID}')"
@@ -354,6 +401,13 @@
                    <div class="flex items-center gap-2 text-slate-400 text-sm">
                     <span class="material-symbols-outlined text-sm">lock</span> Chờ Chuyên viên QC ghi nhận kết quả
                   </div>` : ''}
+
+                ${b.Quantity < b._poQty ? `
+                  <button onclick="reportMissingGoods('${b.BatchID}')"
+                    class="flex items-center gap-2 border border-amber-300 text-amber-700 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-amber-50">
+                    <span class="material-symbols-outlined text-sm">assignment_late</span> FR-NK-08: Lập biên bản thiếu hàng
+                  </button>
+                ` : ''}
               </div>
             </div>`;
         }).join('') || `
@@ -518,7 +572,7 @@
     });
 
     // Help state variable
-    let currentResults = { coa: null, storage: null, visual: null, ph: null, micro: null, diss: null };
+    let currentResults = { coa: null, storage: null, visual: null, ph: null, micro: null, diss: null, finance: null };
 
     window.setParam = function (param, result, btn) {
       currentResults[param] = result;
@@ -668,6 +722,30 @@
         h.Status
       ]);
       window.MockData.exportToCSV([{ headers, data }], `BaoCao_QA_${new Date().toISOString().slice(0, 10)}.csv`);
+    };
+
+    window.reportMissingGoods = function(batchId) {
+        const b = window.MockData.BATCHES.find(x => x.BatchID === batchId);
+        if(!b) return;
+        const diff = (b._poQty || 0) - b.Quantity;
+        const content = `BIÊN BẢN XÁC NHẬN THIẾU HÀNG (FR-NK-08)\n` +
+                        `------------------------------------------\n` +
+                        `Mã lô: ${b.Batchcode}\n` +
+                        `Sản phẩm ID: ${b.ProductID}\n` +
+                        `PO Quantity: ${b._poQty}\n` +
+                        `Actual Receipt: ${b.Quantity}\n` +
+                        `Số lượng thiếu: ${diff}\n` +
+                        `Ngày lập: ${new Date().toLocaleString()}\n` +
+                        `------------------------------------------\n` +
+                        `Đề nghị NCC bổ sung hoặc điều chỉnh hóa đơn.`;
+        
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `BienBanThieuHang_${b.Batchcode}.txt`;
+        a.click();
+        window.MockData.addNotification(`Đã lập biên bản thiếu hàng cho lô ${b.Batchcode}`, 'warning');
     };
 
     window.switchQATab = function (tabId) {

@@ -136,10 +136,24 @@
                     <p class="text-sm text-slate-500">Đối chiếu tồn kho thực tế với hệ thống sổ sách.</p>
                 </div>
                 <!-- Auth check applied in JS for role visibility -->
-                <button id="btn-create-check" onclick="createNewStockCheck()"
-                    class="bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-primary/90 transition-colors hidden">
-                    <span class="material-symbols-outlined text-sm">add</span> Tạo phiếu Kiểm kê
-                </button>
+                <div id="check-planning-ui" class="hidden flex gap-2 items-center">
+                    <select id="plan-category" class="border border-slate-200 rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary/30">
+                        <option value="">Tất cả Nhóm</option>
+                        <option value="Kháng sinh">Kháng sinh</option>
+                        <option value="Vitamin">Vitamin</option>
+                        <option value="Thuốc kiểm soát đặc biệt">Thuốc kiểm soát đặc biệt</option>
+                    </select>
+                    <select id="plan-location" class="border border-slate-200 rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary/30">
+                        <option value="">Tất cả Vị trí</option>
+                        <option value="A1">Khu A1</option>
+                        <option value="B2">Khu B2</option>
+                        <option value="Q">Khu Biệt trữ</option>
+                    </select>
+                    <button id="btn-create-check" onclick="createNewStockCheck()"
+                        class="bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-primary/90 transition-colors">
+                        <span class="material-symbols-outlined text-sm">add</span> Lập phiếu theo Lọc
+                    </button>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="stock-checks-container">
@@ -292,7 +306,7 @@
             // Show create button only if Manager/Admin
             const user = window.Auth.getCurrentUser();
             if (window.MockData.hasPermission(user, 'update_stock')) {
-                document.getElementById('btn-create-check').classList.remove('hidden');
+                document.getElementById('check-planning-ui').classList.remove('hidden');
             }
 
             if (checks.length === 0) {
@@ -364,7 +378,9 @@
                 <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase">Số lô</th>
                 <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase">Vị trí kê</th>
                 ${!isPending ? '<th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase text-right">Tồn hệ thống</th>' : ''}
-                <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase text-right">Thực tế (Thực đếm)</th>
+                <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase text-right">Lần 1</th>
+                <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase text-right">Lần 2</th>
+                <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase text-right">Thực tế</th>
                 ${!isPending ? '<th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase text-right">Chênh lệch</th>' : ''}
                 <th class="px-5 py-3 text-xs font-bold text-slate-500 uppercase text-center">Tình trạng</th>
             `;
@@ -391,11 +407,26 @@
                     ${!isPending ? `<td class="px-5 py-4 text-sm font-medium text-slate-900 text-right">${it.SystemQty}</td>` : ''}
                     <td class="px-5 py-4 text-right">
                         ${isPending ? `
-                            <input type="number" min="0" value="${it.ActualQty !== undefined ? it.ActualQty : ''}" 
-                                placeholder="Nhập số ..."
-                                oninput="updateItemQty('${id}', ${idx}, this.value)"
-                                class="w-24 px-2 py-1.5 text-sm border border-slate-300 rounded-lg text-right font-medium focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all">
-                        ` : `<span class="text-sm font-bold text-primary bg-primary/10 px-3 py-1 rounded-lg">${it.ActualQty}</span>`}
+                            <input type="number" min="0" value="${it.Counter1 !== undefined ? it.Counter1 : ''}" 
+                                placeholder="C1"
+                                oninput="updateCounter('${id}', ${idx}, 1, this.value)"
+                                class="w-16 px-2 py-1.5 text-xs border border-slate-300 rounded-lg text-right font-medium outline-none">
+                        ` : `<span class="text-xs text-slate-500">${it.Counter1 || 0}</span>`}
+                    </td>
+                    <td class="px-5 py-4 text-right">
+                        ${isPending ? `
+                            <input type="number" min="0" value="${it.Counter2 !== undefined ? it.Counter2 : ''}" 
+                                placeholder="C2"
+                                oninput="updateCounter('${id}', ${idx}, 2, this.value)"
+                                class="w-16 px-2 py-1.5 text-xs border border-slate-300 rounded-lg text-right font-medium outline-none">
+                        ` : `<span class="text-xs text-slate-500">${it.Counter2 || 0}</span>`}
+                    </td>
+                    <td class="px-5 py-4 text-right">
+                        <span class="text-sm font-bold ${it.ActualQty !== undefined ? 'text-primary' : 'text-slate-300'}">
+                            ${it.ActualQty !== undefined ? it.ActualQty : '--'}
+                        </span>
+                        ${isPending && it.Counter1 !== undefined && it.Counter2 !== undefined && it.Counter1 !== it.Counter2 ? 
+                            '<p class="text-[9px] text-red-500 font-bold">Lệch C1-C2</p>' : ''}
                     </td>
                     ${!isPending ? `
                         <td class="px-5 py-4 text-sm text-right font-black ${diff === 0 ? 'text-slate-300' : diff > 0 ? 'text-green-600' : 'text-red-500'}">
@@ -429,19 +460,40 @@
             }
         };
 
-        window.updateItemQty = function (sheetId, itemIdx, val) {
+        window.updateCounter = function (sheetId, itemIdx, counterNum, val) {
             const sc = window.MockData.INVENTORY_CHECKS.find(c => c.CheckID === sheetId);
             if (sc && sc.items[itemIdx]) {
-                sc.items[itemIdx].ActualQty = val === '' ? undefined : parseInt(val);
-                if (isNaN(sc.items[itemIdx].ActualQty)) sc.items[itemIdx].ActualQty = undefined;
+                const num = val === '' ? undefined : parseInt(val);
+                if (counterNum === 1) sc.items[itemIdx].Counter1 = num;
+                else sc.items[itemIdx].Counter2 = num;
+                
+                // If C1 == C2, auto-set ActualQty
+                if (sc.items[itemIdx].Counter1 !== undefined && sc.items[itemIdx].Counter1 === sc.items[itemIdx].Counter2) {
+                    sc.items[itemIdx].ActualQty = sc.items[itemIdx].Counter1;
+                } else {
+                    sc.items[itemIdx].ActualQty = undefined;
+                }
                 renderStockCheckDetail(sheetId);
             }
         };
 
-        window.createNewStockCheck = function () {
-            // Lấy ngẫu nhiên vài lô hàng trong kho lập thành phiếu kiểm kê mù
-            const batches = window.MockData.BATCHES;
-            const size = Math.min(batches.length, 6);
+        window.createNewStockCheck = async function () {
+            // FR-KK-01: Apply Planning Filters
+            const catFilter = document.getElementById('plan-category').value;
+            const locFilter = document.getElementById('plan-location').value;
+
+            let batches = window.MockData.BATCHES;
+            if (catFilter) {
+                batches = batches.filter(b => {
+                    const p = window.MockData.PRODUCTS.find(pt => pt.ProductID === b.ProductID);
+                    return p && p.CategoryID === catFilter;
+                });
+            }
+            if (locFilter) {
+                batches = batches.filter(b => (b.LocationID || '').startsWith(locFilter));
+            }
+
+            const size = Math.min(batches.length, 20); // Up to 20 items per planned sheet
 
             // Fisher-Yates shuffle
             const shuffled = [...batches].sort(() => 0.5 - Math.random());
@@ -455,6 +507,15 @@
                 LocationID: b.LocationID
             }));
 
+            // FR-KK-02: Lock these batches during count
+            for (const item of items) {
+                const b = window.MockData.BATCHES.find(x => x.BatchID === item.BatchID);
+                if (b) {
+                    b._prevStatus = b.BatchStatus;
+                    b.BatchStatus = 'LOCKED';
+                }
+            }
+
             const sc = {
                 CheckID: 'SC-' + Date.now().toString().slice(-6),
                 CheckDate: new Date().toLocaleDateString('vi-VN'),
@@ -467,6 +528,7 @@
             // Re-render
             renderStockChecksList();
             viewStockCheckDetail(sc.CheckID);
+            window.MockData.addNotification(`Đã lập danh sách kiểm kê và KHÓA ${items.length} lô hàng để đảm bảo dữ liệu (FR-KK-02).`, 'warn');
         };
 
         window.finishStockCheck = function (id) {
@@ -488,20 +550,13 @@
             }
 
             // Ghi đè vào data - Cập nhật status sẽ trigger cập nhật kho trong MockData
-            sc.Status = 'COMPLETED';
-            
-            sc.items.forEach(it => {
-                const b = window.MockData.BATCHES.find(locB => locB.BatchID === it.BatchID);
-                if (b && it.SystemQty !== it.ActualQty) {
-                    b.Quantity = it.ActualQty; // adjust via mock reference
-                    if (window.MockData.syncWithNoco) {
-                         // window.NocoBridge.updateRow('Inventory', b.BatchID, { Quantity: it.ActualQty }).catch(()=>{});
-                    }
+            (async () => {
+                const success = await window.MockData.updateStockCheckStatus(id, 'COMPLETED');
+                if (success) {
+                    document.getElementById('stock-check-modal').classList.add('open');
+                    renderInventory(); // Reload background table
                 }
-            });
-
-            document.getElementById('stock-check-modal').classList.add('open');
-            renderInventory(); // Reload background table
+            })();
         };
 
         // Initial render

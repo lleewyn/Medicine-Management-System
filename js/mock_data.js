@@ -112,280 +112,54 @@ const ROLES = {
 // ============================================================
 
 const USERS = [
-  {
-    UserID: 'U001', username: 'admin', password: '123456',
-    FullName: 'Admin Pharma', title: 'IT / Quản trị hệ thống',
-    role: 'SYSTEM_ADMIN',
-    avatar: 'https://ui-avatars.com/api/?name=Admin+Pharma&background=7C3AED&color=fff&size=120'
-  },
-  {
-    UserID: 'U002', username: 'thukho', password: '123456',
-    FullName: 'Nguyễn Văn Hùng', title: 'Thủ kho',
-    role: 'WAREHOUSE_MANAGER',
-    avatar: 'https://ui-avatars.com/api/?name=Nguyen+Van+Hung&background=1D4ED8&color=fff&size=120'
-  },
-  {
-    UserID: 'U003', username: 'nvkho', password: '123456',
-    FullName: 'Trần Văn Nam', title: 'Nhân viên kho',
-    role: 'WAREHOUSE_STAFF',
-    avatar: 'https://ui-avatars.com/api/?name=Tran+Van+Nam&background=EA580C&color=fff&size=120'
-  },
-  {
-    UserID: 'U004', username: 'qcvien', password: '123456',
-    FullName: 'Lê Thị Bích Ngọc', title: 'Chuyên viên QC',
-    role: 'QC_SPECIALIST',
-    avatar: 'https://ui-avatars.com/api/?name=Le+Thi+Bich+Ngoc&background=0D9488&color=fff&size=120'
-  },
-  {
-    UserID: 'U005', username: 'qaduoc', password: '123456',
-    FullName: 'DS. Nguyễn Thị Lan', title: 'Dược sĩ QA',
-    role: 'QA_PHARMACIST',
-    avatar: 'https://ui-avatars.com/api/?name=Nguyen+Thi+Lan&background=0891B2&color=fff&size=120'
-  },
-  {
-    UserID: 'U006', username: 'sales', password: '123456',
-    FullName: 'Phạm Quỳnh Anh', title: 'NV Kinh doanh',
-    role: 'SALES_STAFF',
-    avatar: 'https://ui-avatars.com/api/?name=Pham+Quynh+Anh&background=D97706&color=fff&size=120'
-  },
-  {
-    UserID: 'U007', username: 'mua', password: '123456',
-    FullName: 'Vũ Đức Thắng', title: 'NV Thu mua',
-    role: 'PROCUREMENT_STAFF',
-    avatar: 'https://ui-avatars.com/api/?name=Vu+Duc+Thang&background=B45309&color=fff&size=120'
-  },
-  {
-    UserID: 'U008', username: 'ketoan', password: '123456',
-    FullName: 'Trần Thu Hà', title: 'Kế toán kho',
-    role: 'ACCOUNTANT',
-    avatar: 'https://ui-avatars.com/api/?name=Tran+Thu+Ha&background=CA8A04&color=fff&size=120'
-  },
-  {
-    UserID: 'U009', username: 'giamdoc', password: '123456',
-    FullName: 'PGS. TS. Lê Văn A', title: 'Ban Giám đốc',
-    role: 'DIRECTOR',
-    avatar: 'https://ui-avatars.com/api/?name=Le+Van+A&background=DC2626&color=fff&size=120'
-  },
-  {
-    UserID: 'U010', username: 'taixe', password: '123456',
-    FullName: 'Phan Anh Vũ', title: 'Tài xế',
-    role: 'DRIVER',
-    avatar: 'https://ui-avatars.com/api/?name=Phan+Anh+Vu&background=64748B&color=fff&size=120'
-  }
+  { username: 'admin', password: '123456', role: 'SYSTEM_ADMIN', FullName: 'Quản trị hệ thống', UserID: 'U001', avatar: 'https://ui-avatars.com/api/?name=Admin&background=7C3AED&color=fff' },
+  { username: 'thukho', password: '123456', role: 'WAREHOUSE_MANAGER', FullName: 'Trần Văn Kho', UserID: 'U002', avatar: 'https://ui-avatars.com/api/?name=Thu+Kho&background=1D4ED8&color=fff' },
+  { username: 'nvkho', password: '123456', role: 'WAREHOUSE_STAFF', FullName: 'Lê Nhân Viên', UserID: 'U003', avatar: 'https://ui-avatars.com/api/?name=NV+Kho&background=EA580C&color=fff' },
+  { username: 'qcvien', password: '123456', role: 'QC_SPECIALIST', FullName: 'Nguyễn QC', UserID: 'U004', avatar: 'https://ui-avatars.com/api/?name=QC&background=0D9488&color=fff' },
+  { username: 'qaduoc', password: '123456', role: 'QA_PHARMACIST', FullName: 'Phạm QA', UserID: 'U005', avatar: 'https://ui-avatars.com/api/?name=QA&background=0891B2&color=fff' },
+  { username: 'sales', password: '123456', role: 'SALES_STAFF', FullName: 'Hoàng Sales', UserID: 'U006', avatar: 'https://ui-avatars.com/api/?name=Sales&background=D97706&color=fff' },
+  { username: 'mua', password: '123456', role: 'PROCUREMENT_STAFF', FullName: 'Đặng Thu Mua', UserID: 'U007', avatar: 'https://ui-avatars.com/api/?name=Procurement&background=B45309&color=fff' },
+  { username: 'ketoan', password: '123456', role: 'ACCOUNTANT', FullName: 'Lý Kế Toán', UserID: 'U008', avatar: 'https://ui-avatars.com/api/?name=Accountant&background=CA8A04&color=fff' },
+  { username: 'giamdoc', password: '123456', role: 'DIRECTOR', FullName: 'Vũ Giám Đốc', UserID: 'U009', avatar: 'https://ui-avatars.com/api/?name=Director&background=DC2626&color=fff' },
+  { username: 'taixe', password: '123456', role: 'DRIVER', FullName: 'Ngô Tài Xế', UserID: 'U010', avatar: 'https://ui-avatars.com/api/?name=Driver&background=64748B&color=fff' }
 ];
+const WAREHOUSES = [];
+const PRODUCTS = [];
+const BATCHES = [];
 
-// ============================================================
-// 3. DỮ LIỆU KHO
-// ============================================================
-
-const WAREHOUSES = [
-  { id: 'WH-HN', name: 'Kho Miền Bắc (Hà Nội)', capacity: 10000, used: 6500 },
-  { id: 'WH-HCM', name: 'Kho Miền Nam (TP.HCM)', capacity: 15000, used: 9200 },
-];
-
-const PRODUCTS = [
-  { ProductID: 'SKU-PFIZ-01', ProductName: 'Vaccine Pfizer BioNTech', CategoryID: 'ETC', StorageCondition: 'KHO_LANH', BaseUnit: 'Liều', ImportPrice: 320000 },
-  { ProductID: 'SKU-HAPA-02', ProductName: 'Hapacol 650mg', CategoryID: 'OTC', StorageCondition: 'KHO_THUONG', BaseUnit: 'Hộp', ImportPrice: 45000 },
-  { ProductID: 'SKU-AZIT-03', ProductName: 'Azithromycin 250mg', CategoryID: 'ETC', StorageCondition: 'KHO_THUONG', BaseUnit: 'Hộp', ImportPrice: 85000 },
-  { ProductID: 'SKU-VITA-04', ProductName: 'Vitamin C 1000mg', CategoryID: 'OTC', StorageCondition: 'KHO_THUONG', BaseUnit: 'Hộp', ImportPrice: 120000 },
-  { ProductID: 'SKU-INSU-05', ProductName: 'Insulin Glargine', CategoryID: 'ETC', StorageCondition: 'KHO_LANH', BaseUnit: 'Lọ', ImportPrice: 750000 },
-];
-
-const BATCHES = [
-  { BatchID: 'BATCH-001', ProductID: 'SKU-PFIZ-01', Batchcode: 'PF-230401', Quantity: 500, ExpDate: '2025-04-01', BatchStatus: 'RELEASED', LocationID: 'A1-01', warehouseId: 'WH-HN' },
-  { BatchID: 'BATCH-002', ProductID: 'SKU-HAPA-02', Batchcode: 'HP-231015', Quantity: 1200, ExpDate: '2025-10-15', BatchStatus: 'RELEASED', LocationID: 'B2-03', warehouseId: 'WH-HN' },
-  { BatchID: 'BATCH-003', ProductID: 'SKU-AZIT-03', Batchcode: 'AZ-230820', Quantity: 300, ExpDate: '2024-02-20', BatchStatus: 'QUARANTINE', LocationID: 'Q-01', warehouseId: 'WH-HN' },
-  { BatchID: 'BATCH-004', ProductID: 'SKU-INSU-05', Batchcode: 'IN-230905', Quantity: 80, ExpDate: '2024-03-05', BatchStatus: 'QUARANTINE', LocationID: 'Q-02', warehouseId: 'WH-HCM' },
-  { BatchID: 'BATCH-005', ProductID: 'SKU-VITA-04', Batchcode: 'VT-231201', Quantity: 2000, ExpDate: '2026-12-01', BatchStatus: 'RELEASED', LocationID: 'C3-05', warehouseId: 'WH-HCM' },
-  { BatchID: 'BATCH-006', ProductID: 'SKU-PFIZ-01', Batchcode: 'PF-240112', Quantity: 1500, ExpDate: '2026-01-12', BatchStatus: 'RELEASED', LocationID: 'A1-02', warehouseId: 'WH-HN' },
-  { BatchID: 'BATCH-007', ProductID: 'SKU-HAPA-02', Batchcode: 'HP-240220', Quantity: 5000, ExpDate: '2026-02-20', BatchStatus: 'RELEASED', LocationID: 'B2-04', warehouseId: 'WH-HCM' },
-  { BatchID: 'BATCH-008', ProductID: 'SKU-AZIT-03', Batchcode: 'AZ-240315', Quantity: 800, ExpDate: '2025-03-15', BatchStatus: 'QUARANTINE', LocationID: 'Q-03', warehouseId: 'WH-HN' },
-  { BatchID: 'BATCH-009', ProductID: 'SKU-VITA-04', Batchcode: 'VT-240401', Quantity: 3000, ExpDate: '2027-04-01', BatchStatus: 'RELEASED', LocationID: 'C3-06', warehouseId: 'WH-HCM' },
-  { BatchID: 'BATCH-010', ProductID: 'SKU-INSU-05', Batchcode: 'IN-240510', Quantity: 120, ExpDate: '2025-05-10', BatchStatus: 'LOCKED', LocationID: 'L-01', warehouseId: 'WH-HN' },
-  { BatchID: 'BATCH-011', ProductID: 'SKU-PFIZ-01', Batchcode: 'PF-240620', Quantity: 200, ExpDate: '2024-12-20', BatchStatus: 'RELEASED', LocationID: 'A1-05', warehouseId: 'WH-HN' },
-  { BatchID: 'BATCH-012', ProductID: 'SKU-HAPA-02', Batchcode: 'HP-240715', Quantity: 2500, ExpDate: '2026-07-15', BatchStatus: 'RELEASED', LocationID: 'B2-10', warehouseId: 'WH-HCM' },
-  { BatchID: 'BATCH-013', ProductID: 'SKU-AZIT-03', Batchcode: 'AZ-240801', Quantity: 450, ExpDate: '2024-05-01', BatchStatus: 'QUARANTINE', LocationID: 'Q-04', warehouseId: 'WH-HN' },
-  { BatchID: 'BATCH-014', ProductID: 'SKU-VITA-04', Batchcode: 'VT-240905', Quantity: 1500, ExpDate: '2027-09-05', BatchStatus: 'RELEASED', LocationID: 'C3-12', warehouseId: 'WH-HCM' },
-  { BatchID: 'BATCH-015', ProductID: 'SKU-INSU-05', Batchcode: 'IN-241012', Quantity: 300, ExpDate: '2026-10-12', BatchStatus: 'RELEASED', LocationID: 'A2-01', warehouseId: 'WH-HN' },
-  { BatchID: 'BATCH-016', ProductID: 'SKU-PFIZ-01', Batchcode: 'PF-241130', Quantity: 800, ExpDate: '2026-11-30', BatchStatus: 'RELEASED', LocationID: 'A1-08', warehouseId: 'WH-HCM' },
-  { BatchID: 'BATCH-017', ProductID: 'SKU-HAPA-02', Batchcode: 'HP-250115', Quantity: 10000, ExpDate: '2027-01-15', BatchStatus: 'RELEASED', LocationID: 'B5-01', warehouseId: 'WH-HN' },
-  { BatchID: 'BATCH-018', ProductID: 'SKU-AZIT-03', Batchcode: 'AZ-250228', Quantity: 600, ExpDate: '2026-02-28', BatchStatus: 'RELEASED', LocationID: 'A3-04', warehouseId: 'WH-HCM' },
-  { BatchID: 'BATCH-019', ProductID: 'SKU-VITA-04', Batchcode: 'VT-250310', Quantity: 4000, ExpDate: '2028-03-10', BatchStatus: 'RELEASED', LocationID: 'C4-02', warehouseId: 'WH-HN' },
-  { BatchID: 'BATCH-020', ProductID: 'SKU-INSU-05', Batchcode: 'IN-250415', Quantity: 250, ExpDate: '2027-04-15', BatchStatus: 'QUARANTINE', LocationID: 'Q-05', warehouseId: 'WH-HCM' },
-];
-
-const QA_HISTORY = [
-  { Batchcode: 'HP-231015', ProductName: 'Hapacol 650mg', QC_Date: '01/10/2023', UserID: 'DS. Nguyễn Thị Lan', Result: 'ĐẠT', Status: 'RELEASED' },
-  { Batchcode: 'VT-231201', ProductName: 'Vitamin C 1000mg', QC_Date: '05/10/2023', UserID: 'Lê Thị Bích Ngọc', Result: 'ĐẠT', Status: 'RELEASED' },
-  { Batchcode: 'PX-230901', ProductName: 'Paracetamol 500mg', QC_Date: '08/09/2023', UserID: 'DS. Nguyễn Thị Lan', Result: 'KHÔNG ĐẠT', Status: 'REJECT' },
-];
+const QA_HISTORY = [];
 
 // ============================================================
 // 4. PURCHASE ORDERS
 // ============================================================
 
-const PURCHASE_ORDERS = [
-  {
-    PO_ID: 'PO-2023-0891', SupplierID: 'Pfizer Vietnam Ltd.', supplierCode: 'PF', supplierColor: 'blue',
-    expectedDate: '25/10/2023', items: 2, received: 7, total: 12, Status: 'PARTIAL', urgency: 'NORMAL',
-    itemsDetails: [
-      { ProductID: 'SKU-PFIZ-01', OrderedQty: 10, received: 7 },
-      { ProductID: 'SKU-INSU-05', OrderedQty: 2, received: 0 }
-    ]
-  },
-  {
-    PO_ID: 'PO-2023-0892', SupplierID: 'Dược Hậu Giang (DHG)', supplierCode: 'DH', supplierColor: 'green',
-    expectedDate: '26/10/2023', items: 1, received: 0, total: 5, Status: 'PENDING', urgency: 'NORMAL',
-    itemsDetails: [
-      { ProductID: 'SKU-HAPA-02', OrderedQty: 5 }
-    ]
-  },
-  {
-    PO_ID: 'PO-2023-0885', SupplierID: 'AstraZeneca VN', supplierCode: 'AZ', supplierColor: 'purple',
-    expectedDate: '22/10/2023', items: 1, received: 8, total: 8, Status: 'COMPLETED', urgency: 'NORMAL',
-    itemsDetails: [
-      { ProductID: 'SKU-AZIT-03', OrderedQty: 8, received: 8 }
-    ]
-  },
-  {
-    PO_ID: 'PO-2023-0880', SupplierID: 'Sanofi-Aventis', supplierCode: 'SN', supplierColor: 'red',
-    expectedDate: '20/10/2023', items: 1, received: 0, total: 2, Status: 'CANCELLED', urgency: 'NORMAL',
-    itemsDetails: [
-      { ProductID: 'SKU-VITA-04', OrderedQty: 2 }
-    ]
-  },
-  {
-    PO_ID: 'PO-2023-0901', SupplierID: 'Merck Sharp & Dohme', supplierCode: 'MS', supplierColor: 'teal',
-    expectedDate: '01/11/2023', items: 2, received: 0, total: 50, Status: 'PENDING', urgency: 'URGENT',
-    itemsDetails: [{ ProductID: 'SKU-INSU-05', OrderedQty: 50 }]
-  },
-  {
-    PO_ID: 'PO-2023-0905', SupplierID: 'GSK Vietnam', supplierCode: 'GS', supplierColor: 'orange',
-    expectedDate: '05/11/2023', items: 1, received: 0, total: 200, Status: 'PENDING', urgency: 'NORMAL',
-    itemsDetails: [{ ProductID: 'SKU-AZIT-03', OrderedQty: 200 }]
-  },
-];
+const PURCHASE_ORDERS = [];
 
 // ============================================================
 // 5. SALES ORDERS
 // ============================================================
 
-const COMPLAINTS = [
-  { id: 'CPL-001', PO_ID: 'PO-2023-0882', supplier: 'Pfizer Vietnam Ltd.', type: 'Thiếu hàng (Quantity Shortage)', item: 'Hapacol 650mg', qty: 12, desc: 'Giao thiếu 12 hộp so với hóa đơn', request: 'Đổi hàng mới', date: '15/09/2023', Status: 'Đã xử lý', color: 'green' },
-  { id: 'CPL-002', PO_ID: 'PO-2023-0876', supplier: 'Dược Hậu Giang (DHG)', type: 'Lỗi chất lượng / CoA không đạt', item: 'Azithromycin 250mg', qty: 50, desc: 'CoA không khớp với lô hàng nhận', request: 'Hoàn tiền', date: '02/10/2023', Status: 'Đang xử lý', color: 'amber' },
-];
-
-const SALES_ORDERS = [
-  {
-    SO_ID: 'SO-24-001', CustomerID: 'Hệ thống Nhà thuốc Pharmacity', region: 'TP.HCM',
-    OrderDate: '08/03/2026', deadline: '09/03/2026 08:00', priority: 'URGENT', Status: 'PICKING', progress: '0/2 SKU', progressPct: 0,
-    itemsDetails: [
-      { ProductID: 'SKU-PFIZ-01', OrderedQty: 100, UnitPrice: 320000 },
-      { ProductID: 'SKU-HAPA-02', OrderedQty: 200, UnitPrice: 45000 }
-    ]
-  },
-  {
-    SO_ID: 'SO-24-002', CustomerID: 'Bệnh viện Đa khoa Tâm Anh', region: 'Hà Nội',
-    OrderDate: '07/03/2026', deadline: '08/03/2026 10:00', priority: 'URGENT', Status: 'PACKING', progress: '2/3 SKU', progressPct: 66,
-    itemsDetails: [
-      { ProductID: 'SKU-PFIZ-01', OrderedQty: 50, UnitPrice: 320000 },
-      { ProductID: 'SKU-INSU-05', OrderedQty: 30, UnitPrice: 750000 },
-      { ProductID: 'SKU-AZIT-03', OrderedQty: 100, UnitPrice: 85000 }
-    ]
-  },
-  {
-    SO_ID: 'SO-24-003', CustomerID: 'Chuỗi Nhà thuốc An Khang', region: 'Cần Thơ',
-    OrderDate: '07/03/2026', deadline: '10/03/2026 14:00', priority: 'NORMAL', Status: 'PICKING', progress: '0/2 SKU', progressPct: 0,
-    itemsDetails: [
-      { ProductID: 'SKU-HAPA-02', OrderedQty: 500, UnitPrice: 45000 },
-      { ProductID: 'SKU-VITA-04', OrderedQty: 300, UnitPrice: 120000 }
-    ]
-  },
-  {
-    SO_ID: 'SO-24-004', CustomerID: 'Nhà thuốc Long Châu #12', region: 'Bình Dương',
-    OrderDate: '06/03/2026', deadline: '07/03/2026 15:00', priority: 'NORMAL', Status: 'DELIVERING', progress: '2/2 SKU', progressPct: 100,
-    itemsDetails: [
-      { ProductID: 'SKU-AZIT-03', OrderedQty: 50, UnitPrice: 85000 },
-      { ProductID: 'SKU-VITA-04', OrderedQty: 100, UnitPrice: 120000 }
-    ]
-  },
-  {
-    SO_ID: 'SO-24-005', CustomerID: 'Bệnh viện Chợ Rẫy', region: 'TP.HCM',
-    OrderDate: '05/03/2026', deadline: '06/03/2026 10:00', priority: 'URGENT', Status: 'DELIVERING', progress: 'Lấy hàng hoàn tất', progressPct: 100,
-    itemsDetails: [
-      { ProductID: 'SKU-INSU-05', OrderedQty: 20, UnitPrice: 750000 }
-    ]
-  },
-  {
-    SO_ID: 'SO-24-006', CustomerID: 'Nhà thuốc An Khang Hà Nội', region: 'Hà Nội',
-    OrderDate: '04/03/2026', deadline: '06/03/2026 10:00', priority: 'NORMAL', Status: 'COMPLETED', progress: 'Hoàn thành', progressPct: 100,
-    itemsDetails: [
-      { ProductID: 'SKU-VITA-04', OrderedQty: 50, UnitPrice: 120000 }
-    ]
-  },
-  {
-    SO_ID: 'SO-24-007', CustomerID: 'Phòng khám Đa khoa Thu Cúc', region: 'Hà Nội',
-    OrderDate: '02/03/2026', deadline: '04/03/2026 09:00', priority: 'NORMAL', Status: 'COMPLETED', progress: 'Hoàn thành', progressPct: 100,
-    itemsDetails: [{ ProductID: 'SKU-HAPA-02', OrderedQty: 100, UnitPrice: 45000 }]
-  },
-  {
-    SO_ID: 'SO-24-008', CustomerID: 'Hệ thống Pharmacity Miền Bắc', region: 'Bắc Ninh',
-    OrderDate: '08/03/2026', deadline: '10/03/2026 15:00', priority: 'NORMAL', Status: 'PICKING', progress: '0/2 SKU', progressPct: 0,
-    itemsDetails: [
-      { ProductID: 'SKU-PFIZ-01', OrderedQty: 500, UnitPrice: 320000 },
-      { ProductID: 'SKU-AZIT-03', OrderedQty: 300, UnitPrice: 85000 }
-    ]
-  },
-  {
-    SO_ID: 'SO-24-009', CustomerID: 'Bệnh viện Vinmec', region: 'TP.HCM',
-    OrderDate: '05/03/2026', deadline: '07/03/2026 10:00', priority: 'URGENT', Status: 'CANCELLED', progress: 'Đã hủy', progressPct: 0,
-    itemsDetails: [
-      { ProductID: 'SKU-INSU-05', OrderedQty: 100, UnitPrice: 750000 }
-    ]
-  },
-  {
-    SO_ID: 'SO-24-010', CustomerID: 'Nhà thuốc Minh Châu', region: 'Đà Nẵng',
-    OrderDate: '09/03/2026', deadline: '11/03/2026 12:00', priority: 'NORMAL', Status: 'PENDING', progress: 'Chờ xử lý', progressPct: 0,
-    itemsDetails: [
-      { ProductID: 'SKU-HAPA-02', OrderedQty: 300, UnitPrice: 45000 },
-      { ProductID: 'SKU-VITA-04', OrderedQty: 150, UnitPrice: 120000 }
-    ]
-  }
-];
+const COMPLAINTS = [];
+const SALES_ORDERS = [];
 
 // ============================================================
 // 6. DELIVERY (Tài xế)
 // ============================================================
 
-const DELIVERIES = [
-  {
-    id: 'DEL-001', SO_ID: 'SO-24-004', customer: 'Nhà thuốc Long Châu #12',
-    driver: 'Võ Công Danh', address: 'Bình Dương', Status: 'DELIVERING',
-    estimatedTime: '16:00 hôm nay'
-  },
-  {
-    id: 'DEL-002', SO_ID: 'SO-24-005', customer: 'Bệnh viện Chợ Rẫy',
-    driver: 'Võ Công Danh', address: '201B Nguyễn Chí Thanh, Q5, TP.HCM', Status: 'PENDING',
-    estimatedTime: '09:00 ngày mai'
-  },
-];
+const DELIVERIES = [];
 
 // ============================================================
 // 7. DASHBOARD STATS
 // ============================================================
 
 const DASHBOARD_STATS = {
-  totalInventoryValue: '12,482,900,000 VNĐ',
-  quarantineBatches: 2,
-  nearExpiryBatches: 2,
-  pendingPO: PURCHASE_ORDERS.filter(p => p.Status === 'PENDING').length,
-  todayInbound: 24,
-  todayOutbound: 61,
-  temperatureAlerts: [
-    { zone: 'Cold Storage Zone A-4', temp: '8.4°C', limit: '2.0°C - 8.0°C', severity: 'URGENT', time: '2 phút trước', sensorId: 'LOG-9921' },
-    { zone: 'Vaccine Fridge VF-02', temp: '-12.1°C', limit: '-25°C - -15°C', severity: 'URGENT', time: '14 phút trước', sensorId: 'LOG-4402' },
-    { zone: 'Ambient Warehouse North', temp: '24.8°C', limit: '25°C', severity: 'WARNING', time: '1 giờ trước', sensorId: 'LOG-8110' },
-  ]
+  totalInventoryValue: '0 VNĐ',
+  quarantineBatches: 0,
+  nearExpiryBatches: 0,
+  pendingPO: 0,
+  todayInbound: 0,
+  todayOutbound: 0,
+  temperatureAlerts: []
 };
 
 // ============================================================
@@ -406,55 +180,29 @@ function saveState(state) {
 }
 
 function initState() {
-  const existing = loadState();
-  
-  // Create a fresh version for comparison or partial update
   const initial = {
-    batches: JSON.parse(JSON.stringify(BATCHES)),
-    users: JSON.parse(JSON.stringify(USERS)),
-    qaHistory: JSON.parse(JSON.stringify(QA_HISTORY)),
-    purchaseOrders: JSON.parse(JSON.stringify(PURCHASE_ORDERS)),
-    salesOrders: JSON.parse(JSON.stringify(SALES_ORDERS)),
-    deliveries: JSON.parse(JSON.stringify(DELIVERIES)),
-    complaints: JSON.parse(JSON.stringify(COMPLAINTS)),
+    batches: [],
+    users: [],
+    qaHistory: [],
+    purchaseOrders: [],
+    salesOrders: [],
+    deliveries: [],
+    complaints: [],
     auditLogs: [
-      { id: 1, time: new Date().toLocaleTimeString('vi-VN'), user: 'system', action: 'Hệ thống khởi tạo', detail: 'Cơ sở dữ liệu giả lập đã được thiết lập.', lvl: 'info' }
+      { id: 1, time: new Date().toLocaleTimeString('vi-VN'), user: 'system', action: 'Khởi động hệ thống', detail: 'Hệ thống đang sẵn sàng kết nối dữ liệu thời gian thực (NocoDB).', lvl: 'info' }
     ],
     notifications: [],
-    approvals: [
-      {
-        id: 'APV-001', type: 'Xuất kho đặc biệt', Status: 'PENDING', dept: 'Kho + Kinh doanh', urgent: true,
-        desc: 'SO-2023-1488 — Xuất 1,200 liều Vaccine Pfizer cho BV Chợ Rẫy. Trị giá: 384,000,000 VNĐ.'
-      },
-      {
-        id: 'APV-002', type: 'Thu hồi lô hàng', Status: 'PENDING', dept: 'QA/QC', urgent: true,
-        desc: 'Thu hồi lô AZ-230901 theo Quyết định 45/QĐ-BYT. 200 hộp, đang biệt trữ Q-01.'
-      },
-      {
-        id: 'APV-003', type: 'Điều chỉnh tồn kho', Status: 'PENDING', dept: 'Kho + Kế toán', urgent: false,
-        desc: 'Điều chỉnh chênh lệch kiểm kê T10/2023: +3 hộp Hapacol (nhầm lẫn nhập liệu).'
-      },
-      {
-        id: 'APV-004', type: 'Tiêu hủy lô hàng', Status: 'PENDING', dept: 'QA/QC', urgent: true,
-        desc: 'Tiêu hủy 50 hộp Hapacol hết hạn sử dụng. Mã lô: HP-231015. Biên bản kiểm tra chất lượng số 12/BB-QA.'
-      },
-      {
-        id: 'APV-005', type: 'Tiêu hủy lô hàng', Status: 'PENDING', dept: 'QA/QC', urgent: false,
-        desc: 'Tiêu hủy lô hàng hỏng do sự cố vận chuyển: 20 lọ Insulin. Mã lô: IN-230905.'
-      },
-    ],
-    inventoryChecks: [
-      {
-        CheckID: 'SC-202310-01',
-        CheckDate: '2023-10-15',
-        UserID: 'U001',
-        Status: 'COMPLETED',
-        items: [
-          { BatchID: 1, Batchcode: 'PF-230401', SystemQty: 500, ActualQty: 500 },
-          { BatchID: 2, Batchcode: 'HP-231015', SystemQty: 1200, ActualQty: 1210 }
-        ]
-      }
-    ],
+    systemConfig: {
+        expiryWarningThreshold: 12, // months
+        strictFEFO: true,
+        requireCOA: true,
+        lockOutboundOnRecall: true
+    },
+    partners: [],
+    approvals: [],
+    inventoryChecks: [],
+    products: [],
+    suppliers: [],
     customers: [],
     locations: [],
     zones: [],
@@ -470,23 +218,14 @@ function initState() {
     recalls: [],
     recallDetails: [],
     roles: [],
-    permissions: [],
+    permissions: []
   };
-
-  if (existing) {
-    // If we added significant new mock data, merge or overwrite
-    if (existing.batches.length < BATCHES.length) {
-        existing.batches = JSON.parse(JSON.stringify(BATCHES));
-    }
-    return existing;
-  }
-  
   saveState(initial);
   return initial;
 }
 
 // Live mutable state — always read from here
-let _state = initState();
+let _state = loadState() || initState();
 
 // ============================================================
 // 9. API HELPER METHODS
@@ -495,6 +234,70 @@ let _state = initState();
 const MockData = {
   // Static reference data (read-only)
   ROLES, USERS, WAREHOUSES, 
+
+  // --- FR-NK-04: AQL Calculation (ISO 2859-1 Simplified) ---
+  calculateAQL(qty) {
+    if (qty <= 8) return qty;
+    if (qty <= 15) return 3;
+    if (qty <= 25) return 5;
+    if (qty <= 50) return 8;
+    if (qty <= 90) return 13;
+    if (qty <= 150) return 20;
+    if (qty <= 280) return 32;
+    if (qty <= 500) return 50;
+    if (qty <= 1200) return 80;
+    if (qty <= 3200) return 125;
+    return 200; // Cap for mock
+  },
+
+  // --- FR-NK-02 & FR-NK-13: Inbound Validation ---
+  validateInbound(poId, batchData, exceptionApproved = false) {
+    const po = _state.purchaseOrders.find(p => p.PO_ID === poId);
+    if (!po) return { valid: false, message: 'PO không tồn tại.' };
+    
+    // FR-NK-01: Chặn nếu PO đã đóng hoặc hủy
+    if (['COMPLETED', 'CANCELLED', 'ĐÃ HOÀN THÀNH', 'HỦY'].includes(po.Status.toUpperCase())) {
+      return { valid: false, message: `PO ${poId} đã ở trạng thái ${po.Status}. Không thể nhập thêm.` };
+    }
+
+    // FR-NK-02: Kiểm tra Hạn dùng < 12 tháng
+    if (batchData.ExpDate) {
+      const exp = new Date(batchData.ExpDate);
+      const today = new Date();
+      const monthDiff = (exp.getFullYear() - today.getFullYear()) * 12 + (exp.getMonth() - today.getMonth());
+      if (monthDiff < 12 && !exceptionApproved) {
+        return { valid: false, message: 'Hạn dùng < 12 tháng. Bị chặn theo quy định GSP. Cần "Phê duyệt ngoại lệ" từ QA để tiếp tục.' };
+      }
+      if (monthDiff < 12 && exceptionApproved) {
+          this.addAuditLog('Ngoại lệ', `Chấp nhận nhập lô cận hạn cho PO ${poId}`, 'warn');
+      }
+    }
+
+    // FR-NK-13: Kiểm tra hồ sơ pháp lý (Simulated)
+    if (!batchData.hasCOA) {
+      return { valid: false, message: 'Bắt buộc đính kèm COA cho lô hàng dược phẩm.' };
+    }
+
+    return { valid: true };
+  },
+
+  // --- FR-NK-03: Label Generation Simulation ---
+  generateLabelData(batchId) {
+    const b = _state.batches.find(x => x.BatchID === batchId);
+    if (!b) return null;
+    const p = this.PRODUCTS.find(x => x.ProductID === b.ProductID) || { ProductName: 'Unknown' };
+    return {
+      title: 'TEM NHÃN NHẬP KHO GSP',
+      productName: p.ProductName,
+      sku: b.ProductID,
+      batch: b.Batchcode,
+      expiry: b.ExpDate,
+      qty: b.Quantity + ' ' + (p.BaseUnit || ''),
+      location: b.LocationID,
+      status: b.BatchStatus === 'QUARANTINE' ? 'BIỆT TRỮ (QUARANTINE)' : 'SẴN SÀNG',
+      qrValue: `PHARMA-WMS|${b.BatchID}|${b.Batchcode}|${b.LocationID}`
+    };
+  },
   
   get DASHBOARD_STATS() {
     const batches = _state.batches || [];
@@ -668,11 +471,27 @@ const MockData = {
   async updateBatchStatus(batchId, newStatus) {
     const b = _state.batches.find(x => x.BatchID === batchId);
     if (!b) return false;
+    const oldStatus = b.BatchStatus;
     b.BatchStatus = newStatus;
+
+    // FR-NK-09: Tự động tạo Phiếu xuất trả khi hàng bị gán nhãn lỗi (REJECT)
+    if (newStatus === 'REJECT' || newStatus === 'LOCKED_FOR_RETURN') {
+        const prod = this.PRODUCTS.find(p => p.ProductID === b.ProductID);
+        await this.addComplaint({
+            PO_ID: 'PO-AD-HOC',
+            type: 'Lỗi chất lượng / Xuất trả',
+            item: b.ProductID,
+            qty: b.Quantity,
+            desc: `Hàng lỗi phát hiện khi kiểm định lô ${b.Batchcode}. Chuyển luồng xuất trả NCC.`,
+            request: 'Xuất trả và cấn trừ thanh toán'
+        });
+        this.addNotification(`Lô ${b.Batchcode} bị từ chối. Đã tự động lập Hồ sơ xuất trả NCC (FR-NK-09).`, 'error');
+    }
 
     // Xóa tồn kho nếu tiêu hủy
     if (newStatus === 'DESTROYED') {
       b.Quantity = 0;
+      this.addAuditLog('Tiêu hủy', `Đã xóa sổ tồn kho lô ${batchId} (FR-TH-12)`, 'error');
     }
 
     saveState(_state);
@@ -715,9 +534,23 @@ const MockData = {
   },
 
   /** Thêm lô hàng mới vào kho (sau khi Nhân viên kho xác nhận nhập) */
-  async addBatch({ ProductID, Batchcode, Quantity, ExpDate, LocationID, WarehouseID }) {
+  async addBatch({ ProductID, Batchcode, Quantity, ExpDate, LocationID, WarehouseID, COA_File, TempLog, flows }) {
     const BatchID = 'BATCH-' + (Date.now() % 10000).toString().padStart(3, '0');
-    const newBatch = { BatchID, ProductID, Batchcode, Quantity: parseInt(Quantity), ExpDate, BatchStatus: 'QUARANTINE', LocationID, WarehouseID: WarehouseID || 'WH-HCM' };
+    const newBatch = { 
+        BatchID, 
+        ProductID, 
+        Batchcode, 
+        Quantity: parseInt(Quantity), 
+        ExpDate, 
+        BatchStatus: 'QUARANTINE', 
+        LocationID, 
+        WarehouseID: WarehouseID || 'WH-HCM',
+        // FR-NK-02 & 05 Additions
+        COA_Attachment: COA_File || null,
+        TemperatureLog: TempLog || [],
+        FlowType: flows || 'REGULAR', // REGULAR, COLD, CONTROLLED
+        InboundDate: new Date().toISOString()
+    };
     
     _state.batches.push(newBatch);
     saveState(_state);
@@ -844,9 +677,28 @@ const MockData = {
             Batches_id: item.batchInternalId || item.BatchID,
             ShippedQty: item.ActualQty,
             ActualQty: item.ActualQty,
-            ProductID: item.ProductID
+            ProductID: item.ProductID,
+            BatchID: item.BatchID
         };
         _state.issueDetails.push(detail);
+
+        // Update Inventory/Batch Quantity locally (decrease Quantity and ReservedQty)
+        const batch = _state.batches.find(b => b.BatchID === item.BatchID || b.id === item.batchInternalId);
+        if (batch) {
+            batch.Quantity = (batch.Quantity || 0) - item.ActualQty;
+            batch.ReservedQty = Math.max(0, (batch.ReservedQty || 0) - item.ActualQty);
+            batch.qty = batch.Quantity;
+            
+            // Sync to NocoDB
+            if (window.NocoBridge && window.NocoBridge.API_TOKEN !== 'YOUR_API_TOKEN_HERE') {
+                try {
+                    await window.NocoBridge.updateRow('Batches', batch.id || batch.BatchID, { 
+                        Quantity: batch.Quantity,
+                        ReservedQty: batch.ReservedQty
+                    });
+                } catch (e) { console.error('NocoDB Update failed for batch:', batch.BatchID, e); }
+            }
+        }
 
         // a. Create detail in NocoDB
         if (window.NocoBridge && window.NocoBridge.API_TOKEN !== 'YOUR_API_TOKEN_HERE' && issueIdInNoco) {
@@ -858,18 +710,7 @@ const MockData = {
                     ShippedQty: detail.ShippedQty,
                     ActualQty: detail.ActualQty
                 });
-                
-                // b. Update Inventory/Batch Quantity locally
-                const batch = _state.batches.find(b => b.BatchID === item.BatchID || b.id === item.batchInternalId);
-                if (batch) {
-                    batch.Quantity = (batch.Quantity || 0) - item.ActualQty;
-                    batch.qty = batch.Quantity;
-                    
-                    await window.NocoBridge.updateRow('Batches', batch.id || batch.BatchID, { 
-                        Quantity: batch.Quantity 
-                    });
-                }
-            } catch (e) { console.error('NocoDB Update failed for item:', item.ProductID, e); }
+            } catch (e) { console.error('NocoDB Create failed for item:', item.ProductID, e); }
         }
     }
 
@@ -889,8 +730,17 @@ const MockData = {
     if (data.CustomerID) so.CustomerID = data.CustomerID;
     if (data.deadline) so.deadline = data.deadline;
     if (data.priority) so.priority = data.priority;
+    // FR-XK-02: Manage Reserved Stock on SO update
     if (data.itemsDetails) {
+      // 1. Release old reservations
+      (so.itemsDetails || []).forEach(item => {
+          this._unreserveProduct(item.ProductID, item.OrderedQty);
+      });
+      // 2. Set new items and reserve
       so.itemsDetails = data.itemsDetails;
+      so.itemsDetails.forEach(item => {
+          this._reserveProduct(item.ProductID, item.OrderedQty);
+      });
       so.progress = `0/${data.itemsDetails.length} SKU`;
     }
     saveState(_state);
@@ -910,6 +760,37 @@ const MockData = {
     }
 
     return so;
+  },
+
+  /** FR-XK-02: Private helpers for reservation */
+  _reserveProduct(productId, qty) {
+      // Logic: Pick batches by FEFO (ExpDate asc) and reserve till qty met
+      let remaining = qty;
+      const batches = _state.batches
+          .filter(b => b.ProductID === productId && b.BatchStatus === 'RELEASED')
+          .sort((a, b) => new Date(a.ExpDate) - new Date(b.ExpDate));
+      
+      for (const b of batches) {
+          if (remaining <= 0) break;
+          const availableToReserve = b.Quantity - (b.ReservedQty || 0);
+          const toReserve = Math.min(remaining, availableToReserve);
+          b.ReservedQty = (b.ReservedQty || 0) + toReserve;
+          remaining -= toReserve;
+      }
+  },
+
+  _unreserveProduct(productId, qty) {
+      let remaining = qty;
+      const batches = _state.batches
+          .filter(b => b.ProductID === productId)
+          .sort((a, b) => new Date(b.ExpDate) - new Date(a.ExpDate)); // Release from furthest expiry first? Or doesn't matter much.
+      
+      for (const b of batches) {
+          if (remaining <= 0) break;
+          const toRelease = Math.min(remaining, b.ReservedQty || 0);
+          b.ReservedQty = (b.ReservedQty || 0) - toRelease;
+          remaining -= toRelease;
+      }
   },
 
   async cancelSO(soId) {
@@ -945,6 +826,12 @@ const MockData = {
       progress: `0/${(itemsDetails || []).length} SKU`,
       progressPct: 0
     };
+
+    // FR-XK-02: Reserve stock when SO is created
+    (itemsDetails || []).forEach(item => {
+        this._reserveProduct(item.ProductID, item.OrderedQty);
+    });
+
     _state.salesOrders.unshift(so);
     saveState(_state);
     this._emit('so:added', { so });
@@ -1095,11 +982,18 @@ const MockData = {
   async updatePOReceived(poId, receivedQty) {
     const po = _state.purchaseOrders.find(x => x.PO_ID === poId);
     if (!po) return false;
-    po.received = Math.min(po.total, (po.received || 0) + parseInt(receivedQty));
     
-    // Change: When fully received, status becomes QUARANTINE (Biệt trữ) instead of COMPLETED
-    if (po.received >= po.total) po.Status = 'QUARANTINE';
-    else po.Status = 'PARTIAL';
+    const prevReceived = po.received || 0;
+    po.received = Math.min(po.total, prevReceived + parseInt(receivedQty));
+    
+    // FR-NK-08: Ghi nhận thực nhập < PO; tự động tạo Biên bản hàng thiếu
+    if (po.received < po.total) {
+        po.Status = 'PARTIAL';
+        this.addNotification(`Đơn ${poId} nhập thiếu. Đã ghi nhận trạng thái PARTIAL (FR-NK-08).`, 'warning');
+        this.addAuditLog('Nhập kho', `PO ${poId} nhập một phần: ${po.received}/${po.total}`, 'warn');
+    } else {
+        po.Status = 'QUARANTINE';
+    }
     
     saveState(_state);
     this._emit('po:updated', { poId });
@@ -1286,8 +1180,21 @@ const MockData = {
       CheckID,
       CheckDate: new Date().toISOString().split('T')[0],
       Status: 'PENDING',
+      Filters: checkData.Filters || {}, // FR-KK-01: Store filters
       ...checkData
     };
+
+    // FR-KK-02: Lock batches included in the check
+    if (newCheck.items) {
+        newCheck.items.forEach(item => {
+            const batch = _state.batches.find(b => b.ProductID === item.ProductID && b.Batchcode === item.Batchcode);
+            if (batch) {
+                batch._prevStatus = batch.BatchStatus; // Store old status
+                batch.BatchStatus = 'LOCKED';
+            }
+        });
+    }
+
     _state.stockChecks.unshift(newCheck);
     saveState(_state);
     this._emit('stockCheck:added', { check: newCheck });
@@ -1330,6 +1237,8 @@ const MockData = {
     if (status === 'COMPLETED') {
       let changed = false;
       const updates = [];
+      const drugsToAlert = ['SKU-PFIZ-01', 'SKU-INSU-05']; // Control drugs
+
       for (const item of check.items) {
         if (item.ActualQuantity !== item.BookQuantity) {
           const batch = _state.batches.find(b => b.ProductID === item.ProductID && b.Batchcode === item.Batchcode);
@@ -1337,6 +1246,12 @@ const MockData = {
             batch.Quantity = item.ActualQuantity;
             changed = true;
             updates.push({ id: batch.id || batch.BatchID, qty: item.ActualQuantity });
+
+            // FR-KK-12: Kích hoạt báo động đỏ nếu lệch kho thuốc kiểm soát đặc biệt
+            if (drugsToAlert.includes(item.ProductID)) {
+                this.addNotification(`🚨 BÁO ĐỘNG ĐỎ: Sai lệch kho thuốc kiểm soát đặc biệt (${item.ProductID}). Yêu cầu báo cáo điều tra trong 24h!`, 'error');
+                this.addAuditLog('BÁO ĐỘNG', `Sai lệch thuốc kiểm soát ${item.ProductID} tại phiếu ${CheckID}`, 'error');
+            }
           }
         }
       }
@@ -1352,6 +1267,24 @@ const MockData = {
             }
         }
       }
+
+      // FR-KK-02: Unlock batches
+      check.items.forEach(item => {
+          const batch = _state.batches.find(b => b.ProductID === item.ProductID && b.Batchcode === item.Batchcode);
+          if (batch && batch.BatchStatus === 'LOCKED') {
+              batch.BatchStatus = batch._prevStatus || 'RELEASED';
+              delete batch._prevStatus;
+          }
+      });
+    } else if (status === 'CANCELLED') {
+        // Unlock batches on cancellation
+        (check.items || []).forEach(item => {
+            const batch = _state.batches.find(b => b.ProductID === item.ProductID && b.Batchcode === item.Batchcode);
+            if (batch && batch.BatchStatus === 'LOCKED') {
+                batch.BatchStatus = batch._prevStatus || 'RELEASED';
+                delete batch._prevStatus;
+            }
+        });
     }
 
     saveState(_state);
@@ -1365,6 +1298,58 @@ const MockData = {
     }
 
     return true;
+  },
+
+  // --- FR-QC-10: Emergency Lockdown ---
+  async activateEmergencyLockdown(targetId, reason) {
+      this.addAuditLog('PHONG TỎA KHẨN CẤP', `Kích hoạt lệnh phong tỏa cho ${targetId}. Lý do: ${reason}`, 'error');
+      
+      // Lock all transactions in 30 seconds (simulated)
+      this._systemLocked = true;
+      setTimeout(() => { this._systemLocked = false; }, 30000);
+
+      const targetBatches = _state.batches.filter(b => b.Batchcode === targetId || b.ProductID === targetId);
+      targetBatches.forEach(b => {
+          b.BatchStatus = 'LOCKED';
+      });
+
+      saveState(_state);
+      this._emit('pharma:statechange');
+      this.addNotification(`🚨 LỆNH PHONG TỎA KHẨN CẤP (30S): Đã khóa toàn bộ giao dịch cho ${targetId}.`, 'error');
+      return true;
+  },
+
+  // --- FR-XK-05: Barcode Scanning with Lockout ---
+  validateBarcode(scanned, expected) {
+      if (this._scanLocked) return { valid: false, message: 'Thao tác bị khóa 10 giây do quét sai liên tục.' };
+      
+      if (scanned === expected) return { valid: true };
+
+      // Fail logic
+      this._scanFails = (this._scanFails || 0) + 1;
+      if (this._scanFails >= 3) {
+          this._scanLocked = true;
+          setTimeout(() => { this._scanLocked = false; this._scanFails = 0; }, 10000);
+          return { valid: false, message: 'Sai mã vạch 3 lần. Khóa thao tác 10 giây (FR-XK-05).' };
+      }
+      return { valid: false, message: 'Sai mã vạch. Vui lòng kiểm tra lại.' };
+  },
+
+  // --- FR-SYS-02: Unit Conversion ---
+  convertUnit(qty, fromUnit, toUnit, productId) {
+      // Simplified rules: Thùng = 10 Hộp, Hộp = 30 Viên
+      const rules = {
+          'THÙNG-HỘP': 10,
+          'HỘP-VIÊN': 30,
+          'THÙNG-VIÊN': 300
+      };
+      const key = `${fromUnit.toUpperCase()}-${toUnit.toUpperCase()}`;
+      if (rules[key]) return qty * rules[key];
+      
+      const revKey = `${toUnit.toUpperCase()}-${fromUnit.toUpperCase()}`;
+      if (rules[revKey]) return qty / rules[revKey];
+
+      return qty;
   },
 
   exportToCSV(data, filename) {
@@ -1407,13 +1392,47 @@ const MockData = {
 
   // ── NocoDB Synchronization ──────────────────────────────
   async syncWithNoco() {
-    if (!window.NocoBridge || !window.NocoBridge.API_TOKEN || window.NocoBridge.API_TOKEN === 'YOUR_API_TOKEN_HERE') {
-      console.warn('NocoDB Bridge not configured. Using local mock data.');
-      return;
-    }
-
     try {
       console.log('Syncing with NocoDB...');
+      
+      // FR-XK-14: Implement Sales Return
+      this.addSalesReturn = async function(soId, items) {
+          const id = `RET-${Date.now().toString().slice(-6)}`;
+          for (const item of items) {
+              const BatchID = `BATCH-RET-${Date.now().toString().slice(-4)}`;
+              const newBatch = {
+                  BatchID,
+                  ProductID: item.ProductID,
+                  Batchcode: item.Batchcode || 'RETURNED',
+                  Quantity: item.Quantity,
+                  ReservedQty: 0,
+                  ExpDate: item.ExpDate || '2099-12-31',
+                  BatchStatus: 'LOCKED', // Returns go to Locked first
+                  LocationID: 'RETURN-ZONE',
+                  warehouseId: 'WH-HCM'
+              };
+              _state.batches.push(newBatch);
+          }
+          saveState(_state);
+          this.addAuditLog('Nhập trả hàng', `Đã xử lý nhập trả hàng cho đơn ${soId}`, 'warn');
+          this._emit('pharma:statechange');
+          return id;
+      };
+
+      // FR-XK-08: Export SO Documents
+      this.exportSODocument = function(soId, docType) {
+          const so = _state.salesOrders.find(s => s.SO_ID === soId);
+          if (!so) return;
+          const content = `PHARMA WMS - ${docType.toUpperCase()}\nOrder ID: ${so.SO_ID}\nCustomer: ${so.CustomerID}\nDate: ${so.OrderDate}\nItems: ${so.itemsDetails.length}\n${'-'.repeat(40)}\n` +
+              so.itemsDetails.map(i => `${i.ProductID}: ${i.OrderedQty} @ ${i.UnitPrice}`).join('\n');
+          const blob = new Blob([content], { type: 'text/plain' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `${docType}_${soId}.txt`;
+          link.click();
+          this.addAuditLog('Xuất chứng từ', `Đã xuất ${docType} cho đơn ${soId}`, 'info');
+      };
       
       // Fetch core tables in parallel, handling failures per table
       const results = await Promise.allSettled([

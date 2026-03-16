@@ -172,10 +172,22 @@
                 <div class="mb-4">
                     <label class="block text-sm font-bold text-slate-700 mb-1.5">Mã PO liên quan</label>
                     <select
+                        onchange="classifyPOFlow(this.value)"
                         class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20"
                         id="po-select-receive">
                         <option value="">-- Chọn PO cần nhận hàng --</option>
                     </select>
+                </div>
+
+                <!-- FR-NK-01: Flow Classification -->
+                <div id="po-flow-info" class="mb-4 hidden">
+                    <div class="flex items-center gap-3 p-4 bg-slate-50 border border-slate-200 rounded-xl">
+                        <div id="flow-icon" class="size-10 rounded-full flex items-center justify-center"></div>
+                        <div>
+                            <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Luồng vận hành (Operation Flow)</p>
+                            <p id="flow-label" class="font-bold text-slate-800"></p>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="space-y-3 mb-6" id="document-checklist">
@@ -203,33 +215,41 @@
                             </button>
                         </div>
                         <input type="text" id="input-lot" placeholder="VD: LOT-2603-01"
-                            title="Định dạng gợi ý: LOT-[NămMM]-[Số thứ tự]"
                             class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wider">Hạn sử
-                            dụng (HSD)</label>
-                        <input type="date" id="input-expiry"
+                        <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wider">Hạn sử dụng (HSD)</label>
+                        <input type="date" id="input-expiry" onchange="validateExpiry(this.value)"
+                            class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20">
+                        <p id="expiry-warn" class="hidden text-[10px] text-amber-600 font-bold mt-1">⚠️ Hạn dùng < 12 tháng. Cần duyệt ngoại lệ.</p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wider">Số lượng thực nhận</label>
+                        <input type="number" id="input-qty" placeholder="0" oninput="updateAQLDisplay(this.value)"
                             class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wider">Số
-                            lượng
-                            thực nhận</label>
-                        <input type="number" id="input-qty" placeholder="0"
-                            class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20">
+                        <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wider">Chứng từ COA đính kèm</label>
+                        <div class="relative">
+                            <input type="file" id="input-coa" class="hidden" onchange="document.getElementById('coa-name').textContent = this.files[0].name">
+                            <button onclick="document.getElementById('input-coa').click()" class="w-full px-4 py-3 border-2 border-dashed border-slate-200 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-50 flex items-center justify-center gap-2">
+                                <span class="material-symbols-outlined text-sm">attach_file</span>
+                                <span id="coa-name">Chọn file COA...</span>
+                            </button>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wider">Tình
-                            trạng
-                            thùng hàng</label>
-                        <select id="input-condition"
-                            class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20">
-                            <option>Nguyên vẹn, không bị hư hỏng</option>
-                            <option>Thùng bị móp nhẹ — vẫn đạt</option>
-                            <option>Cần kiểm tra QA thêm</option>
-                        </select>
+                </div>
+
+                <!-- FR-NK-05: Cold Chain Data Logger -->
+                <div id="cold-chain-monitor" class="hidden p-4 bg-blue-50 border border-blue-200 rounded-xl mb-4">
+                    <div class="flex justify-between items-center mb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-blue-600">thermostat</span>
+                            <span class="text-xs font-bold text-blue-800 uppercase">Đối soát Data Logger</span>
+                        </div>
+                        <button onclick="simulateDataLogger()" class="text-[10px] bg-blue-600 text-white px-2 py-1 rounded font-bold">Quét dữ liệu</button>
                     </div>
+                    <div id="logger-status" class="text-xs text-slate-500 italic">Chưa có dữ liệu cảm biến...</div>
                 </div>
 
                 <div
@@ -281,17 +301,30 @@
                             class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20">
                     </div>
                 </div>
-                <!-- Suggestions panel -->
-                <div class="mb-4">
-                    <div class="flex items-center gap-2 mb-2">
-                        <span class="material-symbols-outlined text-sm text-amber-500">lightbulb</span>
-                        <p class="text-xs font-bold text-slate-600 uppercase tracking-wider">Gợi ý vị trí còn trống
-                        </p>
-                        <span class="text-xs text-slate-400">— nhấn để chọn nhanh</span>
-                    </div>
-                    <div class="grid grid-cols-4 gap-2" id="location-suggestions">
+                <div class="grid grid-cols-4 gap-2" id="location-suggestions">
                         <p class="col-span-4 text-xs text-slate-400 text-center py-2">Chọn Khu vực để xem gợi ý</p>
                     </div>
+                </div>
+
+                <!-- FR-NK-04: AQL Rules Display -->
+                <div class="mb-6 p-4 bg-indigo-50 border border-indigo-200 rounded-xl">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="material-symbols-outlined text-indigo-600">calculate</span>
+                        <p class="text-xs font-bold text-indigo-800 uppercase">Quy tắc kiểm đếm GSP (AQL)</p>
+                    </div>
+                    <div class="flex justify-between items-center bg-white p-3 rounded-lg border border-indigo-100">
+                        <div>
+                            <p class="text-[10px] text-slate-500 uppercase font-bold">Cỡ mẫu kiểm tra (Sample Size)</p>
+                            <p id="aql-display" class="text-xl font-black text-indigo-600">-- kiện</p>
+                        </div>
+                        <div class="text-right">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <span class="text-[10px] text-slate-500 font-bold">Kiểm 100% (Hàng lẻ/Đặc biệt)</span>
+                                <input type="checkbox" id="check-100" onchange="updateAQLDisplay(document.getElementById('input-qty').value)" class="size-4 rounded accent-indigo-600">
+                            </label>
+                        </div>
+                    </div>
+                    <p class="text-[10px] text-slate-400 mt-2 italic">* Dựa trên tiêu chuẩn ISO 2859-1 (AQL 0.65).</p>
                 </div>
 
                 <!-- Occupied warning -->
@@ -346,6 +379,9 @@
                         class="bg-green-600 text-white px-6 py-2.5 rounded-lg font-bold hover:bg-green-700 transition-colors text-sm flex items-center gap-2">
                         <span class="material-symbols-outlined text-sm">inventory</span> Xác nhận Nhập kho
                     </button>
+                    <button id="btn-print-label" onclick="printBatchLabel()" class="hidden border border-primary text-primary px-4 py-2.5 rounded-lg font-bold hover:bg-primary/5 text-sm flex items-center gap-2">
+                        <span class="material-symbols-outlined text-sm">qr_code_2</span> In Tem Nhãn
+                    </button>
                 </div>
             </div>
 
@@ -379,6 +415,9 @@
         </div>
     </div>
 
+        </div>
+    </div>
+
     <!-- Success Modal -->
     <div class="modal-overlay" id="success-modal">
         <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 text-center">
@@ -394,8 +433,30 @@
                     Danh sách PO</button>
                 <button onclick="closeSuccessModal(); switchTab('receive')"
                     class="flex-1 bg-primary text-white py-2.5 rounded-xl font-bold text-sm hover:bg-primary/90">Nhập
-                    lô
-                    tiếp theo</button>
+                    lô tiếp theo</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Label Print Modal (Simulated) -->
+    <div class="modal-overlay" id="label-modal">
+        <div class="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full mx-4 overflow-hidden text-left">
+            <div class="flex justify-between items-center mb-4 pb-4 border-b border-slate-100">
+                <h3 class="font-black text-slate-900">Xem trước tem nhãn</h3>
+                <button onclick="document.getElementById('label-modal').classList.remove('open')" class="text-slate-400 hover:text-slate-600">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            
+            <!-- Label Content -->
+            <div id="label-content" class="border-2 border-black p-4 bg-white text-black font-mono text-[10px] space-y-2">
+                <!-- Rendered by js -->
+            </div>
+
+            <div class="mt-6 flex gap-3">
+                <button onclick="window.print()" class="flex-1 bg-slate-900 text-white py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined text-sm">print</span> In thật (Ctrl + P)
+                </button>
             </div>
         </div>
     </div>
@@ -408,6 +469,8 @@
             const canApprove = window.MockData.hasPermission(user, 'approve_director');
             const POs = window.MockData.PURCHASE_ORDERS;
             const products = window.MockData.PRODUCTS;
+            let currentFlow = 'REGULAR';
+            let lastCreatedBatchID = null;
 
             function updateInboundUI() {
                 const currentPOs = window.MockData.PURCHASE_ORDERS;
@@ -531,7 +594,7 @@
                 if (poSelect) {
                     const currentVal = poSelect.value;
                     poSelect.innerHTML = '<option value="">-- Chọn PO cần nhận hàng --</option>' +
-                        currentPOs.filter(p => p.Status !== 'COMPLETED' && p.Status !== 'CANCELLED').map(po => `
+                        currentPOs.filter(p => !['COMPLETED', 'CANCELLED', 'HOÀN THÀNH', 'HỦY'].includes(p.Status.toUpperCase())).map(po => `
                         <option value="${po.PO_ID}">${po.PO_ID} — ${po.SupplierID}</option>
                     `).join('');
                     if (currentVal) poSelect.value = currentVal;
@@ -539,6 +602,132 @@
 
 
             }
+
+            window.classifyPOFlow = function(poId) {
+                const po = window.MockData.PURCHASE_ORDERS.find(p => p.PO_ID === poId);
+                const infoBox = document.getElementById('po-flow-info');
+                if (!po) { if(infoBox) infoBox.classList.add('hidden'); return; }
+
+                const items = po.itemsDetails || [];
+                const isCold = items.some(it => {
+                    const p = products.find(prod => prod.ProductID === it.ProductID);
+                    return p && (p.CategoryID === 'Vaccine' || (p.ProductName || '').toLowerCase().includes('lạnh'));
+                });
+                const isReturn = (po.Type || '').toUpperCase() === 'RETURN';
+
+                if(infoBox) infoBox.classList.remove('hidden');
+                const icon = document.getElementById('flow-icon');
+                const label = document.getElementById('flow-label');
+                const coldMonitor = document.getElementById('cold-chain-monitor');
+
+                if (isCold) {
+                    currentFlow = 'COLD';
+                    if(icon) {
+                        icon.className = 'size-10 rounded-full flex items-center justify-center bg-blue-100 text-blue-600';
+                        icon.innerHTML = '<span class="material-symbols-outlined">ac_unit</span>';
+                    }
+                    if(label) label.textContent = 'HÀNG CHUỖI CUNG ỨNG LẠNH (COLD CHAIN)';
+                    if(coldMonitor) coldMonitor.classList.remove('hidden');
+                    const zoneSel = document.getElementById('input-zone');
+                    if(zoneSel) zoneSel.value = 'Q (Khu biệt trữ)';
+                } else if (isReturn) {
+                    currentFlow = 'RETURN';
+                    if(icon) {
+                        icon.className = 'size-10 rounded-full flex items-center justify-center bg-orange-100 text-orange-600';
+                        icon.innerHTML = '<span class="material-symbols-outlined">assignment_return</span>';
+                    }
+                    if(label) label.textContent = 'HÀNG TRẢ VỀ (SALES RETURN / RECALL)';
+                    if(coldMonitor) coldMonitor.classList.add('hidden');
+                } else {
+                    currentFlow = 'REGULAR';
+                    if(icon) {
+                        icon.className = 'size-10 rounded-full flex items-center justify-center bg-slate-100 text-slate-600';
+                        icon.innerHTML = '<span class="material-symbols-outlined">package_2</span>';
+                    }
+                    if(label) label.textContent = 'HÀNG THÔNG THƯỜNG (GSP STANDARD)';
+                    if(coldMonitor) coldMonitor.classList.add('hidden');
+                }
+                if(window.updateLocationSuggestions) window.updateLocationSuggestions();
+            };
+
+            // --- FR-NK-02: Expiry Validation ---
+            window.validateExpiry = function(date) {
+                const res = window.MockData.validateInbound('DUMMY', { ExpDate: date, hasCOA: true });
+                const warn = document.getElementById('expiry-warn');
+                if(warn) warn.classList.toggle('hidden', !res.warning);
+                if (res.warning) window.MockData.addNotification(res.warning, 'warning');
+            };
+
+            // --- FR-NK-04: AQL Calculation ---
+            window.updateAQLDisplay = function(qty) {
+                const display = document.getElementById('aql-display');
+                if(!display) return;
+                const check100 = document.getElementById('check-100');
+                const is100 = check100 ? check100.checked : false;
+                if (is100) {
+                    display.textContent = qty + ' kiện (100%)';
+                    display.classList.replace('text-indigo-600', 'text-rose-600');
+                } else {
+                    const sample = window.MockData.calculateAQL(parseInt(qty) || 0);
+                    display.textContent = sample + ' kiện';
+                    display.classList.replace('text-rose-600', 'text-indigo-600');
+                }
+            };
+
+            // --- FR-NK-05: Simulation for Data Logger ---
+            window.simulateDataLogger = function() {
+                const status = document.getElementById('logger-status');
+                if(!status) return;
+                status.innerHTML = '<span class="text-blue-600 font-bold">Đang quét...</span>';
+                setTimeout(() => {
+                    const temp = (Math.random() * 4 + 2).toFixed(1); // 2-6°C
+                    status.innerHTML = `
+                        <div class="flex items-center gap-4 mt-2">
+                            <div class="text-center">
+                                <p class="text-[9px] font-black">AVERAGE</p>
+                                <p class="text-lg font-black text-blue-700">${temp}°C</p>
+                            </div>
+                            <div class="flex-1 h-3 bg-slate-200 rounded-full overflow-hidden flex">
+                                <div class="h-full bg-blue-400" style="width: 80%"></div>
+                            </div>
+                            <span class="text-[10px] text-green-600 font-bold uppercase">Trong ngưỡng</span>
+                        </div>
+                    `;
+                    window.MockData.addNotification('Đã nạp dữ liệu Data Logger. Nhiệt độ trung bình: ' + temp + '°C', 'success');
+                }, 1000);
+            };
+
+            // --- FR-NK-03: Print Label ---
+            window.printBatchLabel = function() {
+                if (!lastCreatedBatchID) return;
+                const data = window.MockData.generateLabelData(lastCreatedBatchID);
+                if (!data) return;
+
+                const content = document.getElementById('label-content');
+                if(content) {
+                    content.innerHTML = `
+                        <div class="text-center mb-2">
+                            <p class="font-black text-xs border-b border-black pb-1">${data.title}</p>
+                        </div>
+                        <div class="space-y-1">
+                            <p><strong>SP:</strong> ${data.productName}</p>
+                            <div class="flex justify-between">
+                                <p><strong>LÔ:</strong> ${data.batch}</p>
+                                <p><strong>HSD:</strong> ${data.expiry}</p>
+                            </div>
+                            <div class="flex justify-between">
+                                <p><strong>SL:</strong> ${data.qty}</p>
+                                <p><strong>VỊ TRÍ:</strong> ${data.location}</p>
+                            </div>
+                        </div>
+                        <div class="flex justify-center pt-2">
+                            <div class="bg-black p-1"><div class="bg-white p-2"><div class="size-16 border-2 border-black flex items-center justify-center text-[6px] text-center">QR CODE<br>${data.qrValue}</div></div></div>
+                        </div>
+                    `;
+                }
+                const modal = document.getElementById('label-modal');
+                if(modal) modal.classList.add('open');
+            };
 
 
 
@@ -601,6 +790,12 @@
                         const p = products.find(x => x.ProductID === it.ProductID) || { ProductName: it.ProductID };
                         return `<option value="${it.ProductID}">${p.ProductName} (Số lượng trong PO: ${it.OrderedQty})</option>`;
                     }).join('') || '<option value="">-- PO này không có chi tiết sản phẩm --</option>';
+                    
+                    // Trigger flow classify again just in case
+                    window.classifyPOFlow(poId);
+                }
+                if (step === 3) {
+                   window.updateAQLDisplay(document.getElementById('input-qty').value);
                 }
                 if (step === 4) {
                     const prodId = document.getElementById('input-product-id').value;
@@ -706,18 +901,46 @@
                 const prodId = document.getElementById('input-product-id').value;
                 const product = products.find(p => p.ProductID === prodId) || products[0];
 
-                window.MockData.addBatch({
-                    ProductID: product.ProductID,
-                    Batchcode: lot,
-                    Quantity: qty,
-                    ExpDate: expiry,
-                    LocationID: location,
-                    warehouseId: 'WH-HCM',
-                    BatchStatus: 'QUARANTINE'
-                });
+                // FR-NK-02 & 13 Validation
+                const hasCOA = document.getElementById('input-coa').files.length > 0;
+                let validate = window.MockData.validateInbound(poId, { ExpDate: expiry, hasCOA });
+                
+                if (!validate.valid) {
+                    // Try exception if it's just expiry
+                    if (validate.message.includes('Hạn dùng < 12 tháng')) {
+                        if (confirm(validate.message + '\n\nBạn có muốn yêu cầu "Phê duyệt ngoại lệ" từ QA để tiếp tục không?')) {
+                            validate = window.MockData.validateInbound(poId, { ExpDate: expiry, hasCOA }, true);
+                        } else {
+                            return;
+                        }
+                    } else {
+                        alert('❌ CHẶN NHẬP KHO: ' + validate.message);
+                        return;
+                    }
+                }
 
-                window.MockData.updatePOReceived(poId, qty);
-                document.getElementById('success-modal').classList.add('open');
+                if (!validate.valid) { // Final check
+                     alert('❌ CHẶN NHẬP KHO: ' + validate.message);
+                     return;
+                }
+
+                (async () => {
+                    const newBatch = await window.MockData.addBatch({
+                        ProductID: product.ProductID,
+                        Batchcode: lot,
+                        Quantity: qty,
+                        ExpDate: expiry,
+                        LocationID: location,
+                        warehouseId: 'WH-HCM',
+                        COA_File: hasCOA ? document.getElementById('input-coa').files[0].name : null,
+                        flows: currentFlow
+                    });
+
+                    lastCreatedBatchID = newBatch.BatchID;
+                    window.MockData.updatePOReceived(poId, qty);
+                    document.getElementById('btn-print-label').classList.remove('hidden');
+                    document.getElementById('success-modal').classList.add('open');
+                })();
             };
 
             window.closeSuccessModal = function () {
