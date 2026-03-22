@@ -30,7 +30,7 @@ const ROLES = {
     pages: ['dashboard', 'inventory-management', 'inbound', 'outbound',
       'qa-reports', 'purchase-order', 'sales-order'],
     permissions: ['read_inventory', 'read_po', 'read_so', 'write_inventory', 'write_inbound', 'write_outbound',
-      'approve_outbound', 'approve_po', 'write_orders', 'export_report']
+      'approve_outbound', 'write_orders', 'export_report']
   },
 
   // ── Nhân viên kho ─────────────────────────────────────────
@@ -93,8 +93,8 @@ const ROLES = {
     label: 'Ban giám đốc',
     color: '#DC2626',
     icon: 'supervisor_account',
-    pages: ['dashboard', 'qa-reports', 'accounting'],
-    permissions: ['read_inventory', 'read_po', 'read_so', 'approve_director', 'export_report']
+    pages: ['dashboard', 'qa-reports', 'accounting', 'purchase-order'],
+    permissions: ['read_inventory', 'read_po', 'read_so', 'approve_director', 'approve_po', 'export_report']
   },
 
   // ── Tài xế ─────────────────────────────────────────────────
@@ -979,21 +979,57 @@ const MockData = {
     return true;
   },
 
-  async updatePOReceived(poId, receivedQty) {
+  async updatePOReceived(poId, receivedQty, productId, batchId) {
     const po = _state.purchaseOrders.find(x => x.PO_ID === poId);
     if (!po) return false;
     
-    const prevReceived = po.received || 0;
-    po.received = Math.min(po.total, prevReceived + parseInt(receivedQty));
+    // 1. Cập nhật chi tiết từng sản phẩm trong PO
+    if (productId && po.itemsDetails) {
+      const item = po.itemsDetails.find(it => it.ProductID === productId);
+      if (item) {
+        const prevItemRec = item.ReceivedQty || 0;
+        item.ReceivedQty = Math.min(item.OrderedQty || 0, prevItemRec + parseInt(receivedQty));
+      }
+    }
+
+    // 2. Tính lại tổng số lượng đã nhận của PO
+    if (po.itemsDetails && po.itemsDetails.length > 0) {
+      po.received = po.itemsDetails.reduce((sum, it) => sum + (it.ReceivedQty || 0), 0);
+      po.total = po.itemsDetails.reduce((sum, it) => sum + (it.OrderedQty || 0), 0);
+    } else {
+      const prevReceived = po.received || 0;
+      po.received = Math.min(po.total, prevReceived + parseInt(receivedQty));
+    }
     
-    // FR-NK-08: Ghi nhận thực nhập < PO; tự động tạo Biên bản hàng thiếu
+    // 3. Cập nhật trạng thái PO
     if (po.received < po.total) {
         po.Status = 'PARTIAL';
         this.addNotification(`Đơn ${poId} nhập thiếu. Đã ghi nhận trạng thái PARTIAL (FR-NK-08).`, 'warning');
         this.addAuditLog('Nhập kho', `PO ${poId} nhập một phần: ${po.received}/${po.total}`, 'warn');
     } else {
-        po.Status = 'QUARANTINE';
+        po.Status = 'COMPLETED'; // Sửa từ QUARANTINE sang COMPLETED
     }
+
+    // 4. Tạo bản ghi Phiếu nhập (Goods Receipt) để đồng bộ dữ liệu
+    const receiptId = 'GRN-' + (Date.now() % 10000).toString().padStart(4, '0');
+    const newReceipt = {
+        ReceiptID: receiptId,
+        PO_ID: poId,
+        ReceiptDate: new Date().toISOString().split('T')[0],
+        Status: 'COMPLETED'
+    };
+    if (!_state.goodsReceipts) _state.goodsReceipts = [];
+    _state.goodsReceipts.push(newReceipt);
+
+    const newDetail = {
+        DetailID: 'GRD-' + (Date.now() % 100000).toString().padStart(5, '0'),
+        ReceiptID: receiptId,
+        ProductID: productId || '',
+        BatchID: batchId || '',
+        ActualQty: parseInt(receivedQty)
+    };
+    if (!_state.receiptDetails) _state.receiptDetails = [];
+    _state.receiptDetails.push(newDetail);
     
     saveState(_state);
     this._emit('po:updated', { poId });
@@ -1025,7 +1061,7 @@ const MockData = {
       totalValue: totalValue || 0,
       note: note || '',
       received: 0,
-      Status: 'PENDING',
+      Status: 'AWAITING_APPROVAL',
       urgency: 'NORMAL'
     };
     _state.purchaseOrders.unshift(po);

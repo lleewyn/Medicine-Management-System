@@ -261,56 +261,60 @@
                         <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase">Chọn lô hàng cần tiêu
                             hủy</label>
                         <select id="destroy-batch-select"
-                            class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20">
+                            class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20 transition-all">
                             <option value="">-- Chọn lô --</option>
                         </select>
                     </div>
 
-                        </select>
-                    </div>
-
                     <!-- FR-TH-05: Disposal Evidence Upload -->
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase">Minh chứng tiêu hủy (Hình ảnh/Video)</label>
-                        <div class="flex items-center gap-4 p-4 border-2 border-dashed border-slate-200 rounded-xl hover:border-primary/50 cursor-pointer transition-colors" onclick="simulateUpload()">
-                            <div class="size-12 rounded-lg bg-slate-100 text-slate-400 flex items-center justify-center" id="evidence-preview">
-                                <span class="material-symbols-outlined">add_a_photo</span>
+                    <div class="group">
+                        <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Minh chứng tiêu hủy (Hình ảnh/Video)</label>
+                        <div class="flex items-center gap-5 p-5 border-2 border-dashed border-slate-200 rounded-2xl hover:border-primary/50 hover:bg-primary/[0.02] cursor-pointer transition-all duration-300" onclick="simulateUpload()">
+                            <div class="size-14 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center group-hover:bg-primary/10 group-hover:text-primary transition-colors shadow-inner" id="evidence-preview">
+                                <span class="material-symbols-outlined text-2xl">add_a_photo</span>
                             </div>
                             <div class="flex-1">
-                                <p class="text-xs font-bold text-slate-700">Tải lên hình ảnh bằng chứng</p>
-                                <p class="text-[10px] text-slate-400">Định dạng JPG, PNG hoặc Video ngắn (GSP Compliance)</p>
+                                <p class="text-sm font-bold text-slate-700 group-hover:text-primary transition-colors">Tải lên hình ảnh bằng chứng</p>
+                                <p class="text-[11px] text-slate-400 mt-0.5">Hỗ trợ JPG, PNG hoặc Video quy trình (GSP Compliance)</p>
                             </div>
                             <input type="file" id="evidence-input" class="hidden">
-                            <span id="evidence-status" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Chưa có tệp</span>
+                            <div class="text-right">
+                                <span id="evidence-status" class="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-100 px-2.5 py-1 rounded-full">Chưa có tệp</span>
+                            </div>
                         </div>
                     </div>
 
                     <!-- Witness signing -->
-                    <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
-                        <p class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3">Thành phần xác nhận
-                            (Tổ chức tiêu hủy)</p>
-                        <div class="grid grid-cols-2 gap-3">
+                    <div class="p-5 bg-slate-50 border border-slate-200 rounded-2xl shadow-inner">
+                        <div class="flex items-center gap-2 mb-4">
+                            <span class="material-symbols-outlined text-sm text-slate-400">assignment_turned_in</span>
+                            <p class="text-xs font-black text-slate-600 uppercase tracking-wider">Thành phần xác nhận tiêu hủy</p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs text-slate-500 mb-1">Đại diện QA</label>
-                                <input type="text" placeholder="Họ tên..."
-                                    class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none">
+                                <label class="block text-[11px] font-bold text-slate-500 mb-1.5 ml-1">Đại diện Dược sĩ QA</label>
+                                <input type="text" placeholder="Họ và tên..."
+                                    class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20 bg-white shadow-sm transition-all focus:border-primary/30">
                             </div>
                             <div>
-                                <label class="block text-xs text-slate-500 mb-1">Đại diện Công ty tiêu hủy</label>
-                                <input type="text" placeholder="Họ tên..."
-                                    class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none">
+                                <label class="block text-[11px] font-bold text-slate-500 mb-1.5 ml-1">Đại diện Công ty tiêu hủy</label>
+                                <input type="text" placeholder="Họ và tên..."
+                                    class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20 bg-white shadow-sm transition-all focus:border-primary/30">
                             </div>
                         </div>
                     </div>
 
-                    <div class="p-3 bg-amber-50 rounded-lg border border-amber-200 text-[11px] text-amber-700 italic">
-                        Lưu ý: Sau khi xác nhận tiêu hủy, hệ thống sẽ tự động cập nhật số lượng tồn kho của lô hàng này
-                        về 0.
+                    <div class="p-4 bg-amber-50 rounded-xl border border-amber-200 flex items-start gap-3 mt-2">
+                        <span class="material-symbols-outlined text-amber-500 text-sm mt-0.5">info</span>
+                        <p class="text-[11px] text-amber-800 leading-relaxed font-medium">
+                            <strong class="uppercase text-[10px] block mb-0.5">Lưu ý quan trọng:</strong> 
+                            Sau khi xác nhận tiêu hủy, hệ thống sẽ tự động cập nhật số lượng tồn kho của lô hàng này về 0. Thao tác này không thể hoàn tác.
+                        </p>
                     </div>
                 </div>
             </div>
 
-            <div id="destroy-btn-area" class="flex gap-3">
+            <div id="destroy-btn-area" class="flex justify-end mt-4">
                 <!-- Rendered by JS -->
             </div>
         </div>
@@ -585,8 +589,8 @@
         const destroyBtnArea = document.getElementById('destroy-btn-area');
         if (destroyBtnArea) {
             destroyBtnArea.innerHTML = canDestroy ? `
-                <button onclick="createDestroyRecord()" class="flex-1 bg-slate-900 text-white py-4 rounded-2xl font-black text-sm hover:bg-black flex items-center justify-center gap-2 shadow-xl">
-                    <span class="material-symbols-outlined text-sm">local_fire_department</span> LẬP BIÊN BẢN TIÊU HỦY
+                <button onclick="createDestroyRecord()" class="bg-slate-900 text-white px-10 py-3.5 rounded-2xl font-black text-xs hover:bg-black flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl transition-all uppercase tracking-tighter">
+                    <span class="material-symbols-outlined text-sm">local_fire_department</span> Lập biên bản tiêu hủy
                 </button>` : '<p class="text-sm text-red-500 font-bold bg-red-50 p-4 rounded-xl inline-block w-full text-center">⚠️ Chỉ QA có thẩm quyền mới được lập biên bản tiêu hủy.</p>';
         }
 

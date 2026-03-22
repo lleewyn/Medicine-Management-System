@@ -608,7 +608,7 @@
         }
 
         // 3. SECONDARY TABS UPDATE (Move up & Wrap in try-catch for robustness)
-        try { updateApprovalCenter(pos, approvals); } catch(e) { console.error(e); }
+        try { updateApprovalCenter(pos, approvals, role); } catch(e) { console.error(e); }
         try { updateReportTab(products, issues, issueDetails, pos, soDetails); } catch(e) { console.error(e); }
         try { updateQualityTab(batches, products); } catch(e) { console.error(e); }
 
@@ -811,7 +811,7 @@
         });
     }
 
-    function updateApprovalCenter(pos, approvals) {
+    function updateApprovalCenter(pos, approvals, role) {
         // Build Approval List (PO + General) - Filtered by permissions
         const canApprovePO = role?.permissions?.includes('approve_po');
         const canApproveDirector = role?.permissions?.includes('approve_director') || role?.permissions?.includes('write_all');
@@ -856,9 +856,9 @@
                     <p class="mt-4 text-sm text-slate-600 leading-relaxed font-medium bg-slate-50 p-4 rounded-xl border border-slate-100">${a.desc}</p>
                     <div class="mt-5 flex gap-3">
                         <button onclick="handleDashboardApproval('${a.id}', '${a.type}', '${a.desc}', ${a.isPO})" 
-                            class="flex-1 py-3 bg-primary text-white rounded-xl text-sm font-bold hover:shadow-lg transition-all">Phê duyệt ngay</button>
+                            class="flex-1 py-3 bg-primary text-white rounded-xl text-sm font-bold hover:shadow-lg hover:bg-primary/90 transition-all shadow-md">Phê duyệt ngay</button>
                         <button onclick="${a.isPO ? `showPODetailInDashboard('${a.id}')` : `alert('Chi tiết đang được tải...')`}" 
-                            class="px-6 py-3 border border-slate-200 text-slate-600 rounded-xl text-sm font-bold hover:bg-slate-50 transition-colors">Chi tiết</button>
+                            class="flex-1 py-3 border border-slate-200 text-slate-600 rounded-xl text-sm font-bold hover:bg-slate-50 transition-colors">Chi tiết</button>
                     </div>
                 </div>
             `).join('') || `
@@ -897,9 +897,16 @@
         issues.forEach(issue => {
             const details = issueDetails.filter(d => _flatten(d.IssueID) === issue.IssueID);
             details.forEach(d => {
-                const p = products.find(prod => prod.ProductID === _flatten(d.ProductID));
+                let pid = _flatten(d.ProductID);
+                if (!pid && d.BatchID) {
+                    const batchId = _flatten(d.BatchID);
+                    const batch = (window.MockData.BATCHES || []).find(b => b.BatchID === batchId || b.Batchcode === batchId);
+                    if (batch) pid = _flatten(batch.ProductID);
+                }
+                const p = products.find(prod => prod.ProductID === pid);
                 const price = p?.ImportPrice || p?.UnitPrice || 50000;
-                totalOutValue += (d.ActualQty || 0) * price * 1.2;
+                const qty = parseFloat(d.ActualQty || d.ShippedQty || d.OrderedQty || d.Qty || d.Quantity || 0);
+                totalOutValue += qty * price * 1.2;
             });
         });
 
@@ -932,9 +939,17 @@
         
         if (Array.isArray(sourceData)) {
             sourceData.forEach(d => {
-                const pid = _flatten(d.ProductID);
+                let pid = _flatten(d.ProductID);
+                
+                // Fallback: If no ProductID, try to get it from BatchID (common in Issue_Details)
+                if (!pid && d.BatchID) {
+                    const batchId = _flatten(d.BatchID);
+                    const batch = (window.MockData.BATCHES || []).find(b => b.BatchID === batchId || b.Batchcode === batchId);
+                    if (batch) pid = _flatten(batch.ProductID);
+                }
+
                 if (pid) {
-                    const qty = parseFloat(d.ActualQty || d.OrderedQty || d.Qty || d.Quantity || 0);
+                    const qty = parseFloat(d.ShippedQty || d.ActualQty || d.OrderedQty || d.Qty || d.Quantity || 0);
                     prodSales[pid] = (prodSales[pid] || 0) + qty;
                 }
             });

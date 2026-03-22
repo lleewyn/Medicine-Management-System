@@ -302,8 +302,7 @@
                     </div>
                 </div>
                 <div class="grid grid-cols-4 gap-2" id="location-suggestions">
-                        <p class="col-span-4 text-xs text-slate-400 text-center py-2">Chọn Khu vực để xem gợi ý</p>
-                    </div>
+                    <p class="col-span-4 text-xs text-slate-400 text-center py-2">Chọn Khu vực để xem gợi ý</p>
                 </div>
 
                 <!-- FR-NK-04: AQL Rules Display -->
@@ -769,6 +768,14 @@
                 if (step === 2) {
                     const poId = document.getElementById('po-select-receive').value;
                     if (!poId) { alert('Vui lòng chọn PO!'); return; }
+
+                    // Kiểm tra checklist chứng từ (Bước 1)
+                    const checkboxes = document.querySelectorAll('#document-checklist input[type="checkbox"]');
+                    const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+                    if (!allChecked && checkboxes.length > 0) {
+                        alert('Vui lòng kiểm tra và tích xác nhận đầy đủ 4 loại chứng từ nhập kho!');
+                        return;
+                    }
                     const po = window.MockData.PURCHASE_ORDERS.find(p => p.PO_ID === poId);
                     const items = po.itemsDetails || [];
 
@@ -786,9 +793,13 @@
                     }
 
                     const select = document.getElementById('input-product-id');
+                    if (!select) return;
+
                     select.innerHTML = items.map(it => {
                         const p = products.find(x => x.ProductID === it.ProductID) || { ProductName: it.ProductID };
-                        return `<option value="${it.ProductID}">${p.ProductName} (Số lượng trong PO: ${it.OrderedQty})</option>`;
+                        const remaining = (it.OrderedQty || 0) - (it.ReceivedQty || 0);
+                        const isDone = remaining <= 0;
+                        return `<option value="${it.ProductID}" ${isDone ? 'disabled' : ''}>${p.ProductName} (${isDone ? 'ĐÃ NHẬN ĐỦ' : `Còn lại: ${remaining} / ${it.OrderedQty}`})</option>`;
                     }).join('') || '<option value="">-- PO này không có chi tiết sản phẩm --</option>';
                     
                     // Trigger flow classify again just in case
@@ -937,7 +948,7 @@
                     });
 
                     lastCreatedBatchID = newBatch.BatchID;
-                    window.MockData.updatePOReceived(poId, qty);
+                    window.MockData.updatePOReceived(poId, qty, product.ProductID, newBatch.BatchID);
                     document.getElementById('btn-print-label').classList.remove('hidden');
                     document.getElementById('success-modal').classList.add('open');
                 })();

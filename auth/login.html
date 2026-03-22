@@ -202,8 +202,9 @@
                 // Thử đăng nhập qua NocoDB trước nếu có API_TOKEN
                 let user = null;
                 if (window.NocoBridge.API_TOKEN && window.NocoBridge.API_TOKEN !== 'YOUR_API_TOKEN_HERE') {
+                    // Search by Email prefix (username)
                     const users = await window.NocoBridge.fetchTable('Users', {
-                        where: `(username,eq,${username})~and(password,eq,${password})`
+                        where: `(Email,like,${username}@%)`
                     });
                     if (users && users.length > 0) user = users[0];
                 }

@@ -16,7 +16,8 @@ const NocoMappers = {
             // Prioritize Display Names (Product, Supplier, Customer, Location) over everything else
             return field.ProductName || field.SupplierName || field.CustomerName || field.LocationName || field.FullName || field.Name || 
                    field.CategoryName || field.CategoryID || field.BatchID || field.SupplierID || field.ProductID || field.CustomerID || 
-                   field.LocationID || field.PO_ID || field.SO_ID || field.DetailID || Object.values(field)[0];
+                   field.LocationID || field.PO_ID || field.SO_ID || field.IssueID || field.ReceiptID || field.CheckID || field.RecallID ||
+                   field.DetailID || field.SODetailID || field.PODetailID || Object.values(field)[0];
         }
         return String(field);
     },
@@ -138,9 +139,9 @@ const NocoMappers = {
             ...nocoUser,
             UserID: this._flatten(nocoUser.UserID) || nocoUser.Id,
             FullName: this._flatten(nocoUser.FullName),
-            username: (this._flatten(nocoUser.Email) || '').split('@')[0] || `user${nocoUser.Id}`,
+            username: (this._flatten(nocoUser.Email) || '').split('@')[0] || nocoUser.username || `user${nocoUser.Id}`,
             email: this._flatten(nocoUser.Email),
-            role: roleMapByCode[roleCode] || 'WAREHOUSE_STAFF',
+            role: nocoUser.role || roleMapByCode[roleCode] || 'WAREHOUSE_STAFF',
             avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(this._flatten(nocoUser.FullName) || 'U')}&background=7C3AED&color=fff`
         };
     },
